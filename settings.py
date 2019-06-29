@@ -1,2 +1,2 @@
 username = 'restorecyclebin@gmail.com'
-password = 'iamjacky123'
+password = '123456'
