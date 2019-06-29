@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import requests, time, json
+import requests, time, json, itertools
 import re, sys, os
 from util import log
+from multiprocessing import Pool as ThreadPool
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -101,6 +102,15 @@ class SearchPage():
             log('Failed:', str(e))
             return None
 
+
+
+
+
+
+
+
+
+
 class ArtworkPage():
     referer_url = 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='
     ajax_url = 'https://www.pixiv.net/ajax/illust/'
@@ -108,25 +118,33 @@ class ArtworkPage():
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     }
 
+
+
+
     def __init__(self, session, id):
         self.session = session
         self.id = str(id)
         self.ajax_url = self.ajax_url + self.id
         self.headers['referer'] = self.referer_url + self.id
         log('Getting data from id:', self.id, '... ', end='')
-        try:
-            respond = self.session.get(self.ajax_url, headers=self.headers)
-            log('done')
-            image_data = json.loads(respond.content)
-            self.original_url = image_data['body']['urls']['original']
-            self.views = image_data['body']['viewCount']
-            self.bookmarks = image_data['body']['bookmarkCount']
-            self.likes = image_data['body']['likeCount']
-            self.comments = image_data['body']['commentCount']
-            self.title = image_data['body']['illustTitle']
-            self.file_name = re.search(r'/([\d]+_p0.*)', self.original_url).group(1)
-        except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
-            log('failed:', str(e))
+        count = 0
+        while count < 3:
+            try:
+                respond = self.session.get(self.ajax_url, headers=self.headers)
+                log('done')
+                image_data = json.loads(respond.content)
+                self.original_url = image_data['body']['urls']['original']
+                self.views = image_data['body']['viewCount']
+                self.bookmarks = image_data['body']['bookmarkCount']
+                self.likes = image_data['body']['likeCount']
+                self.comments = image_data['body']['commentCount']
+                self.title = image_data['body']['illustTitle']
+                self.author = image_data['body']['userName']
+                self.file_name = re.search(r'/([\d]+_p0.*)', self.original_url).group(1)
+                return
+            except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
+                count += 1
+                log('failed:', count, str(e))
 
 
     def download_original_pic(self, folder):
@@ -134,7 +152,8 @@ class ArtworkPage():
         if os.path.isfile(file_name):
             log(file_name, 'exists, skipped')
             return
-        log('Retrieving original image from:', self.original_url, '... ', end='')
+        log('Retrieving original image <', self.title, '> by <', self.author, '>', '... ')
+        log('Image url:', self.original_url)
         count = 0
         while count < 3:
             try:
@@ -144,11 +163,22 @@ class ArtworkPage():
                 log('done')
                 break
             except requests.exceptions.RequestException as e:
+                count += 1
                 log('failed', count)
-                count += 1
             except Exception as e:
-                log('failed unexpectedly', count)
                 count += 1
+                log('failed unexpectedly', count)
+
+
+def static_download(tuple_of_session_folder_id):
+    download_session = tuple_of_session_folder_id[0]
+    download_folder = tuple_of_session_folder_id[1]
+    id = tuple_of_session_folder_id[2]
+    if not download_folder or not download_session:
+        raise Exception('Please set the download folder and session before using this method')
+        return
+    ArtworkPage(download_session, id).download_original_pic(download_folder)
+
 
 
 class Pixiv():
@@ -168,10 +198,16 @@ class Pixiv():
         folder = '#' + str(keyword) + '-' + str(type) + '-' + str(popularity) + '-' + str(dimension) + '-' + str(page)
         if not os.path.exists(folder):
             os.mkdir(folder)
-        for index, id in enumerate(ids):
-            print('#', index + 1, '/', total)
-            ArtworkPage(self.session, id).download_original_pic(folder)
-        log('done', total, '=>', folder)
+
+
+        download_folder = itertools.repeat(folder)
+        download_session = itertools.repeat(self.session)
+        pool = ThreadPool(8)
+        pool.map(static_download, zip(download_session, download_folder, ids))
+        pool.close()
+        pool.join()
+
+        log('done', '=>', folder)
 
 
 
@@ -179,4 +215,4 @@ import settings
 
 if __name__ == '__main__':
     pixiv = Pixiv(settings.username, settings.password)
-    pixiv.search(keyword='arknights', popularity=1000, type='illust', page=1)
+    pixiv.search(keyword='艦隊これくしょん', popularity=10000, type='illust', page=1)
