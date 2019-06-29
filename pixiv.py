@@ -118,20 +118,15 @@ class ArtworkPage():
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     }
 
-
-
-
     def __init__(self, session, id):
         self.session = session
         self.id = str(id)
         self.ajax_url = self.ajax_url + self.id
         self.headers['referer'] = self.referer_url + self.id
-        log('Getting data from id:', self.id, '... ', end='')
         count = 0
         while count < 3:
             try:
                 respond = self.session.get(self.ajax_url, headers=self.headers)
-                log('done')
                 image_data = json.loads(respond.content)
                 self.original_url = image_data['body']['urls']['original']
                 self.views = image_data['body']['viewCount']
@@ -152,32 +147,26 @@ class ArtworkPage():
         if os.path.isfile(file_name):
             log(file_name, 'exists, skipped')
             return
-        log('Retrieving original image <', self.title, '> by <', self.author, '>', '... ')
-        log('Image url:', self.original_url)
         count = 0
         while count < 3:
             try:
                 original_pic = self.session.get(self.original_url, headers=self.headers)
                 with open(file_name, 'wb') as file:
                     file.write(original_pic.content)
-                log('done')
+                log('Original image <', self.title, '> by <', self.author, '>: success')
                 break
             except requests.exceptions.RequestException as e:
                 count += 1
-                log('failed', count)
+                log('Original image <', self.title, '> by <', self.author, '>: failed:', count)
             except Exception as e:
                 count += 1
-                log('failed unexpectedly', count)
+                log('Original image <', self.title, '> by <', self.author, '>: failed:', count)
 
-
-def static_download(tuple_of_session_folder_id):
-    download_session = tuple_of_session_folder_id[0]
-    download_folder = tuple_of_session_folder_id[1]
+def parallel_download(tuple_of_session_folder_id):
+    session = tuple_of_session_folder_id[0]
+    folder = tuple_of_session_folder_id[1]
     id = tuple_of_session_folder_id[2]
-    if not download_folder or not download_session:
-        raise Exception('Please set the download folder and session before using this method')
-        return
-    ArtworkPage(download_session, id).download_original_pic(download_folder)
+    ArtworkPage(session, id).download_original_pic(folder)
 
 
 
@@ -199,11 +188,10 @@ class Pixiv():
         if not os.path.exists(folder):
             os.mkdir(folder)
 
-
         download_folder = itertools.repeat(folder)
         download_session = itertools.repeat(self.session)
-        pool = ThreadPool(8)
-        pool.map(static_download, zip(download_session, download_folder, ids))
+        pool = ThreadPool(16)
+        pool.map(parallel_download, zip(download_session, download_folder, ids))
         pool.close()
         pool.join()
 
@@ -215,4 +203,4 @@ import settings
 
 if __name__ == '__main__':
     pixiv = Pixiv(settings.username, settings.password)
-    pixiv.search(keyword='艦隊これくしょん', popularity=10000, type='illust', page=1)
+    pixiv.search(keyword='女の子', popularity=10000, type='illust', page=1)
