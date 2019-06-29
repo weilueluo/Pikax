@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import requests, time, json
-import re, sys
+import re, sys, os
 from util import log
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -129,17 +129,26 @@ class ArtworkPage():
             log('failed:', str(e))
 
 
-    def get_original_pic(self):
+    def download_original_pic(self, folder):
+        file_name = folder + '/' + self.file_name
+        if os.path.isfile(file_name):
+            log(file_name, 'exists, skipped')
+            return
         log('Retrieving original image from:', self.original_url, '... ', end='')
-        try:
-            original_pic = self.session.get(self.original_url, headers=self.headers)
-            with open(self.file_name, 'wb') as file:
-                file.write(original_pic.content)
-            log('done')
-        except requests.exceptions.RequestException as e:
-            log('failed')
-
-
+        count = 0
+        while count < 3:
+            try:
+                original_pic = self.session.get(self.original_url, headers=self.headers)
+                with open(file_name, 'wb') as file:
+                    file.write(original_pic.content)
+                log('done')
+                break
+            except requests.exceptions.RequestException as e:
+                log('failed', count)
+                count += 1
+            except Exception as e:
+                log('failed unexpectedly', count)
+                count += 1
 
 
 class Pixiv():
@@ -155,11 +164,14 @@ class Pixiv():
 
     def search(self, keyword="", type="", dimension="", mode="", popularity="", page=1):
         ids = self.search_page.get_ids(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, page=page)
-        for id in ids:
-            ArtworkPage(self.session, id).get_original_pic()
-
-
-        log('done')
+        total = len(ids)
+        folder = '#' + str(keyword) + '-' + str(type) + '-' + str(popularity) + '-' + str(dimension) + '-' + str(page)
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+        for index, id in enumerate(ids):
+            print('#', index + 1, '/', total)
+            ArtworkPage(self.session, id).download_original_pic(folder)
+        log('done', total, '=>', folder)
 
 
 
@@ -167,4 +179,4 @@ import settings
 
 if __name__ == '__main__':
     pixiv = Pixiv(settings.username, settings.password)
-    ids = pixiv.search(keyword='女の子', popularity=10000, type='illust', dimension='horizontal')
+    pixiv.search(keyword='arknights', popularity=1000, type='illust', page=1)
