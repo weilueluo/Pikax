@@ -3,6 +3,7 @@
 import requests, time, itertools
 import re, sys, os
 from util import log
+import multiprocessing
 from multiprocessing import Pool as ThreadPool
 from pages import LoginPage, SearchPage
 from items import Artwork
@@ -39,28 +40,40 @@ class Pixiv:
         return a list of ArtWork object
         """
     def search(self, keyword="", type="", dimension="", mode="", popularity="", page=1):
-        ids = self.search_page.get_ids(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, page=page)
-        pool = ThreadPool(4)
-        sessions = itertools.repeat(self.session)
-
         start = time.time()
-        results = pool.imap_unordered(Artwork.factory, zip(sessions, ids), chunksize=os.cpu_count())
-        pool.close()
-        pool.join()
-        log('Time taken to generate artworks:', time.time() - start, 's')
+        log('Generating Artwork objects ... ', end='')
+        ids = self.search_page.get_ids(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, page=page)
+        pool = ThreadPool(8)
+        sessions = itertools.repeat(self.session)
+        artworks = []
+        try:
+            artworks = pool.imap_unordered(Artwork.factory, zip(sessions, ids))
+        except multiprocessing.ProcessError as e:
+            log('Error:', str(e))
+        finally:
+            pool.close()
+            pool.join()
+            log('done', time.time() - start, 's')
+
+        results = {}
+        results['items'] = artworks
+        results['folder'] = '#{keyword}-{type}-{dimension}-{mode}-{popularity}-{page}'.format(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, page=page)
         return results
+        # results['group_by'] = 'default'
 
-
-    def download(self, artworks, folder="", group_by="artists"):
+    def download(self, data, folder="", group_by=""): # group by is not yet implement
+        start = time.time()
+        if not folder:
+            folder = data['folder']
         if not os.path.exists(folder):
             os.mkdir(folder)
-        pass
-
-
-
-import settings
-
-if __name__ == '__main__':
-    pixiv = Pixiv(settings.username, settings.password)
-    results = pixiv.search(keyword='女の子', popularity=10000, type='illust', page=1)
-    print(results)
+        folders = itertools.repeat(folder)
+        pool = ThreadPool(4)
+        try:
+            res = pool.map(Artwork.downloader, zip(data['items'], folders))
+        except multiprocessing.ProcessError as e:
+            log('Error:', str(e))
+        finally:
+            pool.close()
+            pool.join()
+            log('done', time.time() - start, 's =>', str(folder))
