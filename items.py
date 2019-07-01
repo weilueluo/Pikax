@@ -15,9 +15,9 @@ class Artwork():
         self.session = session
         self.id = str(id)
         self.ajax_url = self.ajax_url + self.id
-        self.headers['referer'] = self.referer_url + self.id
-        count = 0
-        while count < 3:
+        tries = 0
+        while tries < 3:
+            tries += 1
             try:
                 respond = self.session.get(self.ajax_url, headers=self.headers)
                 image_data = json.loads(respond.content)
@@ -31,19 +31,18 @@ class Artwork():
                 self.file_name = re.search(r'/([\d]+_p0.*)', self.original_url).group(1)
                 return
             except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
-                count += 1
-                log('failed:', count, str(e))
+                log('failed artwork init:', tries, str(e))
 
     # for multiprocessing
-    def factory(tuple):
-        session = tuple[0]
-        id = tuple[1]
+    def factory(zipped_var_tuple):
+        session = zipped_var_tuple[0]
+        id = zipped_var_tuple[1]
         return Artwork(session, id)
 
     # for multiprocessing
-    def downloader(tuple):
-        artwork = tuple[0]
-        folder = tuple[1]
+    def downloader(zipped_var_tuple):
+        artwork = zipped_var_tuple[0]
+        folder = zipped_var_tuple[1]
         artwork.download(folder=folder)
 
     # proxies = []
@@ -64,18 +63,20 @@ class Artwork():
         if os.path.isfile(self.file_name):
             log(self.file_name, 'exists, skipped')
             return
+        # pixiv check will check referer
+        self.headers['referer'] = self.referer_url + self.id
         count = 0
-        while True:
+        while count < 3:
             try:
+                count += 1
                 original_pic_respond = self.session.get(self.original_url, headers=self.headers)
                 if original_pic_respond.status_code < 400:
                     with open(self.file_name, 'wb') as file:
                         file.write(original_pic_respond.content)
-                    log('Original image <', self.title, '> by <', self.author, '>: success')
+                    log('Original image <', self.title, '> by <', self.author, '> OK')
                     break
                 else:
-                    log('Failed:', original_pic_respond.status_code)
+                    log('Failed:', original_pic_respond.status_code, count, 'id:', self.id)
             except requests.exceptions.RequestException as e:
-                count += 1
                 log('Original image <', self.title, '> by <', self.author, '>: failed:', count)
                 log('Reason:', str(e))

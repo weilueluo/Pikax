@@ -99,5 +99,5 @@ class SearchPage:
             log('done:', len(ids))
             return set(ids)
         except requests.exceptions.RequestException as e:
-            log('Failed:', str(e))
+            log('Failed getting ids:', str(e))
             return None

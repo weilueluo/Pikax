@@ -49,6 +49,7 @@ class Pixiv:
         try:
             artworks = pool.imap_unordered(Artwork.factory, zip(sessions, ids))
         except multiprocessing.ProcessError as e:
+            pool.terminate()
             log('Error:', str(e))
         finally:
             pool.close()
@@ -68,10 +69,11 @@ class Pixiv:
         if not os.path.exists(folder):
             os.mkdir(folder)
         folders = itertools.repeat(folder)
-        pool = ThreadPool(4)
+        pool = ThreadPool(8)
         try:
             res = pool.map(Artwork.downloader, zip(data['items'], folders))
         except multiprocessing.ProcessError as e:
+            pool.terminate()
             log('Error:', str(e))
         finally:
             pool.close()
