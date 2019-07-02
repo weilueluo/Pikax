@@ -107,7 +107,7 @@ class SearchPage:
 
     def get_ids_recusion_helper(self, params, keyword, popularity, max_page, curr_page=1, ids_sofar=[]):
         if max_page != None and curr_page > max_page:
-            return []
+            return ids_sofar
         try:
             params['p'] = curr_page
             params['word'] = str(keyword) + ' ' + str(popularity) + ' ' + self.search_popularity_postfix
@@ -117,13 +117,13 @@ class SearchPage:
 
             # checking if any new item is added
             old_len = len(ids_sofar)
-            ids_sofar += unique_ids
+            ids_sofar += ids
             ids_sofar = list(set(ids_sofar))
             new_len = len(ids_sofar)
             if old_len == new_len: # if no new item added, end of page
-                return []
+                return ids_sofar
             curr_page += 1
-            unique_ids.extend(self.get_ids_recusion_helper(params=params, keyword=keyword, popularity=popularity, max_page=max_page, curr_page=curr_page, ids_sofar=ids_sofar))
-            return unique_ids
+            ids_sofar = self.get_ids_recusion_helper(params=params, keyword=keyword, popularity=popularity, max_page=max_page, curr_page=curr_page, ids_sofar=ids_sofar)
+            return ids_sofar
         except requests.exceptions.RequestException as e:
             log('Failed getting ids:', str(e), 'from params', str(params), 'page:', curr_page)

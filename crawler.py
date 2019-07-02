@@ -13,5 +13,5 @@ page: which page of the search results to crawl | default 1
 
 if __name__ == '__main__':
     pixiv = Pixiv()
-    results = pixiv.search(keyword='少女', popularity=20000, type='illust')
+    results = pixiv.search(keyword='天火', type='illust')
     pixiv.download(results)

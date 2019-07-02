@@ -82,4 +82,4 @@ class Pixiv:
         finally:
             pool.close()
             pool.join()
-            log('done', str(time.time() - start) + 's =>', str(folder))
+            log('done. Time taken:', str(time.time() - start) + 's =>', str(folder))
