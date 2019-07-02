@@ -1,4 +1,3 @@
-import settings
 from pixiv import Pixiv
 
 
@@ -13,6 +12,6 @@ page: which page of the search results to crawl | default 1
 
 
 if __name__ == '__main__':
-    pixiv = Pixiv(settings.username, settings.password)
-    results = pixiv.search(keyword='少女', popularity=10000, type='illust', page=1)
+    pixiv = Pixiv()
+    results = pixiv.search(keyword='少女', popularity=20000, type='illust')
     pixiv.download(results)

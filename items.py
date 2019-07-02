@@ -11,15 +11,14 @@ class Artwork():
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     }
 
-    def __init__(self, session, id):
-        self.session = session
+    def __init__(self, id):
         self.id = str(id)
         self.ajax_url = self.ajax_url + self.id
         tries = 0
         while tries < 3:
             tries += 1
             try:
-                respond = self.session.get(self.ajax_url, headers=self.headers)
+                respond = requests.get(self.ajax_url, headers=self.headers)
                 image_data = json.loads(respond.content)
                 self.original_url = image_data['body']['urls']['original']
                 self.views = image_data['body']['viewCount']
@@ -34,10 +33,8 @@ class Artwork():
                 log('failed artwork init:', tries, str(e))
 
     # for multiprocessing
-    def factory(zipped_var_tuple):
-        session = zipped_var_tuple[0]
-        id = zipped_var_tuple[1]
-        return Artwork(session, id)
+    def factory(id):
+        return Artwork(id)
 
     # for multiprocessing
     def downloader(zipped_var_tuple):
@@ -45,23 +42,12 @@ class Artwork():
         folder = zipped_var_tuple[1]
         artwork.download(folder=folder)
 
-    # proxies = []
-    # def get_proxy():
-    #     if Artwork.proxies:
-    #         if len(Artwork.proxies)
-    #     proxy_url = 'https://gimmeproxy.com/api/getProxy?anonymityLevel=1&country=JP&anonymityLevel=1'
-    #     proxy_respond = requests.get(proxy_url, headers=self.headers)
-    #     proxy_dict = json.loads(proxy_respond)
-    #     ip = proxy_dict['ip']
-    #     port = proxy_dict['port']
-    #     protocol = proxy_dict['type']
-    #     proxies = {protocol: ip + ':' + port}
-
     def download(self, folder=""):
         if folder:
             self.file_name = folder + '/' + self.file_name
+        pic_detail = '<' + str(self.title) + '> by <' + str(self.author) + '>'
         if os.path.isfile(self.file_name):
-            log(self.file_name, 'exists, skipped')
+            log(pic_detail, 'skipped, reason:', self.file_name, 'exists', )
             return
         # pixiv check will check referer
         self.headers['referer'] = self.referer_url + self.id
@@ -69,14 +55,14 @@ class Artwork():
         while count < 3:
             try:
                 count += 1
-                original_pic_respond = self.session.get(self.original_url, headers=self.headers)
+                original_pic_respond = requests.get(self.original_url, headers=self.headers)
                 if original_pic_respond.status_code < 400:
                     with open(self.file_name, 'wb') as file:
                         file.write(original_pic_respond.content)
-                    log('Original image <', self.title, '> by <', self.author, '> OK')
+                    log(pic_detail, 'OK')
                     break
                 else:
                     log('Failed:', original_pic_respond.status_code, count, 'id:', self.id)
             except requests.exceptions.RequestException as e:
-                log('Original image <', self.title, '> by <', self.author, '>: failed:', count)
+                log(pic_detail, ' failed:', count)
                 log('Reason:', str(e))

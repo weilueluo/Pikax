@@ -10,11 +10,10 @@ from items import Artwork
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-def parallel_download(tuple_of_session_folder_id):
-    session = tuple_of_session_folder_id[0]
-    folder = tuple_of_session_folder_id[1]
-    id = tuple_of_session_folder_id[2]
-    ArtworkPage(session, id).download_original_pic(folder)
+def parallel_download(tuple_of_folder_id):
+    folder = tuple_of_folder_id[0]
+    id = tuple_of_folder_id[1]
+    ArtworkPage(id).download_original_pic(folder)
 
 
 class Pixiv:
@@ -23,10 +22,27 @@ class Pixiv:
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     }
 
-    def __init__(self, username, password):
-        self.login_page = LoginPage()
-        self.session = self.login_page.login(username, password)
-        self.search_page = SearchPage(self.session)
+    def __init__(self):
+        # self.login_page = LoginPage()
+        # self.session = self.login_page.login(username, password)
+        self.search_page = SearchPage()
+
+    def generate_artworks_from_ids(self, ids):
+        start = time.time()
+        log('Generating Artwork objects ... ')
+        pool = ThreadPool(8)
+        artworks = []
+        try:
+            artworks = pool.imap_unordered(Artwork.factory, ids)
+        except multiprocessing.ProcessError as e:
+            pool.terminate()
+            log('Error:', str(e))
+        finally:
+            pool.close()
+            pool.join()
+            log('Done. Tried', len(ids), 'artworks objects in' ,str(time.time() - start) + 's')
+
+        return artworks
 
 
         """
@@ -39,31 +55,19 @@ class Pixiv:
 
         return a list of ArtWork object
         """
-    def search(self, keyword="", type="", dimension="", mode="", popularity="", page=1):
-        start = time.time()
-        log('Generating Artwork objects ... ', end='')
-        ids = self.search_page.get_ids(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, page=page)
-        pool = ThreadPool(8)
-        sessions = itertools.repeat(self.session)
-        artworks = []
-        try:
-            artworks = pool.imap_unordered(Artwork.factory, zip(sessions, ids))
-        except multiprocessing.ProcessError as e:
-            pool.terminate()
-            log('Error:', str(e))
-        finally:
-            pool.close()
-            pool.join()
-            log('done', time.time() - start, 's')
+    def search(self, keyword, max_page=None, type=None, dimension=None, mode=None, popularity=None):
+        ids = self.search_page.get_ids(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, max_page=max_page)
 
         results = {}
-        results['items'] = artworks
-        results['folder'] = '#{keyword}-{type}-{dimension}-{mode}-{popularity}-{page}'.format(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, page=page)
+        results['items'] = self.generate_artworks_from_ids(ids)
+        results['folder'] = '#{keyword}-{type}-{dimension}-{mode}-{popularity}-{max_page}'.format(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, max_page=max_page)
         return results
         # results['group_by'] = 'default'
 
+
     def download(self, data, folder="", group_by=""): # group by is not yet implement
         start = time.time()
+        log('Starting downloads...')
         if not folder:
             folder = data['folder']
         if not os.path.exists(folder):
@@ -78,4 +82,4 @@ class Pixiv:
         finally:
             pool.close()
             pool.join()
-            log('done', time.time() - start, 's =>', str(folder))
+            log('done', str(time.time() - start) + 's =>', str(folder))

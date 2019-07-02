@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import requests, re
+import requests, re, time
 from util import log
 
-
+# not used, no need to login
 class LoginPage:
     post_key_url = 'https://accounts.pixiv.net/login?'
     login_url = 'https://accounts.pixiv.net/api/login?lang=en'
@@ -11,6 +11,7 @@ class LoginPage:
         'referer': 'https://www.pixiv.net/',
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     }
+
     def __init__(self):
         self.session = requests.Session()
         log('Generated Session')
@@ -49,8 +50,6 @@ class LoginPage:
             return None
 
 
-
-
 class SearchPage:
     search_url = 'https://www.pixiv.net/search.php?'
     search_popularity_postfix = u'users入り'
@@ -59,6 +58,7 @@ class SearchPage:
         'referer': 'https://www.pixiv.net/',
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     }
+    popularity_list = [500, 1000, 5000, 10000, 20000]
 
     """
     keyword: string to search
@@ -66,17 +66,18 @@ class SearchPage:
     dimension: vertical | horizontal | square | default any
     mode: strict_tag | loose | default tag contains
     popularity: a number, add after search keyword as: number users入り | default date descending
-    page: which page of the search results to crawl | default 1
+    max_page: how many pages to crawl | default all pages found
     """
 
-    def __init__(self, session):
-        self.session = session
+    def __init__(self):
+        pass
 
-    def get_ids(self, keyword="", type="", dimension="", mode="", popularity="", page=1):
+    def get_ids(self, keyword, max_page=None, type=None, dimension=None, mode=None, popularity=None):
+        # if max_page is None, it will search all pages
+        log('Start searching for id with keyword:', keyword)
+        start = time.time()
+        # setting parameters
         params = dict()
-        if keyword: # default display tags
-            popularity = str(popularity) + ' ' + self.search_popularity_postfix
-            params['word'] = str(keyword) + ' ' + popularity
         if type: # default match all type
             params['type'] = type
         if dimension: # default match all ratios
@@ -91,13 +92,38 @@ class SearchPage:
                 params['s_mode'] = 's_tag_full'
             if mode == 'loose':
                 params['s_mode'] = 's_tc'
-        params['p'] = page
-        log('Searching id for params:', str(params), '...', end=' ')
+
+        # search all ids from pages
+        ids = []
+        if popularity:
+            ids = self.get_ids_recusion_helper(params=params, keyword=keyword, max_page=max_page, popularity=popularity)
+        else:
+            for popularity in self.popularity_list:
+                ids.extend(self.get_ids_recusion_helper(params=params, keyword=keyword, max_page=max_page, popularity=popularity))
+
+        ids = set(ids)
+        log('Found', str(len(ids)), 'ids for', params, 'in', str(time.time() - start) + 's')
+        return ids
+
+    def get_ids_recusion_helper(self, params, keyword, popularity, max_page, curr_page=1, ids_sofar=[]):
+        if max_page != None and curr_page > max_page:
+            return []
         try:
-            results = self.session.get(self.search_url, headers=self.headers, params=params)
+            params['p'] = curr_page
+            params['word'] = str(keyword) + ' ' + str(popularity) + ' ' + self.search_popularity_postfix
+            log('Searching id for params:', params, 'at page:', curr_page)
+            results = requests.get(self.search_url, headers=self.headers, params=params)
             ids = re.findall(self.search_regex, results.text)
-            log('done:', len(ids))
-            return set(ids)
+
+            # checking if any new item is added
+            old_len = len(ids_sofar)
+            ids_sofar += unique_ids
+            ids_sofar = list(set(ids_sofar))
+            new_len = len(ids_sofar)
+            if old_len == new_len: # if no new item added, end of page
+                return []
+            curr_page += 1
+            unique_ids.extend(self.get_ids_recusion_helper(params=params, keyword=keyword, popularity=popularity, max_page=max_page, curr_page=curr_page, ids_sofar=ids_sofar))
+            return unique_ids
         except requests.exceptions.RequestException as e:
-            log('Failed getting ids:', str(e))
-            return None
+            log('Failed getting ids:', str(e), 'from params', str(params), 'page:', curr_page)
