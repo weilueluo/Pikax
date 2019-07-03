@@ -102,7 +102,7 @@ class SearchPage:
                 ids.extend(self.get_ids_recusion_helper(params=params, keyword=keyword, max_page=max_page, popularity=popularity))
 
         ids = set(ids)
-        log('Found', str(len(ids)), 'ids for', params, 'in', str(time.time() - start) + 's')
+        log('Found', str(len(ids)), 'ids for', keyword, 'in', str(time.time() - start) + 's')
         return ids
 
     def get_ids_recusion_helper(self, params, keyword, popularity, max_page, curr_page=1, ids_sofar=[]):
@@ -127,3 +127,7 @@ class SearchPage:
             return ids_sofar
         except requests.exceptions.RequestException as e:
             log('Failed getting ids:', str(e), 'from params', str(params), 'page:', curr_page)
+
+
+class RankingPage:
+    

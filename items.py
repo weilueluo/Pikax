@@ -66,3 +66,22 @@ class Artwork():
             except requests.exceptions.RequestException as e:
                 log(pic_detail, ' failed:', count)
                 log('Reason:', str(e))
+
+
+
+class SearchResult:
+    def __init__(self, artworks):
+        self.artworks = [artwork for artwork in artworks]
+        self.len = len(self.artworks)
+        count = 0
+        while True:
+            self.folder = 'PixivResult' + str(count)
+            count += 1
+            if not os.path.exists(self.folder):
+                break
+
+    def __getitem__(self, index):
+        return self.artworks[index]
+
+    def __len__(self):
+        return self.len
