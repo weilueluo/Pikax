@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import requests, re, time
+import requests, re, time, json
 from util import log
 
 # not used, no need to login
@@ -40,10 +40,10 @@ class LoginPage:
         try:
             respond = self.session.post(self.login_url, data=data, headers=self.headers)
         except requests.exceptions.RequestException as e:
-            print('Failed:', str(e))
+            log('Failed:', str(e))
         log(respond.status_code)
         if respond.status_code < 400:
-            print('Logged successfully into Pixiv')
+            log('Logged successfully into Pixiv')
             return self.session
         else:
             log('Login Failed')
@@ -96,11 +96,10 @@ class SearchPage:
         # search all ids from pages
         ids = []
         if popularity:
-            ids = self.get_ids_recusion_helper(params=params, keyword=keyword, max_page=max_page, popularity=popularity)
+            ids += self.get_ids_recusion_helper(params=params, keyword=keyword, max_page=max_page, popularity=popularity)
         else:
             for popularity in self.popularity_list:
-                ids.extend(self.get_ids_recusion_helper(params=params, keyword=keyword, max_page=max_page, popularity=popularity))
-
+                ids += self.get_ids_recusion_helper(params=params, keyword=keyword, max_page=max_page, popularity=popularity)
         ids = set(ids)
         log('Found', str(len(ids)), 'ids for', keyword, 'in', str(time.time() - start) + 's')
         return ids
@@ -130,4 +129,63 @@ class SearchPage:
 
 
 class RankingPage:
-    
+    url = 'https://www.pixiv.net/ranking.php?'
+    headers = {
+        'referer': 'https://www.pixiv.net/',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
+    }
+
+    def __init__(self):
+        pass
+
+    """
+    mode: daily | weekly | monthly | rookie | original | male | female | default daily
+    max_page: 1 page = 50 artworks | default all pages
+    date: up to which date | default today, format: yyyymmdd
+    content: illust | manga | ugoria | default any
+    """
+    def rank(self, mode='daily', max_page=None, date=None, content=None):
+        params = dict()
+        params['format'] = 'json'
+        params['mode'] = mode
+        if date:
+            params['date'] = date
+        if content:
+            params['content'] = content
+
+        log('Start ranking for mode', mode, '...')
+        start = time.time()
+        ids = []
+        if max_page:
+            for page_num in range(1, int(max_page) + 1):
+                try:
+                    params['p'] = page_num
+                    log('Searching with params', str(params), '...')
+                    res = requests.get(self.url, params=params, headers=self.headers)
+                    res = json.loads(res.content, encoding='utf-8')
+                    if 'error' in res:
+                        log('Error while searching', str(params), 'skipped')
+                        continue
+                    else:
+                        ids += [content['illust_id'] for content in res['contents']]
+                except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
+                    log('Exception while searching', params, 'Reason:', str(e))
+        else:
+            page_num = 0
+            while True:
+                try:
+                    page_num += 1
+                    params['p'] = page_num
+                    log('Searching with params', str(params), '...')
+                    res = requests.get(self.url, params=params, headers=self.headers)
+                    res = json.loads(res.content, encoding='utf-8')
+                    if 'error' in res:
+                        log('End of page while searching', str(params) + '. Finished')
+                        break
+                    else:
+                        ids += [content['illust_id'] for content in res['contents']]
+                except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
+                    log('Exception while searching', params, 'Reason:', str(e))
+        log('Done. Total ids found:', len(ids))
+
+        return ids

@@ -27,7 +27,12 @@ class Artwork():
                 self.comments = image_data['body']['commentCount']
                 self.title = image_data['body']['illustTitle']
                 self.author = image_data['body']['userName']
-                self.file_name = re.search(r'/([\d]+_p0.*)', self.original_url).group(1)
+                res = re.search(r'/([\d]+_.*)', self.original_url)
+                if res == None:
+                    log('failed to look for file_name of id', self.id)
+                    log('string used:', self.original_url)
+                else:
+                    self.file_name = re.sub(r'[:<>"\/|?*]', '', res.group(1)) # remove not allowed chracters as file name in windows
                 return
             except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
                 log('failed artwork init:', tries, str(e))
@@ -43,9 +48,10 @@ class Artwork():
         artwork.download(folder=folder)
 
     def download(self, folder=""):
+        pic_detail = '<' + str(self.title) + '> by <' + str(self.author) + '>'
+        self.file_name = str(self.author) + '_' + self.file_name
         if folder:
             self.file_name = folder + '/' + self.file_name
-        pic_detail = '<' + str(self.title) + '> by <' + str(self.author) + '>'
         if os.path.isfile(self.file_name):
             log(pic_detail, 'skipped, reason:', self.file_name, 'exists', )
             return
@@ -69,10 +75,9 @@ class Artwork():
 
 
 
-class SearchResult:
+class PixivResult:
     def __init__(self, artworks):
         self.artworks = [artwork for artwork in artworks]
-        self.len = len(self.artworks)
         count = 0
         while True:
             self.folder = 'PixivResult' + str(count)
@@ -84,4 +89,7 @@ class SearchResult:
         return self.artworks[index]
 
     def __len__(self):
-        return self.len
+        return len(self.artworks)
+
+    # def append(other_artworks):
+    #     self.artworks.append(other_artworks)
