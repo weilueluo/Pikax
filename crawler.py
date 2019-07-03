@@ -10,7 +10,7 @@ type: manga | illust | ugoira | default any
 dimension: vertical | horizontal | square | default any
 mode: strict_tag | loose | default tag contains
 popularity: a number, add after search keyword as: number users入り | default search all in [500, 1000, 5000, 10000, 20000]
-page: which page of the search results to crawl | default all pages
+max_page: 1 page ~ 39 artwork | default all pages
 
 
 Pixiv.rank:
@@ -20,10 +20,12 @@ date: up to which date | default today, format: yyyymmdd
 content: illust | manga | ugoria | default any
 """
 
-
-if __name__ == '__main__':
+def main():
     pixiv = Pixiv()
     results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000)
     pixiv.download(results)
     results = pixiv.rank(max_page=1, content='illust', mode='daily')
     pixiv.download(results)
+
+if __name__ == '__main__':
+    main()
