@@ -31,11 +31,10 @@ def download_daily_rankings_example():
 def download_favorites_example():
     pixiv = Pixiv()
     pixiv.login(username=settings.username, password=settings.password)
-    favorites = pixiv.favorites(type=type)
+    favorites = pixiv.favorites()
     pixiv.download(favorites)
 
 def download_search_example():
-    download_daily_rankings()
     results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000)
     pixiv.download(results)
 
