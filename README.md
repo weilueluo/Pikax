@@ -1,5 +1,6 @@
 # Pixiv-Crawler
-
+#### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
+---
 ### 依赖
 - Python3
 - Requests
@@ -10,7 +11,7 @@
 
 ### 试用
 ##### 直接运行 crawler.py 或者新建文件：
-##### 下载当日排行榜内容
+##### 下载当日排行榜前50的插画
 ````
   """
   Pixiv.rank parameters:
@@ -24,7 +25,7 @@
   results = pixiv.rank(max_page=1, content='illust', mode='daily')
   pixiv.download(results, folder='#Pixiv_daily_ranking')
 ````
-##### 搜索并下载内容
+##### 搜索并下载少女相关，赞数约10000的横向插画
 ````
   """
   Pixiv.search parameters:
