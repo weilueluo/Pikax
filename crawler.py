@@ -19,8 +19,6 @@ max_page: 1 page = 50 artworks | default all pages
 date: up to which date | default today, format: yyyymmdd
 content: illust | manga | ugoria | default any
 """
-from datetime import datetime, timedelta
-import time, traceback, util
 
 def download_daily_rankings():
     pixiv = Pixiv()
