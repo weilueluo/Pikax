@@ -92,5 +92,5 @@ class Pixiv:
             return None
         ids = self.user.get_favorites(type=type)
         results = PixivResult(self.generate_artworks_from_ids(ids))
-        results.folder = '#' + self.username + ' favorites'
+        results.folder = '#' + self.user.username + ' favorites'
         return results

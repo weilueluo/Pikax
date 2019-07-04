@@ -13,7 +13,7 @@ class LoginPage:
     def get_post_key_from_pixiv(self):
         util.log('Sending request to retrieve post key ... ', end='')
         try:
-            pixiv_login_page = util.post_req(session=self.session, url=self.post_key_url)
+            pixiv_login_page = util.get_req(session=self.session, url=self.post_key_url)
             util.log(pixiv_login_page.status_code)
         except requests.exceptions.RequestException as e:
             util.log('Failed:', str(e))
@@ -31,17 +31,13 @@ class LoginPage:
             'password': password,
             'post_key': self.get_post_key_from_pixiv()
         }
-        util.log('Sending request to attempt login ... ', end='')
-        try:
-            respond = self.session.post(self.login_url, data=data, headers=settings.DEFAULT_HEADERS)
-        except requests.exceptions.RequestException as e:
-            util.log('Failed:', str(e))
-        util.log(respond.status_code)
-        if respond.status_code < 400:
-            util.log('Logged successfully into Pixiv')
+        util.log('Sending request to attempt login ... ')
+        respond = util.post_req(session=self.session, url=self.login_url, data=data, headers=settings.DEFAULT_HEADERS)
+        if respond:
+            util.log('Login successfully into Pixiv as', username)
             return self.session
         else:
-            util.log('Login Failed')
+            util.log('Failed login')
             return None
 
 
@@ -162,6 +158,7 @@ class RankingPage:
                 if res:
                     res = util.json_loads(res.content)
                 else:
+                    util.log('Error while json loading')
                     continue
                 if 'error' in res:
                     util.log('End of page while searching', str(params) + '. Finished')

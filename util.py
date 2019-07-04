@@ -13,13 +13,16 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True):
     print(*objects, sep=sep, end=end, file=file, flush=flush)
 
 
-def get_req(url, params=None, headers=settings.DEFAULT_HEADERS, timeout=settings.TIMEOUT, exception_msg=None, log_req=True):
+def get_req(url, session=None, params=None, headers=settings.DEFAULT_HEADERS, timeout=settings.TIMEOUT, exception_msg=None, log_req=True, verify=True):
     if log_req:
         log('GET:', str(url), 'with:', str(params))
     retries = 0
     while retries < 3:
         try:
-            res = requests.get(url=url, headers=headers, params=params, timeout=timeout)
+            if session:
+                res = session.get(url=url, headers=headers, params=params, timeout=timeout, verify=verify)
+            else:
+                res = requests.get(url=url, headers=headers, params=params, timeout=timeout, verify=verify)
             if res.status_code >= 400:
                 log('Status code error:', res.status_code, retries)
                 retries += 1
@@ -38,13 +41,16 @@ def get_req(url, params=None, headers=settings.DEFAULT_HEADERS, timeout=settings
     log('GET failed:', url)
     return None
 
-def post_req(url, session, params=None, data=None, headers=settings.DEFAULT_HEADERS, timeout=settings.TIMEOUT, exception_msg=None, log_req=True):
+def post_req(url, session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS, timeout=settings.TIMEOUT, exception_msg=None, log_req=True):
     if log_req:
         log('POST:', str(url), 'with:', str(params))
     retries = 0
     while retries < 3:
         try:
-            res = session.post(url=url, headers=headers, data=data, params=params, timeout=timeout)
+            if session:
+                res = session.post(url=url, headers=headers, data=data, params=params, timeout=timeout)
+            else:
+                res = requests.post(url=url, headers=headers, data=data, params=params, timeout=timeout)
             if res.status_code >= 400:
                 log('Status code error:', res.status_code, retries)
                 retries += 1

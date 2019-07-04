@@ -34,7 +34,8 @@ class Artwork():
             util.log('string used:', self.original_url)
             self.file_name = 'unknown_' + self.original_url
         else:
-            self.file_name = re.sub(r'[:<>"\/|?*]', '', res.group(1)) # remove not allowed chracters as file name in windows
+            self.file_name = str(self.author) + '_' + res.group(1)
+            self.file_name = re.sub(r'[:<>"\/|?*]', '', self.file_name) # remove not allowed chracters as file name in windows
         return
 
     # for multiprocessing
@@ -49,7 +50,6 @@ class Artwork():
 
     def download(self, folder=""):
         pic_detail = '<' + str(self.title) + '> by <' + str(self.author) + '>'
-        self.file_name = str(self.author) + '_' + self.file_name
         if folder:
             self.file_name = folder + '/' + self.file_name
         if os.path.isfile(self.file_name):
@@ -91,12 +91,12 @@ class User:
             raise ValueError('Please provide username and password')
         self.session = LoginPage().login(username=username, password=password)
         exception_msg = 'Failed getting data from user: ' + str(username)
-        res = util.post_req(session=self.session, url=self.url, exception_msg=exception_msg)
+        res = util.get_req(session=self.session, url=self.url, exception_msg=exception_msg)
         if res:
             res = re.search(r'class="user-name"title="(.*?)"', res.text)
             self.username = res.group(1) if res else username
         else:
-            log('Failed getting user name, use:', username)
+            util.log('Failed getting user name, use:', username)
             self.username = username
     """
     type: public | private | default both
@@ -111,26 +111,26 @@ class User:
                 params['rest'] = 'hide'
             else:
                 raise ValueError('Invalid type:', str(type))
-            return get_favorites_ids(self.session, url, params)
+            return self.get_favorites_ids(session=self.session, url=self.url, params=params)
         else:
             params['rest'] = 'show'
-            public_ids = get_favorites_ids(self.session, url, params)
+            public_ids = self.get_favorites_ids(session=self.session, url=self.url, params=params)
             params['rest'] = 'hide'
-            private_ids = get_favorites_ids(self.session, url, params)
+            private_ids = self.get_favorites_ids(session=self.session, url=self.url, params=params)
             return public_ids + private_ids
 
 
-    def get_favorites_ids(session, url, params):
+    def get_favorites_ids(self, session, url, params):
         ids = []
         curr_page = 0
         while True:
             curr_page += 1
             params['p'] = curr_page
-            res = util.post_req(session=session, url=self.url, params=params)
+            res = util.get_req(session=session, url=self.url, params=params)
             if res:
-                ids_found = re.findall('\d{8}_p0', res.text)
+                ids_found = re.findall('(\d{8})_p0', res.text)
                 if len(ids_found) == 0:
-                    log('0 id found in this page, reached end')
+                    util.log('0 id found in this page, reached end')
                     break
                 else:
                     ids += ids_found
