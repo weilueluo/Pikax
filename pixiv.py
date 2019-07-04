@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import requests, time, itertools
+import time, itertools, util
 import re, sys, os, math
-from util import log
 import multiprocessing
 from multiprocessing import Pool as ThreadPool
 from pages import SearchPage, RankingPage
@@ -11,10 +10,6 @@ from items import Artwork, PixivResult
 sys.stdout.reconfigure(encoding='utf-8')
 
 class Pixiv:
-    headers = {
-        'referer': 'https://www.pixiv.net/',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
-    }
 
     def __init__(self):
         # self.login_page = LoginPage()
@@ -22,26 +17,20 @@ class Pixiv:
         self.search_page = SearchPage()
         self.ranking_page = RankingPage()
 
-    def get_chunksize(self, total_size):
-        div = math.sqrt(total_size)
-        return int(total_size / (total_size / div))
-
     def generate_artworks_from_ids(self, ids):
         start = time.time()
-        log('Generating Artwork objects ... ')
-        pool = ThreadPool(multiprocessing.cpu_count() * 2)
+        util.log('Generating Artwork objects ... ')
+        pool = ThreadPool(multiprocessing.cpu_count())
         artworks = []
-        num_of_ids = len(ids)
-        chunksize = self.get_chunksize(num_of_ids)
         try:
-            artworks = pool.imap_unordered(Artwork.factory, ids, chunksize=chunksize)
+            artworks = pool.map(Artwork.factory, ids)
         except multiprocessing.ProcessError as e:
             pool.terminate()
-            log('Error:', str(e))
+            util.log('Error:', str(e))
         finally:
             pool.close()
             pool.join()
-            log('Done. Tried', len(ids), 'artworks objects in' ,str(time.time() - start) + 's')
+            util.log('Done. Tried', len(ids), 'artworks objects in' ,str(time.time() - start) + 's')
 
         return artworks
 
@@ -77,21 +66,19 @@ class Pixiv:
 
     def download(self, data, folder=""):
         start = time.time()
-        log('Starting downloads...')
+        util.log('Starting downloads...')
         if not folder:
             folder = data.folder
         if not os.path.exists(folder):
             os.mkdir(folder)
         folders = itertools.repeat(folder)
-        pool = ThreadPool(multiprocessing.cpu_count() * 2)
-        num_of_artworks = len(data.artworks)
-        chunksize = self.get_chunksize(num_of_artworks)
+        pool = ThreadPool(multiprocessing.cpu_count())
         try:
-            res = pool.imap_unordered(Artwork.downloader, zip(data.artworks, folders), chunksize=chunksize)
+            res = pool.map(Artwork.downloader, zip(data.artworks, folders))
         except multiprocessing.ProcessError as e:
             pool.terminate()
-            log('Error:', str(e))
+            util.log('Error:', str(e))
         finally:
             pool.close()
             pool.join()
-            log('done.', len(data.artworks), 'artworks in', str(time.time() - start) + 's =>', str(folder))
+            util.log('done. Tried', len(data.artworks), 'artworks in', str(time.time() - start) + 's =>', str(folder))

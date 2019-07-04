@@ -1,63 +1,60 @@
 # -*- coding: utf-8 -*-
 
-import requests, re, time, json
-from util import log
+import re, time, util
+
+
 
 # not used, no need to login
-class LoginPage:
-    post_key_url = 'https://accounts.pixiv.net/login?'
-    login_url = 'https://accounts.pixiv.net/api/login?lang=en'
-    headers = {
-        'referer': 'https://www.pixiv.net/',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
-    }
-
-    def __init__(self):
-        self.session = requests.Session()
-        log('Generated Session')
-
-    def get_post_key_from_pixiv(self):
-        log('Sending request to retrieve post key ... ', end='')
-        try:
-            pixiv_login_page = self.session.get(self.post_key_url, headers=self.headers)
-            log(pixiv_login_page.status_code)
-        except requests.exceptions.RequestException as e:
-            log('Failed:', str(e))
-        post_key = re.search(r'post_key" value="(.*?)"', pixiv_login_page.text).group(1)
-        if post_key:
-            log('post key successfully retrieved:', post_key)
-        else:
-            log('failed to find post key')
-        return post_key
-
-    def login(self, username, password):
-        data = {
-            'pixiv_id': username,
-            'password': password,
-            'post_key': self.get_post_key_from_pixiv()
-        }
-        log('Sending request to attempt login ... ', end='')
-        try:
-            respond = self.session.post(self.login_url, data=data, headers=self.headers)
-        except requests.exceptions.RequestException as e:
-            log('Failed:', str(e))
-        log(respond.status_code)
-        if respond.status_code < 400:
-            log('Logged successfully into Pixiv')
-            return self.session
-        else:
-            log('Login Failed')
-            return None
+# class LoginPage:
+#     post_key_url = 'https://accounts.pixiv.net/login?'
+#     login_url = 'https://accounts.pixiv.net/api/login?lang=en'
+#     headers = {
+#         'referer': 'https://www.pixiv.net/',
+#         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
+#     }
+#
+#     def __init__(self):
+#         self.session = requests.Session()
+#         util.log('Generated Session')
+#
+#     def get_post_key_from_pixiv(self):
+#         util.log('Sending request to retrieve post key ... ', end='')
+#         try:
+#             pixiv_login_page = self.session.get(self.post_key_url, headers=self.headers)
+#             util.log(pixiv_login_page.status_code)
+#         except requests.exceptions.RequestException as e:
+#             util.log('Failed:', str(e))
+#         post_key = re.search(r'post_key" value="(.*?)"', pixiv_login_page.text).group(1)
+#         if post_key:
+#             util.log('post key successfully retrieved:', post_key)
+#         else:
+#             util.log('failed to find post key')
+#         return post_key
+#
+#     def login(self, username, password):
+#         data = {
+#             'pixiv_id': username,
+#             'password': password,
+#             'post_key': self.get_post_key_from_pixiv()
+#         }
+#         util.log('Sending request to attempt login ... ', end='')
+#         try:
+#             respond = self.session.post(self.login_url, data=data, headers=self.headers)
+#         except requests.exceptions.RequestException as e:
+#             util.log('Failed:', str(e))
+#         util.log(respond.status_code)
+#         if respond.status_code < 400:
+#             util.log('Logged successfully into Pixiv')
+#             return self.session
+#         else:
+#             util.log('Login Failed')
+#             return None
 
 
 class SearchPage:
     search_url = 'https://www.pixiv.net/search.php?'
     search_popularity_postfix = u'users入り'
     search_regex = r'(\d{8})_p0'
-    headers = {
-        'referer': 'https://www.pixiv.net/',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
-    }
     popularity_list = [500, 1000, 5000, 10000, 20000]
 
     """
@@ -74,7 +71,7 @@ class SearchPage:
 
     def get_ids(self, keyword, max_page=None, type=None, dimension=None, mode=None, popularity=None):
         # if max_page is None, it will search all pages
-        log('Start searching for id with keyword:', keyword)
+        util.log('Start searching for id with keyword:', keyword)
         start = time.time()
         # setting parameters
         params = dict()
@@ -101,39 +98,32 @@ class SearchPage:
             for popularity in self.popularity_list:
                 ids += self.get_ids_recusion_helper(params=params, keyword=keyword, max_page=max_page, popularity=popularity)
         ids = set(ids)
-        log('Found', str(len(ids)), 'ids for', keyword, 'in', str(time.time() - start) + 's')
+        util.log('Found', str(len(ids)), 'ids for', keyword, 'in', str(time.time() - start) + 's')
         return ids
 
     def get_ids_recusion_helper(self, params, keyword, popularity, max_page, curr_page=1, ids_sofar=[]):
         if max_page != None and curr_page > max_page:
             return ids_sofar
-        try:
-            params['p'] = curr_page
-            params['word'] = str(keyword) + ' ' + str(popularity) + ' ' + self.search_popularity_postfix
-            log('Searching id for params:', params, 'at page:', curr_page)
-            results = requests.get(self.search_url, headers=self.headers, params=params)
-            ids = re.findall(self.search_regex, results.text)
-
-            # checking if any new item is added
-            old_len = len(ids_sofar)
-            ids_sofar += ids
-            ids_sofar = list(set(ids_sofar))
-            new_len = len(ids_sofar)
-            if old_len == new_len: # if no new item added, end of page
-                return ids_sofar
-            curr_page += 1
-            ids_sofar = self.get_ids_recusion_helper(params=params, keyword=keyword, popularity=popularity, max_page=max_page, curr_page=curr_page, ids_sofar=ids_sofar)
+        params['p'] = curr_page
+        params['word'] = str(keyword) + ' ' + str(popularity) + ' ' + self.search_popularity_postfix
+        util.log('Searching id for params:', params, 'at page:', curr_page)
+        exception_msg = 'Failed getting ids from params ' + str(params) + ' page: ' + str(curr_page)
+        results = util.get_req(url=self.search_url, params=params, exception_msg=exception_msg)
+        ids = re.findall(self.search_regex, results.text)
+        # checking if any new item is added
+        old_len = len(ids_sofar)
+        ids_sofar += ids
+        ids_sofar = list(set(ids_sofar))
+        new_len = len(ids_sofar)
+        if old_len == new_len: # if no new item added, end of page
             return ids_sofar
-        except requests.exceptions.RequestException as e:
-            log('Failed getting ids:', str(e), 'from params', str(params), 'page:', curr_page)
+        curr_page += 1
+        ids_sofar = self.get_ids_recusion_helper(params=params, keyword=keyword, popularity=popularity, max_page=max_page, curr_page=curr_page, ids_sofar=ids_sofar)
+        return ids_sofar
 
 
 class RankingPage:
     url = 'https://www.pixiv.net/ranking.php?'
-    headers = {
-        'referer': 'https://www.pixiv.net/',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
-    }
 
     def __init__(self):
         pass
@@ -153,39 +143,37 @@ class RankingPage:
         if content:
             params['content'] = content
 
-        log('Start ranking for mode', mode, '...')
+        util.log('Start ranking for mode', mode, '...')
         start = time.time()
         ids = []
         if max_page:
             for page_num in range(1, int(max_page) + 1):
-                try:
-                    params['p'] = page_num
-                    log('Searching with params', str(params), '...')
-                    res = requests.get(self.url, params=params, headers=self.headers)
-                    res = json.loads(res.content, encoding='utf-8')
-                    if 'error' in res:
-                        log('Error while searching', str(params), 'skipped')
-                        continue
-                    else:
-                        ids += [content['illust_id'] for content in res['contents']]
-                except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
-                    log('Exception while searching', params, 'Reason:', str(e))
+                params['p'] = page_num
+                res = util.get_req(url=self.url, params=params)
+                if res:
+                    res = util.json_loads(res.content)
+                else:
+                    continue
+                if 'error' in res:
+                    util.log('Error while searching', str(params), 'skipped')
+                    continue
+                else:
+                    ids += [content['illust_id'] for content in res['contents']]
         else:
             page_num = 0
             while True:
-                try:
-                    page_num += 1
-                    params['p'] = page_num
-                    log('Searching with params', str(params), '...')
-                    res = requests.get(self.url, params=params, headers=self.headers)
-                    res = json.loads(res.content, encoding='utf-8')
-                    if 'error' in res:
-                        log('End of page while searching', str(params) + '. Finished')
-                        break
-                    else:
-                        ids += [content['illust_id'] for content in res['contents']]
-                except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
-                    log('Exception while searching', params, 'Reason:', str(e))
-        log('Done. Total ids found:', len(ids))
+                page_num += 1
+                params['p'] = page_num
+                res = util.get_req(url=self.url, params=params)
+                if res:
+                    res = util.json_loads(res.content)
+                else:
+                    continue
+                if 'error' in res:
+                    util.log('End of page while searching', str(params) + '. Finished')
+                    break
+                else:
+                    ids += [content['illust_id'] for content in res['contents']]
+        util.log('Done. Total ids found:', len(ids))
 
         return ids

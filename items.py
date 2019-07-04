@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import requests, re, os, json, time
-from util import log
+import re, os, time, util, threading
 
 
 class Artwork():
@@ -10,32 +9,32 @@ class Artwork():
     headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     }
+    dup_lock = threading.Lock()
+    saved_lock = threading.Lock()
 
     def __init__(self, id):
         self.id = str(id)
         self.ajax_url = self.ajax_url + self.id
-        tries = 0
-        while tries < 3:
-            tries += 1
-            try:
-                respond = requests.get(self.ajax_url, headers=self.headers)
-                image_data = json.loads(respond.content)
-                self.original_url = image_data['body']['urls']['original']
-                self.views = image_data['body']['viewCount']
-                self.bookmarks = image_data['body']['bookmarkCount']
-                self.likes = image_data['body']['likeCount']
-                self.comments = image_data['body']['commentCount']
-                self.title = image_data['body']['illustTitle']
-                self.author = image_data['body']['userName']
-                res = re.search(r'/([\d]+_.*)', self.original_url)
-                if res == None:
-                    log('failed to look for file_name of id', self.id)
-                    log('string used:', self.original_url)
-                else:
-                    self.file_name = re.sub(r'[:<>"\/|?*]', '', res.group(1)) # remove not allowed chracters as file name in windows
-                return
-            except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
-                log('failed artwork init:', tries, str(e))
+        respond = util.get_req(url=self.ajax_url, log_req=False)
+        if respond:
+            image_data = util.json_loads(respond.content)
+        else:
+            util.log('Failed to init artwork')
+            return
+        self.original_url = image_data['body']['urls']['original']
+        self.views = image_data['body']['viewCount']
+        self.bookmarks = image_data['body']['bookmarkCount']
+        self.likes = image_data['body']['likeCount']
+        self.comments = image_data['body']['commentCount']
+        self.title = image_data['body']['illustTitle']
+        self.author = image_data['body']['userName']
+        res = re.search(r'/([\d]+_.*)', self.original_url)
+        if res == None:
+            util.log('failed to look for file_name of id', self.id)
+            util.log('string used:', self.original_url)
+        else:
+            self.file_name = re.sub(r'[:<>"\/|?*]', '', res.group(1)) # remove not allowed chracters as file name in windows
+        return
 
     # for multiprocessing
     def factory(id):
@@ -53,27 +52,16 @@ class Artwork():
         if folder:
             self.file_name = folder + '/' + self.file_name
         if os.path.isfile(self.file_name):
-            log(pic_detail, 'skipped, reason:', self.file_name, 'exists', )
+            util.log(pic_detail, 'skipped, reason:', self.file_name, 'exists', )
             return
         # pixiv check will check referer
         self.headers['referer'] = self.referer_url + self.id
-        count = 0
-        while count < 3:
-            try:
-                count += 1
-                original_pic_respond = requests.get(self.original_url, headers=self.headers)
-                if original_pic_respond.status_code < 400:
-                    with open(self.file_name, 'wb') as file:
-                        file.write(original_pic_respond.content)
-                    log(pic_detail, 'OK')
-                    break
-                else:
-                    log('Failed:', original_pic_respond.status_code, count, 'id:', self.id)
-            except requests.exceptions.RequestException as e:
-                log(pic_detail, ' failed:', count)
-                log('Reason:', str(e))
-
-
+        exception_msg = pic_detail + ' Failed'
+        original_pic_respond = util.get_req(url=self.original_url, headers=self.headers, exception_msg=exception_msg, log_req=False)
+        if original_pic_respond:
+            with open(self.file_name, 'wb') as file:
+                file.write(original_pic_respond.content)
+                util.log(pic_detail, 'OK')
 
 class PixivResult:
     def __init__(self, artworks):
