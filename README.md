@@ -1,7 +1,7 @@
 # Pixiv-Crawler
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
 ---
-### 依赖
+### 需要
 - Python3
 - Requests
 
@@ -41,4 +41,17 @@
   pixiv.download(results)
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000)
   pixiv.download(results, folder='#Pixiv_search')
+````
+##### 下载用户收藏里的插画
+````
+  """
+  Pixiv.favorites:
+  username: your pixiv username
+  password: your pixiv password
+  type: public | private | default both, which of your collections want to save
+  """
+  pixiv = Pixiv()
+  pixiv.login(username=settings.username, password=settings.password)
+  favorites = pixiv.favorites()
+  pixiv.download(favorites)
 ````
