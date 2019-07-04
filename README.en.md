@@ -41,3 +41,16 @@
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000)
   pixiv.download(results, folder='#Pixiv_search')
 ````
+##### download user's favorites
+````
+  """
+  Pixiv.favorites:
+  username: your pixiv username
+  password: your pixiv password
+  type: public | private | default both, which of your collections want to save
+  """
+  pixiv = Pixiv()
+  pixiv.login(username=settings.username, password=settings.password)
+  favorites = pixiv.favorites()
+  pixiv.download(favorites)
+````
