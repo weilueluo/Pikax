@@ -32,6 +32,7 @@ class Artwork():
         if res == None:
             util.log('failed to look for file_name of id', self.id)
             util.log('string used:', self.original_url)
+            self.file_name = 'unknown_' + self.original_url
         else:
             self.file_name = re.sub(r'[:<>"\/|?*]', '', res.group(1)) # remove not allowed chracters as file name in windows
         return
@@ -79,5 +80,58 @@ class PixivResult:
     def __len__(self):
         return len(self.artworks)
 
-    # def append(other_artworks):
-    #     self.artworks.append(other_artworks)
+
+from pages import LoginPage
+import sys, requests, settings
+
+class User:
+    url = 'https://www.pixiv.net/bookmark.php'
+    def __init__(self, username=None, password=None):
+        if not username or not password:
+            raise ValueError('Please provide username and password')
+        self.session = LoginPage().login(username=username, password=password)
+        exception_msg = 'Failed getting data from user: ' + str(username)
+        res = util.post_req(session=self.session, url=self.url, exception_msg=exception_msg)
+        if res:
+            res = re.search(r'class="user-name"title="(.*?)"', res.text)
+            self.username = res.group(1) if res else username
+        else:
+            log('Failed getting user name, use:', username)
+            self.username = username
+    """
+    type: public | private | default both
+    """
+
+    def get_favorites(self, type=None):
+        params = dict()
+        if type:
+            if type == 'public':
+                params['rest'] = 'show'
+            elif type == 'private':
+                params['rest'] = 'hide'
+            else:
+                raise ValueError('Invalid type:', str(type))
+            return get_favorites_ids(self.session, url, params)
+        else:
+            params['rest'] = 'show'
+            public_ids = get_favorites_ids(self.session, url, params)
+            params['rest'] = 'hide'
+            private_ids = get_favorites_ids(self.session, url, params)
+            return public_ids + private_ids
+
+
+    def get_favorites_ids(session, url, params):
+        ids = []
+        curr_page = 0
+        while True:
+            curr_page += 1
+            params['p'] = curr_page
+            res = util.post_req(session=session, url=self.url, params=params)
+            if res:
+                ids_found = re.findall('\d{8}_p0', res.text)
+                if len(ids_found) == 0:
+                    log('0 id found in this page, reached end')
+                    break
+                else:
+                    ids += ids_found
+        return ids

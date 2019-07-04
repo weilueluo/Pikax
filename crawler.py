@@ -25,10 +25,15 @@ def download_daily_rankings():
     results = pixiv.rank(max_page=1, content='illust', mode='daily')
     pixiv.download(results, folder='#Pixiv_daily_ranking')
 
+import settings
 def main():
-    download_daily_rankings()
+    # download_daily_rankings()
     # results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000)
     # pixiv.download(results)
+    pixiv = Pixiv()
+    pixiv.login(username=settings.username, password=settings.password)
+    favorites = pixiv.favorites()
+    pixiv.download(favorites)
 
 if __name__ == '__main__':
     main()

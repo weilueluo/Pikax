@@ -5,17 +5,16 @@ import re, sys, os, math
 import multiprocessing
 from multiprocessing import Pool as ThreadPool
 from pages import SearchPage, RankingPage
-from items import Artwork, PixivResult
+from items import Artwork, PixivResult, User
 
 sys.stdout.reconfigure(encoding='utf-8')
 
 class Pixiv:
 
     def __init__(self):
-        # self.login_page = LoginPage()
-        # self.session = self.login_page.login(username, password)
         self.search_page = SearchPage()
         self.ranking_page = RankingPage()
+        self.user = None
 
     def generate_artworks_from_ids(self, ids):
         start = time.time()
@@ -82,3 +81,16 @@ class Pixiv:
             pool.close()
             pool.join()
             util.log('done. Tried', len(data.artworks), 'artworks in', str(time.time() - start) + 's =>', str(folder))
+
+
+    def login(self, username, password):
+        self.user = User(username=username, password=password)
+
+    def favorites(self, type=None):
+        if self.user == None:
+            util.log('Please login first')
+            return None
+        ids = self.user.get_favorites(type=type)
+        results = PixivResult(self.generate_artworks_from_ids(ids))
+        results.folder = '#' + self.username + ' favorites'
+        return results

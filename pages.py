@@ -1,54 +1,48 @@
 # -*- coding: utf-8 -*-
 
-import re, time, util
+import re, time, util, settings, requests
 
 
+class LoginPage:
+    post_key_url = 'https://accounts.pixiv.net/login?'
+    login_url = 'https://accounts.pixiv.net/api/login?lang=en'
 
-# not used, no need to login
-# class LoginPage:
-#     post_key_url = 'https://accounts.pixiv.net/login?'
-#     login_url = 'https://accounts.pixiv.net/api/login?lang=en'
-#     headers = {
-#         'referer': 'https://www.pixiv.net/',
-#         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
-#     }
-#
-#     def __init__(self):
-#         self.session = requests.Session()
-#         util.log('Generated Session')
-#
-#     def get_post_key_from_pixiv(self):
-#         util.log('Sending request to retrieve post key ... ', end='')
-#         try:
-#             pixiv_login_page = self.session.get(self.post_key_url, headers=self.headers)
-#             util.log(pixiv_login_page.status_code)
-#         except requests.exceptions.RequestException as e:
-#             util.log('Failed:', str(e))
-#         post_key = re.search(r'post_key" value="(.*?)"', pixiv_login_page.text).group(1)
-#         if post_key:
-#             util.log('post key successfully retrieved:', post_key)
-#         else:
-#             util.log('failed to find post key')
-#         return post_key
-#
-#     def login(self, username, password):
-#         data = {
-#             'pixiv_id': username,
-#             'password': password,
-#             'post_key': self.get_post_key_from_pixiv()
-#         }
-#         util.log('Sending request to attempt login ... ', end='')
-#         try:
-#             respond = self.session.post(self.login_url, data=data, headers=self.headers)
-#         except requests.exceptions.RequestException as e:
-#             util.log('Failed:', str(e))
-#         util.log(respond.status_code)
-#         if respond.status_code < 400:
-#             util.log('Logged successfully into Pixiv')
-#             return self.session
-#         else:
-#             util.log('Login Failed')
-#             return None
+    def __init__(self):
+        self.session = requests.Session()
+
+    def get_post_key_from_pixiv(self):
+        util.log('Sending request to retrieve post key ... ', end='')
+        try:
+            pixiv_login_page = util.post_req(session=self.session, url=self.post_key_url)
+            util.log(pixiv_login_page.status_code)
+        except requests.exceptions.RequestException as e:
+            util.log('Failed:', str(e))
+        if pixiv_login_page:
+            post_key = re.search(r'post_key" value="(.*?)"', pixiv_login_page.text).group(1)
+        if post_key:
+            util.log('post key successfully retrieved:', post_key)
+        else:
+            util.log('failed to find post key')
+        return post_key
+
+    def login(self, username, password):
+        data = {
+            'pixiv_id': username,
+            'password': password,
+            'post_key': self.get_post_key_from_pixiv()
+        }
+        util.log('Sending request to attempt login ... ', end='')
+        try:
+            respond = self.session.post(self.login_url, data=data, headers=settings.DEFAULT_HEADERS)
+        except requests.exceptions.RequestException as e:
+            util.log('Failed:', str(e))
+        util.log(respond.status_code)
+        if respond.status_code < 400:
+            util.log('Logged successfully into Pixiv')
+            return self.session
+        else:
+            util.log('Login Failed')
+            return None
 
 
 class SearchPage:
