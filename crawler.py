@@ -25,7 +25,7 @@ import time, traceback, util
 def download_daily_rankings():
     pixiv = Pixiv()
     results = pixiv.rank(max_page=1, content='illust', mode='daily')
-    pixiv.download(results, folder='Pixiv_daily_ranking')
+    pixiv.download(results, folder='#Pixiv_daily_ranking')
 
 def main():
     download_daily_rankings()
