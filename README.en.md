@@ -7,6 +7,7 @@
 ### Currently supported features
 - search
 - ranking
+- user favorites
 
 ### Try
 ##### run crawler.py directly or create a new python file
