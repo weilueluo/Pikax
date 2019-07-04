@@ -35,14 +35,15 @@ def download_favorites_example():
     pixiv.download(favorites)
 
 def download_search_example():
+    pixiv = Pixiv()
     results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000)
     pixiv.download(results)
 
 
 def main():
     download_daily_rankings_example()
-    # download_search_example()
-    # download_favorites_example()
+    download_favorites_example()
+    download_search_example()
 
 
 if __name__ == '__main__':
