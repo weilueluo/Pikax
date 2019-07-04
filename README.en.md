@@ -10,7 +10,7 @@
 - user favorites
 
 ### Try
-##### run crawler.py directly or create a new python file
+##### run demo.py directly or create a new python file
 ##### download today's top 50 illustration
 ````
   """
