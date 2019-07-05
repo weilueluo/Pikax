@@ -32,10 +32,17 @@ file used to log error if save is included in LOG_TYPE
 """
 LOG_FILE = 'log.txt'
 
+
 """
 Folder format for downlaoding favorites
 """
 FAV_DOWNLOAD_FOLDER = '#{username}\'s favs'
+
+"""
+String to clear previous stdout line
+"""
+CLEAR_LINE = '\r' + ' ' * 100 + '\r'
+
 
 """
 user name and password used

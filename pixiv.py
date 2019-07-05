@@ -4,6 +4,7 @@ import time, itertools, util
 import re, sys, os, math, settings
 import multiprocessing
 from multiprocessing import Pool as ThreadPool
+from multiprocessing import Value
 from pages import SearchPage, RankingPage, UserPage, LoginPage
 from items import Artwork, PixivResult
 
@@ -65,16 +66,21 @@ class Pixiv:
         if not os.path.exists(folder):
             os.mkdir(folder)
         folders = itertools.repeat(folder)
-        pool = ThreadPool(multiprocessing.cpu_count())
+        size = len(pixiv_result.artworks)
+        counter = Value('i', 0)
+        pool = ThreadPool(multiprocessing.cpu_count(), initializer=util.init_download_counter, initargs=(counter, size))
+        chunksize = size // os.cpu_count()
+        if chunksize < 1:
+            chunksize = 1
         try:
-            res = pool.map(Artwork.downloader, zip(pixiv_result.artworks, folders))
+            pool.map(Artwork.downloader, zip(pixiv_result.artworks, folders), chunksize=chunksize)
         except multiprocessing.ProcessError as e:
             pool.terminate()
             util.log('Error:', str(e), type='save inform')
         finally:
             pool.close()
             pool.join()
-            util.log('Done. Tried saving', len(pixiv_result.artworks), 'artworks in', str(time.time() - start) + 's =>', str(folder), type='inform')
+            util.log('Done. Tried saving', size, 'artworks in', str(time.time() - start) + 's =>', str(folder), type='inform', start=settings.CLEAR_LINE)
 
     """
     Take username and password attempt to login pixiv

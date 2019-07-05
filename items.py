@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import re, os, time, util, threading
+import re, os, time, util, threading, settings
+
 
 
 class Artwork():
@@ -53,6 +54,8 @@ class Artwork():
         if folder:
             self.file_name = folder + '/' + self.file_name
         if os.path.isfile(self.file_name):
+            with util.counter.get_lock():
+                util.counter.value += 1
             util.log(pic_detail, 'skipped, reason:', self.file_name, 'exists')
             return
         # pixiv check will check referer
@@ -62,7 +65,11 @@ class Artwork():
         if original_pic_respond:
             with open(self.file_name, 'wb') as file:
                 file.write(original_pic_respond.content)
-                util.log(pic_detail, 'OK', type='inform save')
+                with util.counter.get_lock():
+                    util.counter.value += 1
+                util.log('#' + str(util.counter.value) + '/' + str(util.total) + ' ' + pic_detail + ' OK', type='inform', start=settings.CLEAR_LINE, end='')
+        else:
+            util.log('#' + str(util.counter.value) + '/' + str(util.total) + ' ' + pic_detail + ' Failed', type='inform', start=settings.CLEAR_LINE, end='')
 
 class PixivResult:
     def __init__(self, artworks):

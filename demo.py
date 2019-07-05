@@ -27,12 +27,6 @@ def download_daily_rankings_example():
     results = pixiv.rank(max_page=1, content='illust', mode='daily')
     pixiv.download(results, folder='#Pixiv_daily_ranking')
 
-def download_favorites_example():
-    pixiv = Pixiv()
-    user = pixiv.login(username=settings.username, password=settings.password)
-    favorites = user.access_favs()
-    pixiv.download(favorites)
-
 def download_search_example():
     pixiv = Pixiv()
     results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, max_page=2)
@@ -52,7 +46,6 @@ def download_own_favourites_example():
 
 def main():
     download_daily_rankings_example()
-    # download_favorites_example()
     # download_search_example()
     # download_others_favorites_example()
     # download_own_favourites_example()

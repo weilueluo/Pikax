@@ -5,6 +5,7 @@ import sys, json, settings, requests, os, time
 import multiprocessing
 from multiprocessing import Pool as ThreadPool
 from items import Artwork
+from multiprocessing import Value
 
 sys.stdout.reconfigure(encoding='utf-8')
 sls = os.linesep
@@ -18,12 +19,11 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', type
     global std_enabled, inform_enabled, save_enabled
     if type:
         if inform_enabled and type.find('inform') != -1:
-            print(' >>> ', end='')
-            print(*objects, sep=sep, end=' <<< ' + end, file=file, flush=flush)
+            print(start, '>>>', *objects, sep=sep, end=end, file=file, flush=flush)
         if save_enabled and type.find('save') != -1:
-            print(*objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a'), flush=flush)
+            print(start, *objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a'), flush=flush)
     elif std_enabled:
-        print(*objects, sep=sep, end=end, file=file, flush=flush)
+        print(start, *objects, sep=sep, end=end, file=file, flush=flush)
 
 def req(url, type='get', session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS, timeout=settings.TIMEOUT, err_msg=None, log_req=True, verify=True):
     type = type.upper()
@@ -105,3 +105,8 @@ def trim_to_limit(items, limit, username):
         else:
             log(username + '\'s favs is less than limit:', num_of_favs, '<', limit, type='inform save')
     return items
+
+def init_download_counter(counter_, total_):
+    global counter, total
+    counter = counter_
+    total = total_
