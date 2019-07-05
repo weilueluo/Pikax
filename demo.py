@@ -29,8 +29,8 @@ def download_daily_rankings_example():
 
 def download_favorites_example():
     pixiv = Pixiv()
-    pixiv.login(username=settings.username, password=settings.password)
-    favorites = pixiv.access_favs()
+    user = pixiv.login(username=settings.username, password=settings.password)
+    favorites = user.access_favs()
     pixiv.download(favorites)
 
 def download_search_example():
@@ -45,10 +45,10 @@ def download_others_favorites_example():
     pixiv.download(favorites)
 
 def download_own_favourites_example():
-        pixiv = Pixiv()
-        user = pixiv.login(username=settings.username, password=settings.password)
-        favorites = user.access_favs()
-        pixiv.download(favorites)
+    pixiv = Pixiv()
+    user = pixiv.login(username=settings.username, password=settings.password)
+    favorites = user.access_favs()
+    pixiv.download(favorites)
 
 def main():
     download_daily_rankings_example()
