@@ -11,7 +11,7 @@
 - 收藏
 
 ### 试用
-##### 直接运行 demo.py 或者新建文件：
+##### 直接运行 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py) 或者新建文件：
 ##### 下载当日排行榜前50的插画
 ````
   """
@@ -63,4 +63,4 @@
   favorites = user.access_favs(pixiv_id=5594793, limit=25)
   pixiv.download(favorites)
 ````
-##### 更多例子请参考demo.py
+##### 更多例子请参考[demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
