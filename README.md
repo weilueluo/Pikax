@@ -27,7 +27,7 @@
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000)
   pixiv.download(results, folder='#Pixiv_search')
 ````
-#### 下载收藏里的插画（自己的插画需要更改在settings.py里的账号和密码）
+#### 下载收藏里的插画（自己的插画需要更改在[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py)里的账号和密码）
 ````
   #自己的
   pixiv = Pixiv()
