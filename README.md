@@ -2,8 +2,11 @@
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
 ---
 ### 需要
-- Python3
-- Requests
+- [Python3](https://www.python.org/downloads/)
+- [Requests](https://2.python-requests.org/en/master/)
+```
+  pip install requests
+```
 
 ### 目前支持的功能
 - 搜索
