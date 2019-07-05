@@ -1,8 +1,11 @@
 # Pixiv-Crawler
 
-### Dependencies
-- Python3
-- Requests
+### Requirements
+- [Python3](https://www.python.org/downloads/)
+- [Requests](https://2.python-requests.org/en/master/)
+```
+  pip install requests
+```
 
 ### Currently supported features
 - search
