@@ -8,9 +8,9 @@
 ```
 
 ### Currently supported features
-- search
-- ranking
-- user favorites
+- Search
+- Ranking
+- User Favorites
 
 ### Try
 ##### run/edit&run [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py) directly or create a new python file
