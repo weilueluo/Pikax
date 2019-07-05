@@ -52,10 +52,10 @@ def download_own_favourites_example():
 
 def main():
     download_daily_rankings_example()
-    download_favorites_example()
-    download_search_example()
-    download_others_favorites_example()
-    download_own_favourites_example()
+    # download_favorites_example()
+    # download_search_example()
+    # download_others_favorites_example()
+    # download_own_favourites_example()
 
 if __name__ == '__main__':
     main()
