@@ -11,7 +11,7 @@
 - 收藏
 
 ### 试用
-##### 直接运行 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py) 或者新建文件：
+##### 直接运行/修改并运行 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py) 或者新建文件：
 ##### 下载当日排行榜前50的插画
 ````
   """
