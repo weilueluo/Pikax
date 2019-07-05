@@ -28,7 +28,7 @@
   pixiv.download(results, folder='#Pixiv_search')
 ```
 #### Download artwork in favorites
-#### (Need to change username and password in settings.py if you want to download yours)
+#### (Need to change username and password in [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py) if you want to download yours)
 ```
   # yours
   pixiv = Pixiv()
