@@ -27,8 +27,7 @@
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000)
   pixiv.download(results, folder='#Pixiv_search')
 ```
-#### Download artwork in favorites
-#### (Need to change username and password in [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py) if you want to download yours)
+#### Download artwork in favorites (Change username and password in [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py) if you want to download yours)
 ```
   # yours
   pixiv = Pixiv()
