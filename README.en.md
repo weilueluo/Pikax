@@ -10,7 +10,7 @@
 - user favorites
 
 ### Try
-##### run demo.py directly or create a new python file
+##### run/edit&run [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py) directly or create a new python file
 ##### download today's top 50 illustration
 ````
   """
@@ -62,4 +62,4 @@
   favorites = user.access_favs(pixiv_id=5594793, limit=25)
   pixiv.download(favorites)
 ````
-##### For more examples visit demo.py
+##### For more examples visit [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
