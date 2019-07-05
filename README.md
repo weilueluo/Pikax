@@ -42,7 +42,6 @@
   """
   from pixiv import Pixiv
   pixiv = Pixiv()
-  pixiv.download(results)
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000)
   pixiv.download(results, folder='#Pixiv_search')
 ````
