@@ -42,4 +42,4 @@
   favorites = user.access_favs(pixiv_id=5594793, limit=25)
   pixiv.download(favorites)
 ```
-#### For more examples and details visit [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
+#### Visit [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py) for more examples and details 
