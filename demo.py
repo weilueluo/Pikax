@@ -20,9 +20,8 @@ password: your pixiv password
 type: public | private | default both, which of your collections want to save
 """
 
-from pixiv import Pixiv
+from pixiv import Pixiv, User
 import settings
-
 def download_daily_rankings_example():
     pixiv = Pixiv()
     results = pixiv.rank(max_page=1, content='illust', mode='daily')
@@ -36,15 +35,27 @@ def download_favorites_example():
 
 def download_search_example():
     pixiv = Pixiv()
-    results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000)
+    results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, max_page=2)
     pixiv.download(results)
 
+def download_others_favorites_example():
+    pixiv = Pixiv()
+    user = pixiv.login(username=settings.username, password=settings.password)
+    favorites = user.access_favs(pixiv_id=5594793, limit=25)
+    pixiv.download(favorites)
+
+def download_own_favourites_example():
+        pixiv = Pixiv()
+        user = pixiv.login(username=settings.username, password=settings.password)
+        favorites = user.access_favs()
+        pixiv.download(favorites)
 
 def main():
-    download_daily_rankings_example()
-    download_favorites_example()
-    download_search_example()
-
+    # download_daily_rankings_example()
+    # download_favorites_example()
+    # download_search_example()
+    # download_others_favorites_example()
+    download_own_favourites_example()
 
 if __name__ == '__main__':
     main()

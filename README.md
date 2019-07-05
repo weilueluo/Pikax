@@ -43,7 +43,7 @@
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000)
   pixiv.download(results, folder='#Pixiv_search')
 ````
-##### 下载用户收藏里的插画
+##### 下载收藏里的插画（自己的插画需要更改在settings.py里的账号和密码）
 ````
   """
   Pixiv.favorites:
@@ -51,8 +51,16 @@
   password: your pixiv password
   type: public | private | default both, which of your collections want to save
   """
+  #自己的
   pixiv = Pixiv()
-  pixiv.login(username=settings.username, password=settings.password)
-  favorites = pixiv.favorites()
+  user = pixiv.login(username=settings.username, password=settings.password)
+  favorites = user.access_favs()
+  pixiv.download(favorites)
+
+  #别人的
+  pixiv = Pixiv()
+  user = pixiv.login(username=settings.username, password=settings.password)
+  favorites = user.access_favs(pixiv_id=5594793, limit=25)
   pixiv.download(favorites)
 ````
+##### 更多例子请参考demo.py

@@ -6,24 +6,26 @@ import re, time, util, settings, requests
 class LoginPage:
     post_key_url = 'https://accounts.pixiv.net/login?'
     login_url = 'https://accounts.pixiv.net/api/login?lang=en'
-
+    headers = {
+        'referer': 'https://accounts.pixiv.net/login',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
+    }
     def __init__(self):
         self.session = requests.Session()
 
     def get_post_key_from_pixiv(self):
         util.log('Sending request to retrieve post key ... ', end='')
-        try:
-            pixiv_login_page = util.get_req(session=self.session, url=self.post_key_url)
-            util.log(pixiv_login_page.status_code)
-        except requests.exceptions.RequestException as e:
-            util.log('Failed:', str(e))
+        pixiv_login_page = util.req(type='get', session=self.session, url=self.post_key_url)
         if pixiv_login_page:
-            post_key = re.search(r'post_key" value="(.*?)"', pixiv_login_page.text).group(1)
-        if post_key:
-            util.log('post key successfully retrieved:', post_key)
-        else:
-            util.log('failed to find post key')
-        return post_key
+            res = re.search(r'post_key" value="(.*?)"', pixiv_login_page.text)
+        if res:
+            post_key = res.group(1)
+            if post_key:
+                util.log('post key successfully retrieved:', post_key)
+                return post_key
+            else:
+                util.log('failed to find post key', type='inform save')
+        return None
 
     def login(self, username, password):
         data = {
@@ -32,13 +34,12 @@ class LoginPage:
             'post_key': self.get_post_key_from_pixiv()
         }
         util.log('Sending request to attempt login ... ')
-        respond = util.post_req(session=self.session, url=self.login_url, data=data, headers=settings.DEFAULT_HEADERS)
+        respond = util.req(type='post', session=self.session, url=self.login_url, data=data, headers=self.headers)
         if respond:
-            util.log('Login successfully into Pixiv as', username)
+            util.log('Login successfully into Pixiv as', username, type='inform')
             return self.session
         else:
-            util.log('Failed login')
-            return None
+            raise LoginError('Login failed. Please check your internet, username and password', type='inform save')
 
 
 class SearchPage:
@@ -88,7 +89,7 @@ class SearchPage:
             for popularity in self.popularity_list:
                 ids += self.get_ids_recusion_helper(params=params, keyword=keyword, max_page=max_page, popularity=popularity)
         ids = set(ids)
-        util.log('Found', str(len(ids)), 'ids for', keyword, 'in', str(time.time() - start) + 's')
+        util.log('Found', str(len(ids)), 'ids for', keyword, 'in', str(time.time() - start) + 's', type='inform')
         return ids
 
     def get_ids_recusion_helper(self, params, keyword, popularity, max_page, curr_page=1, ids_sofar=[]):
@@ -97,8 +98,8 @@ class SearchPage:
         params['p'] = curr_page
         params['word'] = str(keyword) + ' ' + str(popularity) + ' ' + self.search_popularity_postfix
         util.log('Searching id for params:', params, 'at page:', curr_page)
-        exception_msg = 'Failed getting ids from params ' + str(params) + ' page: ' + str(curr_page)
-        results = util.get_req(url=self.search_url, params=params, exception_msg=exception_msg)
+        err_msg = 'Failed getting ids from params ' + str(params) + ' page: ' + str(curr_page)
+        results = util.req(type='get', url=self.search_url, params=params, err_msg=err_msg)
         ids = re.findall(self.search_regex, results.text)
         # checking if any new item is added
         old_len = len(ids_sofar)
@@ -133,19 +134,19 @@ class RankingPage:
         if content:
             params['content'] = content
 
-        util.log('Start ranking for mode', mode, '...')
+        util.log('Start ranking for mode', mode, '...', type='inform')
         start = time.time()
         ids = []
         if max_page:
             for page_num in range(1, int(max_page) + 1):
                 params['p'] = page_num
-                res = util.get_req(url=self.url, params=params)
+                res = util.req(type='get', url=self.url, params=params)
                 if res:
                     res = util.json_loads(res.content)
                 else:
                     continue
                 if 'error' in res:
-                    util.log('Error while searching', str(params), 'skipped')
+                    util.log('Error while searching', str(params), 'skipped', type='inform save')
                     continue
                 else:
                     ids += [content['illust_id'] for content in res['contents']]
@@ -154,17 +155,68 @@ class RankingPage:
             while True:
                 page_num += 1
                 params['p'] = page_num
-                res = util.get_req(url=self.url, params=params)
+                res = util.req(type='get', url=self.url, params=params)
                 if res:
                     res = util.json_loads(res.content)
                 else:
-                    util.log('Error while json loading')
+                    util.log('Error while json loading', type='inform save')
                     continue
                 if 'error' in res:
                     util.log('End of page while searching', str(params) + '. Finished')
                     break
                 else:
                     ids += [content['illust_id'] for content in res['contents']]
-        util.log('Done. Total ids found:', len(ids))
+        util.log('Done. Total ids found:', len(ids), type='inform')
 
         return ids
+
+
+class UserPage:
+    data_url = 'https://www.pixiv.net/ajax/user/{pixiv_id}/illusts/bookmarks?'
+    bookmark_url = 'https://www.pixiv.net/bookmark.php?'
+    params = {
+        'tag': '',
+        'offset': '0',
+        'limit': '1',
+        'rest': 'show'
+    }
+    """
+    self vars:
+        data_url
+        bookmark_url
+        id
+        title
+        public_fav_ids
+    """
+
+    def add_public_fav(self):
+        ids_url = self.data_url.format(pixiv_id=self.id, limit=self.total_fav)
+        self.params['limit'] = self.total_fav
+        ids_data = util.req(type='get', session=self.session, url=ids_url, params=self.params)
+        ids_data = util.json_loads(ids_data.content)
+        if ids_data:
+            self.public_fav_ids = [artwork['id'] for artwork in ids_data['body']['works']]
+            self.public_fav_ids_length = len(self.public_fav_ids)
+            util.log(self.username + '\'s favs found:', self.public_fav_ids_length, type='inform')
+        else:
+            util.log('Failed to retrieve ids data from id:', self.id, type='inform save')
+
+    def __init__(self, pixiv_id, session):
+        self.public_fav_ids = []
+        self.id = pixiv_id
+        self.session = session
+        req_url = self.data_url.format(pixiv_id=self.id)
+        err_msg = 'Error while generating user page, id: ' + str(self.id)
+        res = util.req(type='get', session=self.session, url=req_url, params=self.params, err_msg=err_msg)
+        if res:
+            res_json = util.json_loads(res.text)
+            if res_json:
+                if not res_json['error']:
+                    self.total_fav = res_json['body']['total']
+                    title = res_json['body']['extraData']['meta']['title']
+                    username = re.search(r'「(.*?)」', title)
+                    self.username = username.group(1) if username else title
+                    self.add_public_fav()
+
+    def get_public_fav_ids(self, limit=None):
+        return util.trim_to_limit(items=self.public_fav_ids, limit=limit, username=self.username)

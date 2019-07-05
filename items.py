@@ -15,11 +15,11 @@ class Artwork():
     def __init__(self, id):
         self.id = str(id)
         self.ajax_url = self.ajax_url + self.id
-        respond = util.get_req(url=self.ajax_url, log_req=False)
+        respond = util.req(type='get', url=self.ajax_url, log_req=False)
         if respond:
             image_data = util.json_loads(respond.content)
         else:
-            util.log('Failed to init artwork')
+            util.log('Failed to init artwork', type='inform save')
             return
         self.original_url = image_data['body']['urls']['original']
         self.views = image_data['body']['viewCount']
@@ -30,8 +30,8 @@ class Artwork():
         self.author = image_data['body']['userName']
         res = re.search(r'/([\d]+_.*)', self.original_url)
         if res == None:
-            util.log('failed to look for file_name of id', self.id)
-            util.log('string used:', self.original_url)
+            util.log('failed to look for file_name of id', self.id, type='save inform')
+            util.log('string used:', self.original_url, type='save inform')
             self.file_name = 'unknown_' + self.original_url
         else:
             self.file_name = str(self.author) + '_' + res.group(1)
@@ -53,16 +53,16 @@ class Artwork():
         if folder:
             self.file_name = folder + '/' + self.file_name
         if os.path.isfile(self.file_name):
-            util.log(pic_detail, 'skipped, reason:', self.file_name, 'exists', )
+            util.log(pic_detail, 'skipped, reason:', self.file_name, 'exists')
             return
         # pixiv check will check referer
         self.headers['referer'] = self.referer_url + self.id
-        exception_msg = pic_detail + ' Failed'
-        original_pic_respond = util.get_req(url=self.original_url, headers=self.headers, exception_msg=exception_msg, log_req=False)
+        err_msg = pic_detail + ' Failed'
+        original_pic_respond = util.req(type='get', url=self.original_url, headers=self.headers, err_msg=err_msg, log_req=False)
         if original_pic_respond:
             with open(self.file_name, 'wb') as file:
                 file.write(original_pic_respond.content)
-                util.log(pic_detail, 'OK')
+                util.log(pic_detail, 'OK', type='inform save')
 
 class PixivResult:
     def __init__(self, artworks):
@@ -79,59 +79,3 @@ class PixivResult:
 
     def __len__(self):
         return len(self.artworks)
-
-
-from pages import LoginPage
-import sys, requests, settings
-
-class User:
-    url = 'https://www.pixiv.net/bookmark.php'
-    def __init__(self, username=None, password=None):
-        if not username or not password:
-            raise ValueError('Please provide username and password')
-        self.session = LoginPage().login(username=username, password=password)
-        exception_msg = 'Failed getting data from user: ' + str(username)
-        res = util.get_req(session=self.session, url=self.url, exception_msg=exception_msg)
-        if res:
-            res = re.search(r'class="user-name"title="(.*?)"', res.text)
-            self.username = res.group(1) if res else username
-        else:
-            util.log('Failed getting user name, use:', username)
-            self.username = username
-    """
-    type: public | private | default both
-    """
-
-    def get_favorites(self, type=None):
-        params = dict()
-        if type:
-            if type == 'public':
-                params['rest'] = 'show'
-            elif type == 'private':
-                params['rest'] = 'hide'
-            else:
-                raise ValueError('Invalid type:', str(type))
-            return self.get_favorites_ids(session=self.session, url=self.url, params=params)
-        else:
-            params['rest'] = 'show'
-            public_ids = self.get_favorites_ids(session=self.session, url=self.url, params=params)
-            params['rest'] = 'hide'
-            private_ids = self.get_favorites_ids(session=self.session, url=self.url, params=params)
-            return public_ids + private_ids
-
-
-    def get_favorites_ids(self, session, url, params):
-        ids = []
-        curr_page = 0
-        while True:
-            curr_page += 1
-            params['p'] = curr_page
-            res = util.get_req(session=session, url=self.url, params=params)
-            if res:
-                ids_found = re.findall('(\d{8})_p0', res.text)
-                if len(ids_found) == 0:
-                    util.log('0 id found in this page, reached end')
-                    break
-                else:
-                    ids += ids_found
-        return ids
