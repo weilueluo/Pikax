@@ -21,14 +21,13 @@ class Artwork():
             image_data = util.json_loads(respond.content)
         else:
             util.log('Failed to init artwork', type='inform save')
-            return
-        self.original_url = image_data['body']['urls']['original']
-        self.views = image_data['body']['viewCount']
-        self.bookmarks = image_data['body']['bookmarkCount']
-        self.likes = image_data['body']['likeCount']
-        self.comments = image_data['body']['commentCount']
-        self.title = image_data['body']['illustTitle']
-        self.author = image_data['body']['userName']
+        self.original_url = image_data['body']['urls']['original'] or None
+        self.views = image_data['body']['viewCount'] or None
+        self.bookmarks = image_data['body']['bookmarkCount'] or None
+        self.likes = image_data['body']['likeCount'] or None
+        self.comments = image_data['body']['commentCount'] or None
+        self.title = image_data['body']['illustTitle'] or None
+        self.author = image_data['body']['userName'] or None
         res = re.search(r'/([\d]+_.*)', self.original_url)
         if res == None:
             util.log('failed to look for file_name of id', self.id, type='save inform')
@@ -37,25 +36,18 @@ class Artwork():
         else:
             self.file_name = str(self.author) + '_' + res.group(1)
             self.file_name = re.sub(r'[:<>"\/|?*]', '', self.file_name) # remove not allowed chracters as file name in windows
-        return
 
     # for multiprocessing
     def factory(id):
         return Artwork(id)
 
-    # for multiprocessing
-    def downloader(zipped_var_tuple):
-        artwork = zipped_var_tuple[0]
-        folder = zipped_var_tuple[1]
-        artwork.download(folder=folder)
-
-    def download(self, folder=""):
-        pic_detail = '<' + str(self.title) + '> by <' + str(self.author) + '>'
+    def download(self, folder="", results_dict=None):
+        pic_detail = '[' + str(self.title) + '] by [' + str(self.author) + ']'
         if folder:
             self.file_name = folder + '/' + self.file_name
         if os.path.isfile(self.file_name):
-            with util.counter.get_lock():
-                util.counter.value += 1
+            if results_dict:
+                results_dict['skipped'] += 1
             util.log(pic_detail, 'skipped, reason:', self.file_name, 'exists')
             return
         # pixiv check will check referer
@@ -65,11 +57,13 @@ class Artwork():
         if original_pic_respond:
             with open(self.file_name, 'wb') as file:
                 file.write(original_pic_respond.content)
-                with util.counter.get_lock():
-                    util.counter.value += 1
-                util.log('#' + str(util.counter.value) + '/' + str(util.total) + ' ' + pic_detail + ' OK', type='inform', start=settings.CLEAR_LINE, end='')
+                util.log(pic_detail + ' OK', type='inform', start=settings.CLEAR_LINE, end='\r')
+            if results_dict:
+                results_dict['success'] += 1
         else:
-            util.log('#' + str(util.counter.value) + '/' + str(util.total) + ' ' + pic_detail + ' Failed', type='inform', start=settings.CLEAR_LINE, end='')
+            util.log(pic_detail + ' FAILED', type='inform save', start=settings.CLEAR_LINE)
+            if results_dict:
+                results_dict['failed'] += 1
 
 class PixivResult:
     def __init__(self, artworks):

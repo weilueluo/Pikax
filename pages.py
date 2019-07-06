@@ -36,7 +36,7 @@ class LoginPage:
         util.log('Sending request to attempt login ... ')
         respond = util.req(type='post', session=self.session, url=self.login_url, data=data, headers=self.headers)
         if respond:
-            util.log('Login successfully into Pixiv as', username, type='inform')
+            util.log('Login successfully into Pixiv as [', username, ']', type='inform')
             return self.session
         else:
             raise LoginError('Login failed. Please check your internet, username and password', type='inform save')

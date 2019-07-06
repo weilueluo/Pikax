@@ -1,7 +1,4 @@
-"""
-default time out in seconds for requests
-"""
-TIMEOUT = 5
+
 
 
 """
@@ -13,6 +10,13 @@ DEFAULT_HEADERS = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
 }
 
+
+"""
+default time out in seconds for requests
+"""
+TIMEOUT = 10
+
+MAX_RETRIES_FOR_REQUEST = 3
 
 """
 LOG_TYPE
@@ -42,6 +46,20 @@ FAV_DOWNLOAD_FOLDER = '#{username}\'s favs'
 String to clear previous stdout line
 """
 CLEAR_LINE = '\r' + ' ' * 100 + '\r'
+
+
+"""
+
+"""
+MAX_THREAD_PER_PROCESS = 4
+
+MIN_ITEMS_PER_THREAD = 10
+
+
+
+
+
+
 
 
 """
