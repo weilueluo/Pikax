@@ -1,4 +1,5 @@
 # Pikax:unicorn:
+Pikax的目的是提供一个使用简单且强大的Pixiv(P站)爬取API。
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
 ---
 ### 需要
