@@ -1,4 +1,5 @@
 # Pikax:unicorn:
+Pikax's aim is to provide a simple yet powerful pixiv crawling tool
 #### [Chinese ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.md)
 ---
 ### Requirements
