@@ -8,7 +8,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 ```
   pip install requests
 ```
-### 目前支持的功能
+### 目前支持的下载功能
 - 搜索
 - 排行榜
 - 收藏
