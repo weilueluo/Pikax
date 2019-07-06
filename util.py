@@ -1,7 +1,7 @@
 
 
 
-import sys, json, settings, requests, os, time
+import sys, json, settings, requests, os, time, math
 import multiprocessing
 from multiprocessing import Pool as ThreadPool
 from items import Artwork
@@ -119,7 +119,7 @@ def multithreading_(items, small_list_executor, results_dict=None):
         num_of_items_per_thread = num_of_items # if num of threads is 1
     elif num_of_threads > 1:
         while num_of_threads > 1:
-            num_of_items_per_thread = num_of_items // num_of_threads + 1
+            num_of_items_per_thread = math.ceil(num_of_items // num_of_threads)
             if num_of_items_per_thread < settings.MIN_ITEMS_PER_THREAD:
                 num_of_threads -= 1
                 num_of_items_per_thread = num_of_items # for condition not meet in next loop
@@ -148,12 +148,19 @@ def multiprocessing_(items, small_list_executor, folder=None, results_dict=None)
     processes = []
     num_of_items = len(items)
     num_of_processes = os.cpu_count()
+    while num_of_processes > 1:
+        num_of_items_per_process = math.ceil(num_of_items // num_of_processes)
+        if num_of_items_per_process < settings.MIN_ITEMS_PER_THREAD:
+            num_of_processes -= 1
+            num_of_items_per_process = num_of_items # if next condition failed, num_of_processes = 1
+        else:
+            break
+
     if num_of_processes > num_of_items:
         num_of_processes = num_of_items
-    num_of_items_for_each_process = num_of_items // num_of_processes + 1
     for process_count in range(0, num_of_processes):
-        start = process_count * num_of_items_for_each_process
-        end = (process_count + 1) * num_of_items_for_each_process
+        start = process_count * num_of_items_per_process
+        end = (process_count + 1) * num_of_items_per_process
         items_for_this_process = items[start:end]
         processes.append(Process(target=multithreading_, args=(items_for_this_process, small_list_executor, results_dict), daemon=True))
     log('|--', current_process().name, '=>', len(processes), 'processes =>', num_of_items, 'items', type='inform')

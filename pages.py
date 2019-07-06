@@ -134,7 +134,7 @@ class RankingPage:
         if content:
             params['content'] = content
 
-        util.log('Start ranking for mode', mode, '...', type='inform')
+        util.log('Start searching ranking for mode', mode, '...', type='inform')
         start = time.time()
         ids = []
         if max_page:
