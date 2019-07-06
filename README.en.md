@@ -1,4 +1,4 @@
-# Pixiv-Crawler:unicorn:
+# Pikax:unicorn:
 #### [Chinese ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.md)
 ---
 ### Requirements
