@@ -1,5 +1,5 @@
 # Pikax:unicorn:
-Pikax的目的是提供一个使用简单且强大的Pixiv(P站)爬取工具。
+Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]爬取工具。
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
 ---
 ### 需要
@@ -13,7 +13,7 @@ Pikax的目的是提供一个使用简单且强大的Pixiv(P站)爬取工具。
 - 排行榜
 - 收藏
 ---
-### 试用 => [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
+### 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 #### 下载当日排行榜前50的插画
 ````
   from pixiv import Pixiv
@@ -30,7 +30,7 @@ Pikax的目的是提供一个使用简单且强大的Pixiv(P站)爬取工具。
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, max_page=1)
   pixiv.download(results)
 ````
-#### 下载收藏里的插画（自己的插画需要更改在[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py)里的账号和密码）
+#### 下载用户的作品（自己的插画需要更改在[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py)里的账号和密码）
 ````
   from pixiv import Pixiv
 
