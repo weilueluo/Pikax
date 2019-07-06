@@ -20,7 +20,7 @@ password: your pixiv password
 type: public | private | default both, which of your collections want to save
 """
 
-from pixiv import Pixiv, User
+from pikax import Pixiv, User
 import settings
 def download_daily_rankings_example():
     pixiv = Pixiv()
