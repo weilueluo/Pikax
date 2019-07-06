@@ -16,7 +16,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ### Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 #### Download today's top 50 illustration
 ```
-  from pixiv import Pixiv
+  from pikax import Pixiv
   
   pixiv = Pixiv()
   results = pixiv.rank(max_page=1, content='illust', mode='daily')
@@ -24,7 +24,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ```
 #### Search and download horizontal illustration of keyword: young girl with 10000 likes (approx)
 ```
-  from pixiv import Pixiv
+  from pikax import Pixiv
 
   pixiv = Pixiv()
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, max_page=1)
@@ -32,7 +32,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ```
 #### Download user's artworks (Change username and password in [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py) if you want to download yours)
 ```
-  from pixiv import Pixiv
+  from pikax import Pixiv
 
   # yours
   pixiv = Pixiv()
