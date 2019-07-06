@@ -1,5 +1,5 @@
 # Pikax:unicorn:
-Pikax's aim is to provide a simple yet powerful pixiv crawling tool
+Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) crawling tool
 #### [Chinese ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.md)
 ---
 ### Requirements
@@ -13,7 +13,7 @@ Pikax's aim is to provide a simple yet powerful pixiv crawling tool
 - Ranking
 - User Favorites
 ---
-### Try => [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
+### Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 #### Download today's top 50 illustration
 ```
   from pixiv import Pixiv
@@ -30,7 +30,7 @@ Pikax's aim is to provide a simple yet powerful pixiv crawling tool
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, max_page=1)
   pixiv.download(results)
 ```
-#### Download artwork in favorites (Change username and password in [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py) if you want to download yours)
+#### Download user's artworks (Change username and password in [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py) if you want to download yours)
 ```
   from pixiv import Pixiv
 
