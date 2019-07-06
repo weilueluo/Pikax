@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re, os, time, util, threading, settings
+from pages import OtherUserPage
 
 __all__ = ['Artwork', 'PixivResult']
 
@@ -10,8 +11,6 @@ class Artwork():
     headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     }
-    dup_lock = threading.Lock()
-    saved_lock = threading.Lock()
 
     def __init__(self, id):
         self.id = str(id)
@@ -35,7 +34,6 @@ class Artwork():
             self.file_name = 'unknown_' + self.original_url
         else:
             self.file_name = str(self.author) + '_' + res.group(1)
-            self.file_name = re.sub(r'[:<>"\/|?*]', '', self.file_name) # remove not allowed chracters as file name in windows
 
     # for multiprocessing
     def factory(id):
@@ -43,8 +41,9 @@ class Artwork():
 
     def download(self, folder="", results_dict=None):
         pic_detail = '[' + str(self.title) + '] by [' + str(self.author) + ']'
+        self.file_name = util.clean(self.file_name)
         if folder:
-            self.file_name = folder + '/' + self.file_name
+            self.file_name = util.clean(folder) + '/' + self.file_name
         if os.path.isfile(self.file_name):
             if results_dict:
                 results_dict['skipped'] += 1
@@ -55,6 +54,7 @@ class Artwork():
         err_msg = pic_detail + ' Failed'
         original_pic_respond = util.req(type='get', url=self.original_url, headers=self.headers, err_msg=err_msg, log_req=False)
         if original_pic_respond:
+
             with open(self.file_name, 'wb') as file:
                 file.write(original_pic_respond.content)
                 util.log(pic_detail + ' OK', type='inform', start=settings.CLEAR_LINE, end='\r')
@@ -66,17 +66,48 @@ class Artwork():
                 results_dict['failed'] += 1
 
 class PixivResult:
-    def __init__(self, artworks):
+    """
+    artworks
+    folder
+    """
+    def __init__(self, artworks, folder=""):
         self.artworks = [artwork for artwork in artworks]
         count = 0
-        while True:
-            self.folder = 'PixivResult' + str(count)
-            count += 1
-            if not os.path.exists(self.folder):
-                break
+        if folder:
+            self.folder = folder
+        else:
+            while True:
+                self.folder = '#PixivResult' + str(count)
+                count += 1
+                if not os.path.exists(self.folder):
+                    break
 
     def __getitem__(self, index):
         return self.artworks[index]
 
     def __len__(self):
         return len(self.artworks)
+
+class OtherUser():
+
+    def __init__(self, pixiv_id, session):
+        self.id = pixiv_id
+        self.user_page = OtherUserPage(self.id, session)
+        self.favs_folder = settings.FAV_DOWNLOAD_FOLDER.format(username=self.user_page.username)
+        self.mangas_folder = settings.MANGAS_DOWNLOAD_FOLDER.format(username=self.user_page.username)
+        self.illusts_folder = settings.ILLUSTS_DOWNLOAD_FOLDER.format(username=self.user_page.username)
+        self.fav_artworks = None
+        self.manga_artworks = None
+        self.illust_artworks = None
+
+    def favs(self, limit=None):
+        fav_artworks = util.generate_artworks_from_ids(self.user_page.get_public_fav_ids(limit=limit))
+        return PixivResult(fav_artworks, self.favs_folder)
+
+    def mangas(self, limit=None):
+        manga_artworks = util.generate_artworks_from_ids(self.user_page.get_manga_ids(limit=limit))
+        return PixivResult(manga_artworks, self.mangas_folder)
+
+    def illusts(self, limit=None):
+        illust_artworks = util.generate_artworks_from_ids(self.user_page.get_illust_ids(limit=limit))
+        return PixivResult(illust_artworks, self.illusts_folder)

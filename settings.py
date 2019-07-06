@@ -38,9 +38,12 @@ LOG_FILE = 'log.txt'
 
 
 """
-Folder format for downlaoding favorites
+Folder format for downloading favorites
 """
 FAV_DOWNLOAD_FOLDER = '#{username}\'s favs'
+# below used in other user only
+MANGAS_DOWNLOAD_FOLDER = '#{username}\'s mangas'
+ILLUSTS_DOWNLOAD_FOLDER = '#{username}\'s illusts'
 
 """
 String to clear previous stdout line

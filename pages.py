@@ -172,9 +172,10 @@ class RankingPage:
         return ids
 
 
-class UserPage:
+class OtherUserPage:
     data_url = 'https://www.pixiv.net/ajax/user/{pixiv_id}/illusts/bookmarks?'
     bookmark_url = 'https://www.pixiv.net/bookmark.php?'
+    artwork_url = 'https://www.pixiv.net/ajax/user/{pixiv_id}/profile/all'
     params = {
         'tag': '',
         'offset': '0',
@@ -183,14 +184,13 @@ class UserPage:
     }
     """
     self vars:
-        data_url
-        bookmark_url
         id
         title
-        public_fav_ids
     """
 
-    def add_public_fav(self):
+    def _add_public_fav_ids(self):
+        if self.public_fav_ids:
+            return
         ids_url = self.data_url.format(pixiv_id=self.id, limit=self.total_fav)
         self.params['limit'] = self.total_fav
         ids_data = util.req(type='get', session=self.session, url=ids_url, params=self.params)
@@ -202,10 +202,46 @@ class UserPage:
         else:
             util.log('Failed to retrieve ids data from id:', self.id, type='inform save')
 
+    def _add_illust_ids(self):
+        if self.illust_ids:
+            return
+        if self.data:
+            self.illust_ids = [id for id in self.data['body']['illusts']]
+            return
+        err_msg = 'Failed to get data from id: ' + str(self.id)
+        res = util.req(type='get', url=self.artwork_url.format(pixiv_id=self.id), err_msg=err_msg)
+        if res:
+            data = util.json_loads(res.text)
+            if not data['error']:
+                self.data = data
+                self.illust_ids = [id for id in self.data['body']['illusts']]
+            else:
+                util.log('Error while getting illust ids from id:', self.id)
+
+    def _add_manga_ids(self):
+        if self.manga_ids:
+            return
+        if self.data:
+            self.manga_ids = [id for id in self.data['body']['manga']]
+            return
+        err_msg = 'Failed to get data from id: ' + str(self.id)
+        res = util.req(type='get', url=self.artwork_url.format(pixiv_id=self.id), err_msg=err_msg)
+        if res:
+            data = util.json_loads(res.text)
+            if not data['error']:
+                self.data = data
+                self.manga = [id for id in self.data['body']['manga']]
+            else:
+                util.log('Error while getting manga ids from id:', self.id)
+
     def __init__(self, pixiv_id, session):
         self.public_fav_ids = []
         self.id = pixiv_id
         self.session = session
+        self.public_fav_ids = None
+        self.illust_ids = None
+        self.data = None
+        self.manga_ids = None
         req_url = self.data_url.format(pixiv_id=self.id)
         err_msg = 'Error while generating user page, id: ' + str(self.id)
         res = util.req(type='get', session=self.session, url=req_url, params=self.params, err_msg=err_msg)
@@ -217,7 +253,17 @@ class UserPage:
                     title = res_json['body']['extraData']['meta']['title']
                     username = re.search(r'「(.*?)」', title)
                     self.username = username.group(1) if username else title
-                    self.add_public_fav()
+            else:
+                util.log('Failed to load data from userpage in init, id:', self.id, type='inform save')
 
     def get_public_fav_ids(self, limit=None):
-        return util.trim_to_limit(items=self.public_fav_ids, limit=limit, username=self.username)
+        self._add_public_fav_ids()
+        return util.trim_to_limit(items=self.public_fav_ids, limit=limit)
+
+    def get_illust_ids(self, limit=None):
+        self._add_illust_ids()
+        return util.trim_to_limit(items=self.illust_ids, limit=limit)
+
+    def get_manga_ids(self, limit=None):
+        self._add_manga_ids()
+        return util.trim_to_limit(items=self.manga_ids, limit=limit)

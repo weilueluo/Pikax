@@ -24,31 +24,36 @@ from pikax import Pixiv, User
 import settings
 def download_daily_rankings_example():
     pixiv = Pixiv()
-    results = pixiv.rank(max_page=1, content='illust', mode='daily')
+    results = pixiv.rank(max_page=1, content='illust', mode='daily', date=None)
     pixiv.download(results, folder='#Pixiv_daily_ranking')
 
 def download_search_example():
     pixiv = Pixiv()
-    results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, max_page=2)
+    results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, max_page=1)
     pixiv.download(results)
 
-def download_others_favorites_example():
+def download_other_user_items_example():
     pixiv = Pixiv()
     user = pixiv.login(username=settings.username, password=settings.password)
-    favorites = user.access_favs(pixiv_id=5594793, limit=25)
+    other_user = user.access(pixiv_id=3872398)
+    favorites = other_user.favs(limit=25)
     pixiv.download(favorites)
+    illusts = other_user.illusts(limit=15)
+    pixiv.download(illusts)
+    mangas = other_user.mangas(limit=5)
+    pixiv.download(mangas)
 
 def download_own_favourites_example():
     pixiv = Pixiv()
     user = pixiv.login(username=settings.username, password=settings.password)
-    favorites = user.access_favs()
+    favorites = user.favs(type='public', limit=20)
     pixiv.download(favorites)
 
 def main():
     download_daily_rankings_example()
     # download_search_example()
-    # download_others_favorites_example()
     # download_own_favourites_example()
+    # download_other_user_items_example()
 
 if __name__ == '__main__':
     main()

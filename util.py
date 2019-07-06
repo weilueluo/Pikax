@@ -1,7 +1,7 @@
 
 
 
-import sys, json, settings, requests, os, time, math
+import sys, json, settings, requests, os, time, math, re
 import multiprocessing
 from multiprocessing import Pool as ThreadPool
 from items import Artwork
@@ -85,9 +85,11 @@ def json_loads(text, encoding='utf-8'):
         log('Error while turning text to json.', 'Reason:', str(e), type='inform save')
         return None
 
-def generate_artworks_from_ids(ids):
+def generate_artworks_from_ids(ids, limit=None):
     start = time.time()
-    log('Generating Artwork objects ... ', type='inform')
+    log('Generating Artwork objects ... ', start='\r\n', type='inform')
+    if limit:
+        ids = trim_to_limit(ids, limit=limit)
     pool = ThreadPool(multiprocessing.cpu_count())
     artworks = []
     try:
@@ -101,15 +103,18 @@ def generate_artworks_from_ids(ids):
         log('Done. Tried creating', len(ids), 'artworks objects in' ,str(time.time() - start) + 's', type='inform')
     return artworks
 
-def trim_to_limit(items, limit, username):
+def trim_to_limit(items, limit):
     if limit:
         num_of_items = len(items)
         if limit < num_of_items:
             items = items[:limit]
-            log(username + '\'s favs', num_of_items, '=>', limit, type='inform')
+            log('Trimmed', num_of_items, '=>', limit, type='inform')
         else:
-            log(username + '\'s favs is less than limit:', num_of_favs, '<', limit, type='inform save')
+            log('Number of items are less than limit:', num_of_items, '<', limit, type='inform save')
     return items
+
+def clean(string):
+    return re.sub(r'[:<>"\/|?*]', '', str(string))
 
 def multithreading_(items, small_list_executor, results_dict=None):
     threads = []
@@ -119,7 +124,7 @@ def multithreading_(items, small_list_executor, results_dict=None):
         num_of_items_per_thread = num_of_items # if num of threads is 1
     elif num_of_threads > 1:
         while num_of_threads > 1:
-            num_of_items_per_thread = math.ceil(num_of_items // num_of_threads)
+            num_of_items_per_thread = math.ceil(num_of_items / num_of_threads)
             if num_of_items_per_thread < settings.MIN_ITEMS_PER_THREAD:
                 num_of_threads -= 1
                 num_of_items_per_thread = num_of_items # for condition not meet in next loop
@@ -127,9 +132,9 @@ def multithreading_(items, small_list_executor, results_dict=None):
                 break
     else:
         raise ValueError('number of threads must be at least 1, please check settings.py')
+
     if num_of_threads > num_of_items:
         num_of_threads = num_of_items
-
 
     for thread_count in range(0, num_of_threads):
         start = thread_count * num_of_items_per_thread
@@ -143,13 +148,13 @@ def multithreading_(items, small_list_executor, results_dict=None):
         thread.join()
 
 def multiprocessing_(items, small_list_executor, folder=None, results_dict=None):
-    log('Starting downloads...', type='inform')
+    log('Starting downloads...', start='\r\n', type='inform')
     start_time = time.time()
     processes = []
     num_of_items = len(items)
     num_of_processes = os.cpu_count()
     while num_of_processes > 1:
-        num_of_items_per_process = math.ceil(num_of_items // num_of_processes)
+        num_of_items_per_process = math.ceil(num_of_items / num_of_processes)
         if num_of_items_per_process < settings.MIN_ITEMS_PER_THREAD:
             num_of_processes -= 1
             num_of_items_per_process = num_of_items # if next condition failed, num_of_processes = 1
@@ -158,6 +163,7 @@ def multiprocessing_(items, small_list_executor, folder=None, results_dict=None)
 
     if num_of_processes > num_of_items:
         num_of_processes = num_of_items
+
     for process_count in range(0, num_of_processes):
         start = process_count * num_of_items_per_process
         end = (process_count + 1) * num_of_items_per_process

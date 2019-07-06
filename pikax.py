@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import time, itertools, util
-import re, sys, os, math, settings
-from pages import SearchPage, RankingPage, UserPage, LoginPage
-from items import Artwork, PixivResult
-from multiprocessing import Process, Manager
-from threading import Thread
+import time, util
+import re, sys, os, settings
+from multiprocessing import Manager
+from pages import SearchPage, RankingPage, LoginPage
+from items import Artwork, PixivResult, OtherUser
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -52,7 +51,7 @@ class Pixiv:
         results.folder = '#PixivRanking-{mode}-{max_page}-{date}-{content}'.format(mode=mode, max_page=max_page, date=date, content=content)
         return results
 
-    def download(self, pixiv_result, folder=""):
+    def download(self, pixiv_result=None, pixiv_id=None, user_id=None, folder=""):
         """
         Take a PixivResult object and download its content
 
@@ -60,7 +59,11 @@ class Pixiv:
 
         does not return anything
         """
-        download(pixiv_result, folder)
+        if pixiv_result:
+            download(pixiv_result, folder)
+        if pixiv_id:
+            Artwork(pixiv_id).download(folder=folder)
+
 
     def login(self, username, password):
         """
@@ -83,7 +86,7 @@ class User:
         else:
             self.username = username
 
-    def get_my_favorites_ids(self, params):
+    def _get_my_favorites_ids(self, params):
         ids = []
         curr_page = 0
         while True:
@@ -104,10 +107,10 @@ class User:
             time.sleep(1)
         return ids
 
-    """
-    type: public | private | default both
-    """
-    def get_my_favorites(self, type=None, limit=None):
+    def favs(self, type=None, limit=None):
+        """
+        type: public | private | default both
+        """
         params = dict()
         if type:
             if type == 'public':
@@ -116,30 +119,19 @@ class User:
                 params['rest'] = 'hide'
             else:
                 raise ValueError('Invalid type:', str(type))
-            return self.get_my_favorites(session=self.session, url=self.url, params=params)
+            ids = self._get_my_favorites_ids(params=params)
         else:
             params['rest'] = 'show'
-            public_ids = self.get_my_favorites_ids(params=params)
+            public_ids = self._get_my_favorites_ids(params=params)
             params['rest'] = 'hide'
-            private_ids = self.get_my_favorites_ids(params=params)
-        ids = public_ids + private_ids
-        ids = util.trim_to_limit(ids, limit=limit, username=self.username)
-        results = PixivResult(util.generate_artworks_from_ids(ids))
+            private_ids = self._get_my_favorites_ids(params=params)
+            ids = public_ids + private_ids
+        results = PixivResult(util.generate_artworks_from_ids(ids, limit=limit))
         results.folder = settings.FAV_DOWNLOAD_FOLDER.format(username=self.username)
         return results
 
-    def get_others_favorites(self, pixiv_id, limit=None):
-        user_page = UserPage(pixiv_id=pixiv_id, session=self.session)
-        public_fav_ids = user_page.get_public_fav_ids(limit=limit)
-        results = PixivResult(util.generate_artworks_from_ids(public_fav_ids))
-        results.folder = settings.FAV_DOWNLOAD_FOLDER.format(username=user_page.username)
-        return results
-
-    def access_favs(self, type=None, pixiv_id=None, limit=None):
-        if pixiv_id:
-            return self.get_others_favorites(pixiv_id=pixiv_id, limit=limit)
-        else:
-            return self.get_my_favorites(type=type, limit=limit)
+    def access(self, pixiv_id, type=None):
+        return OtherUser(pixiv_id=pixiv_id, session=self.session)
 
 
 class download:
@@ -159,8 +151,9 @@ class download:
         if not folder:
             folder = pixiv_result.folder
         self.folder = folder
-        if not os.path.exists(folder):
-            os.mkdir(folder)
+        self.folder = util.clean(self.folder) # remove not allowed chracters as file name in windows
+        if not os.path.exists(self.folder):
+            os.mkdir(self.folder)
         results_dict = Manager().dict()
         results_dict['total_expected'] = len(pixiv_result.artworks)
         results_dict['success'] = 0
@@ -171,6 +164,7 @@ class download:
     def _log_download_results(self, pixiv_result, start_time, end_time, folder="", results_dict=dict()):
         if not folder:
             folder = pixiv_result.folder
+        folder = util.clean(folder)
         if not os.path.exists(folder):
             os.mkdir(folder)
         util.log('', end=settings.CLEAR_LINE, type='inform') # remove last printed saved ok line
@@ -179,30 +173,3 @@ class download:
             util.log(key.title(), ':', value, type='inform save')
         util.log('Time Taken:', str(end_time - start_time) + 's', type='inform save')
         util.log('Done', str(results_dict['success'] + results_dict['skipped'])  + '/' + str(results_dict['total_expected']) ,'=>', folder, type='inform save')
-
-
-
-
-
-
-    # not used
-    # def _download_via_pool(self, pixiv_result, folder):
-    #         return None
-    #
-    #         start_time = time.time()
-    #         folders = itertools.repeat(folder)
-    #         size = len(pixiv_result.artworks)
-    #         counter = Value('i', 0)
-    #         pool = ThreadPool(multiprocessing.cpu_count(), initializer=util.init_download_counter, initargs=(counter, size))
-    #         chunksize = size // os.cpu_count()
-    #         if chunksize < 1:
-    #             chunksize = 1
-    #         try:
-    #             pool.map(Artwork.downloader, zip(pixiv_result.artworks, folders), chunksize=chunksize)
-    #         except multiprocessing.ProcessError as e:
-    #             pool.terminate()
-    #             util.log('Error:', str(e), type='save inform')
-    #         finally:
-    #             pool.close()
-    #             pool.join()
-    #             util.log('Done. Tried saving', size, 'artworks in', str(time.time() - start_time) + 's =>', str(folder), type='inform', start=settings.CLEAR_LINE)
