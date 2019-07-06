@@ -2,6 +2,7 @@
 
 import re, time, util, settings, requests
 
+__all__ = ['LoginPage', 'SearchPage', 'RankingPage', 'UserPage']
 
 class LoginPage:
     post_key_url = 'https://accounts.pixiv.net/login?'

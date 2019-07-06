@@ -2,7 +2,7 @@
 
 import re, os, time, util, threading, settings
 
-
+__all__ = ['Artwork', 'PixivResult']
 
 class Artwork():
     referer_url = 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='

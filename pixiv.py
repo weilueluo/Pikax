@@ -9,6 +9,8 @@ from threading import Thread
 
 sys.stdout.reconfigure(encoding='utf-8')
 
+__all__ = ['Pixiv', 'User']
+
 class Pixiv:
 
     def __init__(self):
