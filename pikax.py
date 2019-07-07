@@ -17,7 +17,7 @@ class Pixiv:
         self.ranking_page = RankingPage()
         self.user = None
 
-    def search(self, keyword, max_page=None, type=None, dimension=None, mode=None, popularity=None):
+    def search(self, keyword, limit=None, type=None, dimension=None, mode=None, popularity=None):
         """
         Search in pixiv using parameters
 
@@ -30,9 +30,9 @@ class Pixiv:
 
         return a PixivResult object
         """
-        ids = self.search_page.get_ids(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, max_page=max_page)
-        results = PixivResult(util.generate_artworks_from_ids(ids))
-        results.folder = '#PixivSearch-{keyword}-{type}-{dimension}-{mode}-{popularity}-{max_page}'.format(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, max_page=max_page)
+        ids = self.search_page.get_ids(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, limit=limit)
+        folder = settings.SEARCH_RESULTS_FOLDER.format(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, limit=limit)
+        results = PixivResult(util.generate_artworks_from_ids(ids), folder)
         return results
 
     def rank(self, mode='daily', max_page=None, date=None, content=None):

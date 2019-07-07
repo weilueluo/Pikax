@@ -21,10 +21,10 @@ class Artwork():
         else:
             util.log('Failed to init artwork', type='inform save')
         self.original_url = image_data['body']['urls']['original'] or None
-        self.views = image_data['body']['viewCount'] or None
-        self.bookmarks = image_data['body']['bookmarkCount'] or None
-        self.likes = image_data['body']['likeCount'] or None
-        self.comments = image_data['body']['commentCount'] or None
+        # self.views = image_data['body']['viewCount'] or None
+        # self.bookmarks = image_data['body']['bookmarkCount'] or None
+        # self.likes = image_data['body']['likeCount'] or None
+        # self.comments = image_data['body']['commentCount'] or None
         self.title = image_data['body']['illustTitle'] or None
         self.author = image_data['body']['userName'] or None
         res = re.search(r'/([\d]+_.*)', self.original_url)

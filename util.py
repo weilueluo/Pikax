@@ -8,34 +8,37 @@ from items import Artwork
 from multiprocessing import Value, Process, current_process
 from threading import Thread
 
-sys.stdout.reconfigure(encoding='utf-8')
 sls = os.linesep
 
-log_type = settings.LOG_TYPE
-std_enabled = True if log_type.find('std') != -1 else False
-inform_enabled = True if log_type.find('inform') != -1 else False
-save_enabled = True if log_type.find('save') != -1 else False
+_log_type = settings.LOG_TYPE
+_std_enabled = True if _log_type.find('std') != -1 else False
+_inform_enabled = True if _log_type.find('inform') != -1 else False
+_save_enabled = True if _log_type.find('save') != -1 else False
 
-__all__ = ['log', 'req', 'json_loads', 'generate_artworks_from_ids', 'trim_to_limit', 'multiprocessing_']
+__all__ = ['log', 'req', 'json_loads', 'generate_artworks_from_ids', 'trim_to_limit', 'multiprocessing_', 'clean']
 
 
 def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', type=''):
-    global std_enabled, inform_enabled, save_enabled
+    global _std_enabled, _inform_enabled, _save_enabled
     if type:
-        if inform_enabled and type.find('inform') != -1:
+        if _inform_enabled and type.find('inform') != -1:
             print(start, '>>>', *objects, sep=sep, end=end, file=file, flush=flush)
-        if save_enabled and type.find('save') != -1:
+        if _save_enabled and type.find('save') != -1:
             print(start, *objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a'), flush=flush)
-    elif std_enabled:
+        if _inform_enabled and type.find('error') != -1:
+            print(start, '!!!!!', *objects, sep=sep, end=end, file=file, flush=flush)
+    elif _std_enabled:
         print(start, *objects, sep=sep, end=end, file=file, flush=flush)
 
+# send request using requests, return None if fails all retries
 def req(url, type='get', session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS, timeout=settings.TIMEOUT, err_msg=None, log_req=True, verify=True):
     type = type.upper()
-    if log_req:
-        log(type + ':', str(url), 'with:', str(params), end=' ')
     retries = 0
     while retries < settings.MAX_RETRIES_FOR_REQUEST:
+        if log_req:
+            log(type + ':', str(url), 'with params:', str(params), end=' ')
         try:
+
             # try send request according to parameters
             if session:
                 if type == 'GET':
@@ -51,18 +54,18 @@ def req(url, type='get', session=None, params=None, data=None, headers=settings.
                     res = requests.post(url=url, headers=headers, params=params, timeout=timeout, verify=verify, data=data)
                 else:
                     log('Request type error:', type, type='inform save')
-            # check if request is normal
+
+            if log_req:
+                log(res.status_code)
+
+            # check if request result is normal
             if res:
-                if log_req:
-                    log(res.status_code)
                 if res.status_code < 400:
                     return res
                 else:
-                    log('Status code error:', res.status_code, 'retries:', retries,type='inform save')
+                    log('Status code error:', res.status_code, 'retries:', retries, type='inform save')
             else:
-                if log_req:
-                    log('')
-                log('Requests returned None, retries:', retries, type='inform save')
+                log('Requests returned Falsey, retries:', retries, type='inform save')
         except requests.exceptions.Timeout as e:
             log(type, url, params, 'Time Out:', retries, type='inform save')
             log('Reason:', str(e), type='inform save')
@@ -75,16 +78,20 @@ def req(url, type='get', session=None, params=None, data=None, headers=settings.
 
         time.sleep(1) # dont request again too fast
         retries += 1
-    log(type, 'failed:', url, 'params:', str(params), type='inform save')
+
+    # if still fails after all retries
+    log(type, 'failed:', url, 'params:', str(params), type='error save')
     return None
 
+# attempt to decode given json, return None if fails
 def json_loads(text, encoding='utf-8'):
     try:
         return json.loads(text, encoding=encoding)
     except json.JSONDecodeError as e:
-        log('Error while turning text to json.', 'Reason:', str(e), type='inform save')
+        log('Error while turning text to json.', 'Reason:', str(e), type='error save')
         return None
 
+# return a list of artworks given a list of ids, using pool
 def generate_artworks_from_ids(ids, limit=None):
     start = time.time()
     log('Generating Artwork objects ... ', start='\r\n', type='inform')
@@ -96,27 +103,36 @@ def generate_artworks_from_ids(ids, limit=None):
         artworks = pool.map(Artwork.factory, ids)
     except multiprocessing.ProcessError as e:
         pool.terminate()
-        log('Error while generating artwork:', str(e), type='inform save')
+        log('Error while generating artwork:', str(e), type='error save')
     finally:
         pool.close()
         pool.join()
         log('Done. Tried creating', len(ids), 'artworks objects in' ,str(time.time() - start) + 's', type='inform')
     return artworks
 
+# trim the given items length to given limit
 def trim_to_limit(items, limit):
-    if limit:
-        num_of_items = len(items)
-        if limit < num_of_items:
-            items = items[:limit]
-            log('Trimmed', num_of_items, '=>', limit, type='inform')
-        else:
-            log('Number of items are less than limit:', num_of_items, '<', limit, type='inform save')
+    if items:
+        if limit:
+            num_of_items = len(items)
+            if limit < num_of_items:
+                items = items[:limit]
+                log('Trimmed', num_of_items, 'items =>', limit, 'items', type='inform')
+            else:
+                log('Number of items are less than limit:', num_of_items, '<', limit, type='inform save')
+    else:
+        log('Error, items is false', type='error save')
     return items
 
+# remove invalid file name characters for windows
 def clean(string):
     return re.sub(r'[:<>"\/|?*]', '', str(string))
 
-def multithreading_(items, small_list_executor, results_dict=None):
+# used for tesing
+def print_json(json_obj):
+    print(json.dumps(json_obj, indent=4))
+
+def _multithreading_(items, small_list_executor, results_dict=None):
     threads = []
     num_of_items = len(items)
     num_of_threads = settings.MAX_THREAD_PER_PROCESS
@@ -147,8 +163,12 @@ def multithreading_(items, small_list_executor, results_dict=None):
     for thread in threads:
         thread.join()
 
-def multiprocessing_(items, small_list_executor, folder=None, results_dict=None):
-    log('Starting downloads...', start='\r\n', type='inform')
+# breaks the given items into small lists in different process and threads,
+# pass these small lists to small_list_executor
+# results_dict is used to save results if any
+# raise ValueError if num of max threads specified in settings is < 1
+def multiprocessing_(items, small_list_executor, results_dict=None):
+    log('Starting multiprocessing...', start='\r\n', type='inform')
     start_time = time.time()
     processes = []
     num_of_items = len(items)
@@ -168,7 +188,7 @@ def multiprocessing_(items, small_list_executor, folder=None, results_dict=None)
         start = process_count * num_of_items_per_process
         end = (process_count + 1) * num_of_items_per_process
         items_for_this_process = items[start:end]
-        processes.append(Process(target=multithreading_, args=(items_for_this_process, small_list_executor, results_dict), daemon=True))
+        processes.append(Process(target=_multithreading_, args=(items_for_this_process, small_list_executor, results_dict), daemon=True))
     log('|--', current_process().name, '=>', len(processes), 'processes =>', num_of_items, 'items', type='inform')
     for process in processes:
         process.start()

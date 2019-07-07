@@ -11,10 +11,11 @@ class LoginPage:
         'referer': 'https://accounts.pixiv.net/login',
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     }
+
     def __init__(self):
         self.session = requests.Session()
 
-    def get_post_key_from_pixiv(self):
+    def _get_post_key_from_pixiv(self):
         util.log('Sending request to retrieve post key ... ', end='')
         pixiv_login_page = util.req(type='get', session=self.session, url=self.post_key_url)
         if pixiv_login_page:
@@ -32,86 +33,119 @@ class LoginPage:
         data = {
             'pixiv_id': username,
             'password': password,
-            'post_key': self.get_post_key_from_pixiv()
+            'post_key': self._get_post_key_from_pixiv()
         }
         util.log('Sending request to attempt login ... ')
         respond = util.req(type='post', session=self.session, url=self.login_url, data=data, headers=self.headers)
         if respond:
-            util.log('Login successfully into Pixiv as [', username, ']', type='inform')
+            util.log('Login successfully into Pixiv as [' + str(username) + ']', type='inform')
             return self.session
         else:
-            raise LoginError('Login failed. Please check your internet, username and password', type='inform save')
+            raise LoginError('Login failed. Please check your internet or username and password in settings.py', type='inform save')
 
 
 class SearchPage:
     search_url = 'https://www.pixiv.net/search.php?'
     search_popularity_postfix = u'users入り'
-    search_regex = r'(\d{8})_p0'
-    popularity_list = [500, 1000, 5000, 10000, 20000]
+    search_regex = r'(\d{8})_p\d'
+    popularity_list = [10000, 5000, 1000, 500] # TODO: falsey result when search with 20000
 
     """
     keyword: string to search
     type: manga | illust | ugoira | default any
     dimension: vertical | horizontal | square | default any
     mode: strict_tag | loose | default tag contains
-    popularity: a number, add after search keyword as: number users入り | default date descending
-    max_page: how many pages to crawl | default all pages found
+    popularity: a number, add after search keyword as: number users入り, use 'popular' if you want to get better results | default date descending, all results, which is not as good usually
+    limit: how many artworks to get | default all
     """
 
     def __init__(self):
         pass
 
-    def get_ids(self, keyword, max_page=None, type=None, dimension=None, mode=None, popularity=None):
+    def get_ids(self, keyword, limit=None, type=None, dimension=None, mode=None, popularity=None):
+
         # if max_page is None, it will search all pages
         util.log('Start searching for id with keyword:', keyword)
-        start = time.time()
+
         # setting parameters
+        start = time.time()
         params = dict()
         if type: # default match all type
             params['type'] = type
+
         if dimension: # default match all ratios
             if dimension == 'horizontal':
                 params['ratio'] = '0.5'
-            if dimension == 'vertical':
+            elif dimension == 'vertical':
                 params['ratio'] = '-0.5'
-            if dimension == 'square':
+            elif dimension == 'square':
                 params['ratio'] = '0'
+            else:
+                raise ValueError('Invalid dimension given:', dimension)
+
         if mode: # default match if contain tags
             if mode == 'strict_tag': # specified tags only
                 params['s_mode'] = 's_tag_full'
-            if mode == 'loose':
+            elif mode == 'loose':
                 params['s_mode'] = 's_tc'
+            else:
+                raise ValueError('Invalid mode given:', mode)
 
-        # search all ids from pages
-        ids = []
-        if popularity:
-            ids += self.get_ids_recusion_helper(params=params, keyword=keyword, max_page=max_page, popularity=popularity)
-        else:
+        # search starts
+        if popularity == None:
+            ids = self._get_ids_helper(params=params, keyword=keyword, limit=limit, popularity=popularity)
+        elif popularity == 'popular':
             for popularity in self.popularity_list:
-                ids += self.get_ids_recusion_helper(params=params, keyword=keyword, max_page=max_page, popularity=popularity)
-        ids = set(ids)
+                ids = self._get_ids_helper(params=params, keyword=keyword, limit=limit, popularity=popularity)
+        else:
+            ids = self._get_ids_helper(params=params, keyword=keyword, limit=limit, popularity=popularity)
+
+
         util.log('Found', str(len(ids)), 'ids for', keyword, 'in', str(time.time() - start) + 's', type='inform')
         return ids
 
-    def get_ids_recusion_helper(self, params, keyword, popularity, max_page, curr_page=1, ids_sofar=[]):
-        if max_page != None and curr_page > max_page:
-            return ids_sofar
-        params['p'] = curr_page
-        params['word'] = str(keyword) + ' ' + str(popularity) + ' ' + self.search_popularity_postfix
-        util.log('Searching id for params:', params, 'at page:', curr_page)
-        err_msg = 'Failed getting ids from params ' + str(params) + ' page: ' + str(curr_page)
-        results = util.req(type='get', url=self.search_url, params=params, err_msg=err_msg)
-        ids = re.findall(self.search_regex, results.text)
-        # checking if any new item is added
-        old_len = len(ids_sofar)
-        ids_sofar += ids
-        ids_sofar = list(set(ids_sofar))
-        new_len = len(ids_sofar)
-        if old_len == new_len: # if no new item added, end of page
-            return ids_sofar
-        curr_page += 1
-        ids_sofar = self.get_ids_recusion_helper(params=params, keyword=keyword, popularity=popularity, max_page=max_page, curr_page=curr_page, ids_sofar=ids_sofar)
-        return ids_sofar
+    def _get_ids_helper(self, params, keyword, popularity, limit=None, curr_page=1, ids_sofar=[]):
+        while True:
+            # get a page's ids
+            params['p'] = curr_page
+            params['word'] = str(keyword)
+            if popularity != None:
+                params['word'] += ' ' + str(popularity) + self.search_popularity_postfix
+            util.log('Searching id for params:', params, 'at page:', curr_page)
+            err_msg = 'Failed getting ids from params ' + str(params) + ' page: ' + str(curr_page)
+            results = util.req(type='get', url=self.search_url, params=params, err_msg=err_msg)
+            if not results:
+                util.log('Failed to retrieve data from page:', curr_page, 'terminated', type='error')
+                return ids_sofar
+
+            ids = re.findall(self.search_regex, results.text)
+
+            # set length of old ids and new ids,
+            # use later to check if reached end of all pages
+            old_len = len(ids_sofar)
+            ids_sofar += ids
+            ids_sofar = list(set(ids_sofar))
+            new_len = len(ids_sofar)
+
+            # if limit is specified, check if reached limited number of items
+            if limit != None:
+                if limit == new_len:
+                    return ids_sofar
+                elif limit < new_len:
+                    return util.trim_to_limit(ids_sofar, limit=limit)
+                # limit has not reached
+
+            # now check if any new items is added
+            if old_len == new_len: # if no new item added, end of search pages
+                if limit != None: # if limit is specified, it means search ended without meeting user's limit
+                    util.log('Search did not return enough items for limit:', new_len, '<', limit, type='inform save')
+                return ids_sofar
+
+            # search next page
+            curr_page += 1
+
+
+
 
 
 class RankingPage:
@@ -130,6 +164,7 @@ class RankingPage:
         params = dict()
         params['format'] = 'json'
         params['mode'] = mode
+        params['ref'] = 'rn-h-image-3' # fix some failures
         if date:
             params['date'] = date
         if content:
@@ -192,7 +227,6 @@ class OtherUserPage:
         if self.public_fav_ids:
             return
         ids_url = self.data_url.format(pixiv_id=self.id, limit=self.total_fav)
-        self.params['limit'] = self.total_fav
         ids_data = util.req(type='get', session=self.session, url=ids_url, params=self.params)
         ids_data = util.json_loads(ids_data.content)
         if ids_data:
@@ -209,9 +243,10 @@ class OtherUserPage:
             self.illust_ids = [id for id in self.data['body']['illusts']]
             return
         err_msg = 'Failed to get data from id: ' + str(self.id)
+
         res = util.req(type='get', url=self.artwork_url.format(pixiv_id=self.id), err_msg=err_msg)
         if res:
-            data = util.json_loads(res.text)
+            data = util.json_loads(res.content)
             if not data['error']:
                 self.data = data
                 self.illust_ids = [id for id in self.data['body']['illusts']]
@@ -227,10 +262,10 @@ class OtherUserPage:
         err_msg = 'Failed to get data from id: ' + str(self.id)
         res = util.req(type='get', url=self.artwork_url.format(pixiv_id=self.id), err_msg=err_msg)
         if res:
-            data = util.json_loads(res.text)
+            data = util.json_loads(res.content)
             if not data['error']:
                 self.data = data
-                self.manga = [id for id in self.data['body']['manga']]
+                self.manga_ids = [id for id in self.data['body']['manga']]
             else:
                 util.log('Error while getting manga ids from id:', self.id)
 
@@ -251,6 +286,7 @@ class OtherUserPage:
                 if not res_json['error']:
                     self.total_fav = res_json['body']['total']
                     title = res_json['body']['extraData']['meta']['title']
+                    self.params['limit'] = self.total_fav
                     username = re.search(r'「(.*?)」', title)
                     self.username = username.group(1) if username else title
             else:

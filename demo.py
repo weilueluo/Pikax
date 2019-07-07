@@ -4,13 +4,13 @@ keyword: string to search
 type: manga | illust | ugoira | default any
 dimension: vertical | horizontal | square | default any
 mode: strict_tag | loose | default tag contains
-popularity: a number, add after search keyword as: number users入り | default search all in [500, 1000, 5000, 10000, 20000]
-max_page: 1 page ~ 39 artwork | default all pages
+popularity: a number, add after search keyword as: number users入り, use 'popular' if you want to get better results | default date descending, all results, which is not as good usually
+limit: how many artworks to get | default all
 
 
 Pixiv.rank:
-mode: daily | weekly | monthly | rookie | original | male | female | default daily
-max_page: 1 page = 50 artworks | default all pages
+mode: daily | weekly | monthly | rookie | default daily # has problem: | male | female | original
+limit: number of artworks to search | default all
 date: up to which date | default today, format: yyyymmdd
 content: illust | manga | ugoria | default any
 
@@ -29,7 +29,7 @@ def download_daily_rankings_example():
 
 def download_search_example():
     pixiv = Pixiv()
-    results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, max_page=1)
+    results = pixiv.search(keyword='オリジナル', type='illust', dimension='horizontal', popularity=10000, limit=120)
     pixiv.download(results)
 
 def download_other_user_items_example():
@@ -50,8 +50,8 @@ def download_own_favourites_example():
     pixiv.download(favorites)
 
 def main():
-    download_daily_rankings_example()
-    # download_search_example()
+    # download_daily_rankings_example()
+    download_search_example()
     # download_own_favourites_example()
     # download_other_user_items_example()
 
