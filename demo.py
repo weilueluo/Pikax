@@ -24,12 +24,12 @@ from pikax import Pixiv, User
 import settings
 def download_daily_rankings_example():
     pixiv = Pixiv()
-    results = pixiv.rank(max_page=1, content='illust', mode='daily', date=None)
+    results = pixiv.rank(limit=10, content='illust', mode='daily', date=None)
     pixiv.download(results, folder='#Pixiv_daily_ranking')
 
 def download_search_example():
     pixiv = Pixiv()
-    results = pixiv.search(keyword='オリジナル', type='illust', dimension='horizontal', popularity=10000, limit=120)
+    results = pixiv.search(keyword='オリジナル', type='illust', dimension='horizontal', popularity=10000, limit=20)
     pixiv.download(results)
 
 def download_other_user_items_example():
@@ -50,10 +50,10 @@ def download_own_favourites_example():
     pixiv.download(favorites)
 
 def main():
-    # download_daily_rankings_example()
+    download_daily_rankings_example()
     download_search_example()
-    # download_own_favourites_example()
-    # download_other_user_items_example()
+    download_own_favourites_example()
+    download_other_user_items_example()
 
 if __name__ == '__main__':
     main()

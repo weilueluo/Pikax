@@ -7,6 +7,7 @@ from multiprocessing import Pool as ThreadPool
 from items import Artwork
 from multiprocessing import Value, Process, current_process
 from threading import Thread
+from exceptions import ReqException
 
 sls = os.linesep
 
@@ -24,14 +25,15 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', type
         if _inform_enabled and type.find('inform') != -1:
             print(start, '>>>', *objects, sep=sep, end=end, file=file, flush=flush)
         if _save_enabled and type.find('save') != -1:
-            print(start, *objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a'), flush=flush)
+            print(start, *objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a'), flush=False)
         if _inform_enabled and type.find('error') != -1:
             print(start, '!!!!!', *objects, sep=sep, end=end, file=file, flush=flush)
     elif _std_enabled:
         print(start, *objects, sep=sep, end=end, file=file, flush=flush)
 
-# send request using requests, return None if fails all retries
+# send request using requests, raise ReqException if fails all retries
 def req(url, type='get', session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS, timeout=settings.TIMEOUT, err_msg=None, log_req=True, verify=True):
+
     type = type.upper()
     retries = 0
     while retries < settings.MAX_RETRIES_FOR_REQUEST:
@@ -80,16 +82,15 @@ def req(url, type='get', session=None, params=None, data=None, headers=settings.
         retries += 1
 
     # if still fails after all retries
-    log(type, 'failed:', url, 'params:', str(params), type='error save')
-    return None
+    raise ReqException(str(type) + ' failed: ', str(url) + ' params: ' + str(params))
 
-# attempt to decode given json, return None if fails
+
+# attempt to decode given json, raise JSONDecodeError if fails
 def json_loads(text, encoding='utf-8'):
     try:
         return json.loads(text, encoding=encoding)
     except json.JSONDecodeError as e:
-        log('Error while turning text to json.', 'Reason:', str(e), type='error save')
-        return None
+        raise json.JSONDecodeError('Error while turning text to json.' + ' Reason: ' + str(e))
 
 # return a list of artworks given a list of ids, using pool
 def generate_artworks_from_ids(ids, limit=None):

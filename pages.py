@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import re, time, util, settings, requests
+import re, time, util, settings, requests, json
+from exceptions import LoginError, ReqException, PostKeyError, IDError
 
 __all__ = ['LoginPage', 'SearchPage', 'RankingPage', 'UserPage']
 
+# raise LoginError if failed to login
 class LoginPage:
-    post_key_url = 'https://accounts.pixiv.net/login?'
-    login_url = 'https://accounts.pixiv.net/api/login?lang=en'
+    _post_key_url = 'https://accounts.pixiv.net/login?'
+    _login_url = 'https://accounts.pixiv.net/api/login?lang=en'
     headers = {
         'referer': 'https://accounts.pixiv.net/login',
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
@@ -17,30 +19,34 @@ class LoginPage:
 
     def _get_post_key_from_pixiv(self):
         util.log('Sending request to retrieve post key ... ', end='')
-        pixiv_login_page = util.req(type='get', session=self.session, url=self.post_key_url)
-        if pixiv_login_page:
+        try:
+            pixiv_login_page = util.req(type='get', session=self.session, url=self._post_key_url)
             res = re.search(r'post_key" value="(.*?)"', pixiv_login_page.text)
-        if res:
-            post_key = res.group(1)
-            if post_key:
-                util.log('post key successfully retrieved:', post_key)
-                return post_key
-            else:
-                util.log('failed to find post key', type='inform save')
-        return None
+            if res:
+                post_key = res.group(1)
+                if post_key:
+                    util.log('post key successfully retrieved:', post_key)
+                    return post_key
+        except ReqException as e:
+            util.log(str(e), type='error save')
+
+        raise PostKeyError('Failed to find post key')
+
+
 
     def login(self, username, password):
-        data = {
-            'pixiv_id': username,
-            'password': password,
-            'post_key': self._get_post_key_from_pixiv()
-        }
-        util.log('Sending request to attempt login ... ')
-        respond = util.req(type='post', session=self.session, url=self.login_url, data=data, headers=self.headers)
-        if respond:
+        try:
+            data = {
+                'pixiv_id': username,
+                'password': password,
+                'post_key': self._get_post_key_from_pixiv()
+            }
+            util.log('Sending request to attempt login ... ')
+            respond = util.req(type='post', session=self.session, url=self._login_url, data=data)
             util.log('Login successfully into Pixiv as [' + str(username) + ']', type='inform')
             return self.session
-        else:
+        except ReqException as e:
+            util.log(str(e), type='error save')
             raise LoginError('Login failed. Please check your internet or username and password in settings.py', type='inform save')
 
 
@@ -112,10 +118,12 @@ class SearchPage:
             if popularity != None:
                 params['word'] += ' ' + str(popularity) + self.search_popularity_postfix
             util.log('Searching id for params:', params, 'at page:', curr_page)
-            err_msg = 'Failed getting ids from params ' + str(params) + ' page: ' + str(curr_page)
-            results = util.req(type='get', url=self.search_url, params=params, err_msg=err_msg)
-            if not results:
-                util.log('Failed to retrieve data from page:', curr_page, 'terminated', type='error')
+            try:
+                err_msg = 'Failed getting ids from params ' + str(params) + ' page: ' + str(curr_page)
+                results = util.req(type='get', url=self.search_url, params=params, err_msg=err_msg)
+            except ReqException as e:
+                util.log(str(e), type='error save')
+                util.log('Failed to retrieve data from page:', curr_page, 'terminated', type='inform save')
                 return ids_sofar
 
             ids = re.findall(self.search_regex, results.text)
@@ -145,9 +153,6 @@ class SearchPage:
             curr_page += 1
 
 
-
-
-
 class RankingPage:
     url = 'https://www.pixiv.net/ranking.php?'
 
@@ -173,36 +178,29 @@ class RankingPage:
         util.log('Start searching ranking for mode', mode, '...', type='inform')
         start = time.time()
         ids = []
-#         if limit:
-#             for page_num in range(1, int(max_page) + 1):
-#                 params['p'] = page_num
-#                 res = util.req(type='get', url=self.url, params=params)
-#                 if res:
-#                     res = util.json_loads(res.content)
-#                 else:
-#                     continue
-#                 if 'error' in res:
-#                     util.log('Error while searching', str(params), 'skipped', type='inform save')
-#                     continue
-#                 else:
-#                     ids += [content['illust_id'] for content in res['contents']]
-#         else:
         page_num = 0
+        exception_count = 0
         while True:
             page_num += 1
             params['p'] = page_num
-            res = util.req(type='get', url=self.url, params=params)
-            if res:
+            try:
+                res = util.req(type='get', url=self.url, params=params)
                 res = util.json_loads(res.content)
-            else:
-                util.log('Error while json loading', type='inform save')
-                continue
+            except (ReqException, json.JSONDecodeError) as e:
+                util.log(str(e), type='error save')
+                util.log('Error while loading page:', page_num , 'in ranking page', type='inform save')
+                exception_count += 1
+                if exception_count > settings.MAX_WHILE_TRUE_LOOP_EXCEPTIONS:
+                    util.log('Too many exceptions encountered:', exceptions, 'terminating ...', type='inform save')
+                    break
+                else:
+                    continue
             if 'error' in res:
                 util.log('End of page while searching', str(params) + '. Finished')
                 break
             else:
                 ids += [content['illust_id'] for content in res['contents']]
-                
+
             # check if number of ids reached requirement
             if limit:
                 num_of_ids_found = len(ids)
@@ -211,17 +209,17 @@ class RankingPage:
                 elif limit < num_of_ids_found:
                     ids = util.trim_to_limit(ids, limit)
                     break
-        
+
         # log results
         if limit:
             num_of_ids = len(ids)
             if limit > num_of_ids:
                 util.log('Items found in ranking is less than requirement:', num_of_ids, '<', limit, type='inform')
         util.log('Done. Total ids found:', len(ids), type='inform')
-        
+
         return ids
 
-
+# raise IDError if failed to retrieves id, raise OtherUserPageError if failed to init
 class OtherUserPage:
     data_url = 'https://www.pixiv.net/ajax/user/{pixiv_id}/illusts/bookmarks?'
     bookmark_url = 'https://www.pixiv.net/bookmark.php?'
@@ -239,50 +237,45 @@ class OtherUserPage:
     """
 
     def _add_public_fav_ids(self):
-        if self.public_fav_ids:
-            return
-        ids_url = self.data_url.format(pixiv_id=self.id, limit=self.total_fav)
-        ids_data = util.req(type='get', session=self.session, url=ids_url, params=self.params)
-        ids_data = util.json_loads(ids_data.content)
-        if ids_data:
+        try:
+            ids_url = self.data_url.format(pixiv_id=self.id, limit=self.total_fav)
+            ids_data = util.req(type='get', session=self.session, url=ids_url, params=self.params)
+            ids_data = util.json_loads(ids_data.content)
             self.public_fav_ids = [artwork['id'] for artwork in ids_data['body']['works']]
             self.public_fav_ids_length = len(self.public_fav_ids)
             util.log(self.username + '\'s favs found:', self.public_fav_ids_length, type='inform')
-        else:
-            util.log('Failed to retrieve ids data from id:', self.id, type='inform save')
+        except (ReqException, json.JSONDecodeError) as e:
+            util.log(str(e), type='error save')
+            util.log('Failed to retrieve public ids data from id:', self.id, type='inform save')
+            raise IDError('Failed to add public fav ids')
 
     def _add_illust_ids(self):
-        if self.illust_ids:
-            return
-        if self.data:
-            self.illust_ids = [id for id in self.data['body']['illusts']]
-            return
-        err_msg = 'Failed to get data from id: ' + str(self.id)
-
-        res = util.req(type='get', url=self.artwork_url.format(pixiv_id=self.id), err_msg=err_msg)
-        if res:
+        try:
+            err_msg = 'Failed to get data from id: ' + str(self.id)
+            res = util.req(type='get', url=self.artwork_url.format(pixiv_id=self.id), err_msg=err_msg)
             data = util.json_loads(res.content)
-            if not data['error']:
-                self.data = data
-                self.illust_ids = [id for id in self.data['body']['illusts']]
-            else:
-                util.log('Error while getting illust ids from id:', self.id)
+            if data['error']:
+                util.log('Error in returned illust data, id:', self.id , type='inform save')
+                raise ReqException()
+            self.data = data
+            self.illust_ids = [id for id in self.data['body']['illusts']]
+        except (ReqException, json.JSONDecodeError) as e:
+            util.log(str(e), type='error save')
+            raise IDError('Failed to add illust ids')
 
     def _add_manga_ids(self):
-        if self.manga_ids:
-            return
-        if self.data:
-            self.manga_ids = [id for id in self.data['body']['manga']]
-            return
-        err_msg = 'Failed to get data from id: ' + str(self.id)
-        res = util.req(type='get', url=self.artwork_url.format(pixiv_id=self.id), err_msg=err_msg)
-        if res:
+        try:
+            err_msg = 'Failed to get data from id: ' + str(self.id)
+            res = util.req(type='get', url=self.artwork_url.format(pixiv_id=self.id), err_msg=err_msg)
             data = util.json_loads(res.content)
-            if not data['error']:
-                self.data = data
-                self.manga_ids = [id for id in self.data['body']['manga']]
-            else:
-                util.log('Error while getting manga ids from id:', self.id)
+            if data['error']:
+                util.log('Error in returned manga data, id:', self.id , type='inform save')
+                raise ReqException()
+            self.data = data
+            self.manga_ids = [id for id in self.data['body']['manga']]
+        except (RequestException, json.JSONDecodeError) as e:
+            util.log(str(e), type='error save')
+            raise IDError('Failed to add manga ids')
 
     def __init__(self, pixiv_id, session):
         self.public_fav_ids = []
@@ -294,18 +287,21 @@ class OtherUserPage:
         self.manga_ids = None
         req_url = self.data_url.format(pixiv_id=self.id)
         err_msg = 'Error while generating user page, id: ' + str(self.id)
-        res = util.req(type='get', session=self.session, url=req_url, params=self.params, err_msg=err_msg)
-        if res:
-            res_json = util.json_loads(res.text)
-            if res_json:
-                if not res_json['error']:
-                    self.total_fav = res_json['body']['total']
-                    title = res_json['body']['extraData']['meta']['title']
-                    self.params['limit'] = self.total_fav
-                    username = re.search(r'「(.*?)」', title)
-                    self.username = username.group(1) if username else title
-            else:
-                util.log('Failed to load data from userpage in init, id:', self.id, type='inform save')
+        try:
+            res = util.req(type='get', session=self.session, url=req_url, params=self.params, err_msg=err_msg)
+            data = util.json_loads(res.text)
+            if data['error']:
+                util.log('Error in returned manga data, id:', self.id , type='inform save')
+                raise ReqException()
+            self.total_fav = data['body']['total']
+            title = data['body']['extraData']['meta']['title']
+            self.params['limit'] = self.total_fav
+            username = re.search(r'「(.*?)」', title)
+            self.username = username.group(1) if username else title
+        except (ReqException, json.JSONDecodeError) as e:
+            util.log(str(e), type='error save')
+            util.log('Failed to load data from userpage in init, id:', self.id, type='inform save')
+            raise OtherUserPageError('Failed to init user page')
 
     def get_public_fav_ids(self, limit=None):
         self._add_public_fav_ids()

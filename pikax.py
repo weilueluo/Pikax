@@ -5,6 +5,7 @@ import re, sys, os, settings
 from multiprocessing import Manager
 from pages import SearchPage, RankingPage, LoginPage
 from items import Artwork, PixivResult, OtherUser
+from exceptions import LoginError, ReqException
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -73,40 +74,54 @@ class Pixiv:
         """
         return User(username=username, password=password)
 
-
+# raise LoginError if failed to login
 class User:
     url = 'https://www.pixiv.net/bookmark.php?'
     def __init__(self, username, password):
-        self.session = LoginPage().login(username=username, password=password)
-        err_msg = 'Failed getting data from user:' + str(username)
-        res = util.req(type='get', session=self.session, url=self.url, err_msg=err_msg)
-        if res:
+        try:
+            self.session = LoginPage().login(username=username, password=password)
+            err_msg = 'Failed getting data from user:' + str(username)
+            res = util.req(type='get', session=self.session, url=self.url, err_msg=err_msg)
             res = re.search(r'class="user-name"title="(.*?)"', res.text)
             self.username = res.group(1) if res else username
-        else:
+        except ReqException as e:
+            util.log(str(e), type='error save')
             self.username = username
+
 
     def _get_my_favorites_ids(self, params):
         ids = []
         curr_page = 0
+        exception_count = 0
         while True:
             curr_page += 1
             if curr_page != 1:
                 params['p'] = curr_page
-            res = util.req(type='get', session=self.session, url=self.url, params=params)
-            if res:
-                ids_found = re.findall('(\d{8})_p0', res.text)
-                if len(ids_found) == 0:
-                    util.log('0 id found in this page, reached end')
+
+            try:
+                res = util.req(type='get', session=self.session, url=self.url, params=params)
+            except ReqException as e:
+                util.log(str(e), type='error save')
+                exception_count += 1
+                if exception_count > settings.MAX_WHILE_TRUE_LOOP_EXCEPTIONS:
+                    util.log('Too many exceptions encountered:', exception_count, 'terminating ... ', type='inform save')
                     break
                 else:
-                    ids += ids_found
-                    if len(ids) != len(set(ids)):
-                        util.log('We found duplicates in the favs, which likely to indicate failure while retrieve correct items...', type='inform save')
-                        util.log('url:', self.url, 'params:', params, type='inform save')
-            time.sleep(1)
+                    continue
+
+            ids_found = re.findall('(\d{8})_p\d', res.text)
+            if len(ids_found) == 0:
+                util.log('0 id found in this page, reached end')
+                break
+            else:
+                ids += ids_found
+                if len(ids) != len(set(ids)):
+                    util.log('We found duplicates in the favs, which likely to indicate failure while retrieve correct items...', type='inform save')
+                    util.log('url:', self.url, 'params:', params, type='inform save')
+            time.sleep(1) # dont req too fasts
         return ids
 
+    # raise ValueError if type is invalid
     def favs(self, type=None, limit=None):
         """
         type: public | private | default both
@@ -137,6 +152,11 @@ class User:
 class download:
 
     def download_list_of_items(self, items, results_dict):
+        expected = len(items)
+        items = [item for item in items if item is not None]
+        reality = len(items)
+        if expected != reality:
+            util.log('Failed to generate', expected - reality, 'items')
         for item in items:
             item.download(folder=self.folder, results_dict=results_dict)
 
