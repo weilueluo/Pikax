@@ -22,12 +22,12 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   results = pixiv.rank(max_page=1, content='illust', mode='daily')
   pixiv.download(results, folder='#Pixiv_daily_ranking')
 ```
-#### Search and download horizontal illustration of keyword: young girl with 10000 likes (approx)
+#### Search and download 10 horizontal illustrations of keyword: young girl with 10000 likes (approx)
 ```
   from pikax import Pixiv
 
   pixiv = Pixiv()
-  results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, max_page=1)
+  results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, limit=10)
   pixiv.download(results)
 ```
 #### Download user's artworks (Change username and password in [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py) if you want to download yours)
