@@ -48,7 +48,7 @@ class Pixiv:
         """
         ids = self.ranking_page.rank(mode=mode, limit=limit, date=date, content=content)
         results = PixivResult(util.generate_artworks_from_ids(ids))
-        results.folder = settings.DEFAULT_RANK_FOLDER.format(mode=mode, limit=limit, date=date, content=content)
+        results.folder = settings.RANK_RESULTS_FOLDER.format(mode=mode, limit=limit, date=date, content=content)
         return results
 
     def download(self, pixiv_result=None, pixiv_id=None, user_id=None, folder=""):
