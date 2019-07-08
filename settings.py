@@ -45,6 +45,7 @@ FAV_DOWNLOAD_FOLDER = '#{username}\'s favs'
 MANGAS_DOWNLOAD_FOLDER = '#{username}\'s mangas'
 ILLUSTS_DOWNLOAD_FOLDER = '#{username}\'s illusts'
 SEARCH_RESULTS_FOLDER = '#PixivSearch_{keyword}_{type}_{dimension}_{mode}_{popularity}_{limit}'
+RANK_RESULTS_FOLDER = '#PixivRanking-{mode}-{limit}-{date}-{content}'
 
 """
 String to clear previous stdout line
