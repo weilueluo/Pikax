@@ -160,7 +160,7 @@ class RankingPage:
     date: up to which date | default today, format: yyyymmdd
     content: illust | manga | ugoria | default any
     """
-    def rank(self, mode='daily', max_page=None, date=None, content=None):
+    def rank(self, mode='daily', limit=None, date=None, content=None):
         params = dict()
         params['format'] = 'json'
         params['mode'] = mode
@@ -173,37 +173,52 @@ class RankingPage:
         util.log('Start searching ranking for mode', mode, '...', type='inform')
         start = time.time()
         ids = []
-        if max_page:
-            for page_num in range(1, int(max_page) + 1):
-                params['p'] = page_num
-                res = util.req(type='get', url=self.url, params=params)
-                if res:
-                    res = util.json_loads(res.content)
-                else:
-                    continue
-                if 'error' in res:
-                    util.log('Error while searching', str(params), 'skipped', type='inform save')
-                    continue
-                else:
-                    ids += [content['illust_id'] for content in res['contents']]
-        else:
-            page_num = 0
-            while True:
-                page_num += 1
-                params['p'] = page_num
-                res = util.req(type='get', url=self.url, params=params)
-                if res:
-                    res = util.json_loads(res.content)
-                else:
-                    util.log('Error while json loading', type='inform save')
-                    continue
-                if 'error' in res:
-                    util.log('End of page while searching', str(params) + '. Finished')
+#         if limit:
+#             for page_num in range(1, int(max_page) + 1):
+#                 params['p'] = page_num
+#                 res = util.req(type='get', url=self.url, params=params)
+#                 if res:
+#                     res = util.json_loads(res.content)
+#                 else:
+#                     continue
+#                 if 'error' in res:
+#                     util.log('Error while searching', str(params), 'skipped', type='inform save')
+#                     continue
+#                 else:
+#                     ids += [content['illust_id'] for content in res['contents']]
+#         else:
+        page_num = 0
+        while True:
+            page_num += 1
+            params['p'] = page_num
+            res = util.req(type='get', url=self.url, params=params)
+            if res:
+                res = util.json_loads(res.content)
+            else:
+                util.log('Error while json loading', type='inform save')
+                continue
+            if 'error' in res:
+                util.log('End of page while searching', str(params) + '. Finished')
+                break
+            else:
+                ids += [content['illust_id'] for content in res['contents']]
+                
+            # check if number of ids reached requirement
+            if limit:
+                num_of_ids_found = len(ids)
+                if limit == num_of_ids_found:
                     break
-                else:
-                    ids += [content['illust_id'] for content in res['contents']]
+                elif limit < num_of_ids_found:
+                    ids = util.trim_to_limit(ids, limit)
+                    break
+        
+        # log results
+        if limit:
+            num_of_ids = len(ids)
+            if limit > num_of_ids:
+                util.log('Items found in ranking is less than requirement:', num_of_ids, '<', limit, type='inform')
         util.log('Done. Total ids found:', len(ids), type='inform')
-
+        
         return ids
 
 
