@@ -35,7 +35,7 @@ class Pixiv:
         results = PixivResult(util.generate_artworks_from_ids(ids), folder)
         return results
 
-    def rank(self, mode='daily', max_page=None, date=None, content=None):
+    def rank(self, mode='daily', limit=None, date=None, content=None):
         """
         Get ranking in pixiv according to parameters
 
@@ -46,9 +46,9 @@ class Pixiv:
 
         return a PixivResult object
         """
-        ids = self.ranking_page.rank(mode=mode, max_page=max_page, date=date, content=content)
+        ids = self.ranking_page.rank(mode=mode, limit=limit, date=date, content=content)
         results = PixivResult(util.generate_artworks_from_ids(ids))
-        results.folder = '#PixivRanking-{mode}-{max_page}-{date}-{content}'.format(mode=mode, max_page=max_page, date=date, content=content)
+        results.folder = settings.DEFAULT_RANK_FOLDER.format(mode=mode, limit=limit, date=date, content=content)
         return results
 
     def download(self, pixiv_result=None, pixiv_id=None, user_id=None, folder=""):
