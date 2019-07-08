@@ -14,12 +14,12 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 - 收藏
 ---
 ### 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
-#### 下载当日排行榜前50的插画
+#### 下载当日排行榜前20的插画
 ````
   from pikax import Pixiv
-  
+
   pixiv = Pixiv()
-  results = pixiv.rank(max_page=1, content='illust', mode='daily')
+  results = pixiv.rank(limit=20, content='illust', mode='daily')
   pixiv.download(results, folder='#Pixiv_daily_ranking')
 ````
 #### 搜索并下载少女相关，赞数约10000的10张横向插画

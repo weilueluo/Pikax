@@ -14,12 +14,12 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 - User Favorites
 ---
 ### Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
-#### Download today's top 50 illustration
+#### Download today's top 20 illustration
 ```
   from pikax import Pixiv
-  
+
   pixiv = Pixiv()
-  results = pixiv.rank(max_page=1, content='illust', mode='daily')
+  results = pixiv.rank(limit=20, content='illust', mode='daily')
   pixiv.download(results, folder='#Pixiv_daily_ranking')
 ```
 #### Search and download 10 horizontal illustrations of keyword: young girl with 10000 likes (approx)
