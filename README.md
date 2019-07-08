@@ -22,12 +22,12 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   results = pixiv.rank(max_page=1, content='illust', mode='daily')
   pixiv.download(results, folder='#Pixiv_daily_ranking')
 ````
-#### 搜索并下载少女相关，赞数约10000的横向插画
+#### 搜索并下载少女相关，赞数约10000的10张横向插画
 ````
   from pikax import Pixiv
 
   pixiv = Pixiv()
-  results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, max_page=1)
+  results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, limit=10)
   pixiv.download(results)
 ````
 #### 下载用户的作品（自己的插画需要更改在[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py)里的账号和密码）
