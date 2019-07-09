@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-
-import re, os, time, util, threading, settings
-from pages import OtherUserPage
+import traceback
+import re, os, time, util, threading, settings, json
+from pages import LoginPage
+from exceptions import ReqException, ArtworkError, UserError
 
 __all__ = ['Artwork', 'PixivResult']
 
@@ -13,8 +14,9 @@ class Artwork():
     headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     }
-
+    # https://www.pixiv.net/touch/ajax/illust/details?illust_id=75637165
     """
+    self.id
     self.original_url
     self.views
     self.bookmarks
@@ -26,29 +28,34 @@ class Artwork():
 
     def __init__(self, id):
         self.id = str(id)
-        self.ajax_url = self.ajax_url + self.id
+        ajax_url = self.ajax_url + self.id
         try:
-            respond = util.req(type='get', url=self.ajax_url, log_req=False)
+            respond = util.req(type='get', url=ajax_url, log_req=False)
             image_data = util.json_loads(respond.content)
+            # self.data = dict()
+            self.original_url = image_data['body']['urls']['original']
+            self.views = image_data['body']['viewCount']
+            self.bookmarks = image_data['body']['bookmarkCount']
+            self.likes = image_data['body']['likeCount']
+            self.comments = image_data['body']['commentCount']
+            self.title = image_data['body']['illustTitle']
+            self.author = image_data['body']['userName']
+            res = re.search(r'/([\d]+_.*)', self.original_url)
+            if res != None:
+                self.file_name = str(self.author) + '_' + res.group(1)
+            else:
+                util.log('Cannot find file name of artwork id', self.id, type='save inform')
+                self.file_name = 'unknown_' + self.original_url
         except ReqException as e:
-            util.log(str(e), type='error save')
-            util.log('Failed to init artwork from id:', self.id,  type='inform save')
-            raise ArtworkError()
+            # util.log(str(e), type='error save')
+            traceback.print_exc()
+            raise ArtworkError('Failed to init artwork from id: ' + str(self.id))
 
-        self.original_url = image_data['body']['urls']['original'] or None
-        self.views = image_data['body']['viewCount'] or None
-        self.bookmarks = image_data['body']['bookmarkCount'] or None
-        self.likes = image_data['body']['likeCount'] or None
-        self.comments = image_data['body']['commentCount'] or None
-        self.title = image_data['body']['illustTitle'] or None
-        self.author = image_data['body']['userName'] or None
-        res = re.search(r'/([\d]+_.*)', self.original_url)
-        if res != None:
-            self.file_name = str(self.author) + '_' + res.group(1)
-        else:
-            util.log('failed to look for file_name of id', self.id, type='save inform')
-            util.log('string used:', self.original_url, type='save inform')
-            self.file_name = 'unknown_' + self.original_url
+    # def __getattr__(self, key):
+    #     try:
+    #         return self.data[key]
+    #     except KeyError:
+    #         raise AttributeError(key)
 
     # for multiprocessing, return None if failed to init artwork
     def factory(id):
@@ -60,9 +67,9 @@ class Artwork():
 
     def download(self, folder="", results_dict=None):
         pic_detail = '[' + str(self.title) + '] by [' + str(self.author) + ']'
-        self.file_name = util.clean(self.file_name)
+        self.file_name = util.clean_filename(self.file_name)
         if folder:
-            self.file_name = util.clean(folder) + '/' + self.file_name
+            self.file_name = util.clean_filename(folder) + '/' + self.file_name
         if os.path.isfile(self.file_name):
             if results_dict:
                 results_dict['skipped'] += 1
@@ -86,11 +93,12 @@ class Artwork():
 
 class PixivResult:
     """
-    artworks
-    folder
+    - iterable
+    self.artworks
+    self.folder
     """
     def __init__(self, artworks, folder=""):
-        self.artworks = [artwork for artwork in artworks]
+        self.artworks = artworks
         count = 0
         if folder:
             self.folder = folder
@@ -107,26 +115,151 @@ class PixivResult:
     def __len__(self):
         return len(self.artworks)
 
-class OtherUser():
+# raise LoginError if failed to login
+class User:
 
-    def __init__(self, pixiv_id, session):
-        self.id = pixiv_id
-        self.user_page = OtherUserPage(self.id, session)
-        self.favs_folder = settings.FAV_DOWNLOAD_FOLDER.format(username=self.user_page.username)
-        self.mangas_folder = settings.MANGAS_DOWNLOAD_FOLDER.format(username=self.user_page.username)
-        self.illusts_folder = settings.ILLUSTS_DOWNLOAD_FOLDER.format(username=self.user_page.username)
-        self.fav_artworks = None
-        self.manga_artworks = None
-        self.illust_artworks = None
+    """
+    self.id
+    self.account
+    self.name
+    self.create_time
+    self.location
+    self.country
+    self.birth
+    self.age
+    self.follows
+    self.background
+    self.title
+    self.description
+    self.pixiv_url
 
-    def favs(self, limit=None):
-        fav_artworks = util.generate_artworks_from_ids(self.user_page.get_public_fav_ids(limit=limit))
-        return PixivResult(fav_artworks, self.favs_folder)
+    self.illusts
+    self.mangas
 
-    def mangas(self, limit=None):
-        manga_artworks = util.generate_artworks_from_ids(self.user_page.get_manga_ids(limit=limit))
-        return PixivResult(manga_artworks, self.mangas_folder)
+    """
 
-    def illusts(self, limit=None):
-        illust_artworks = util.generate_artworks_from_ids(self.user_page.get_illust_ids(limit=limit))
-        return PixivResult(illust_artworks, self.illusts_folder)
+    # for retrieving details
+    _user_details_url = 'https://www.pixiv.net/touch/ajax/user/details?' # param id
+    _self_details_url = 'https://www.pixiv.net/touch/ajax/user/self/status' # need login session
+
+    # for retrieving contents
+    _content_url = 'https://www.pixiv.net/touch/ajax/user/illusts?'
+    _bookmarks_url = 'https://www.pixiv.net/touch/ajax/user/bookmarks?'
+
+    def _get_bookmark_artworks(self):
+        params = dict()
+        params['id'] = self.id
+        curr_page = 0
+        last_page = 1 # a number not equal to curr_page
+        bookmark_ids = []
+        try:
+            while curr_page < last_page:
+                curr_page += 1
+                params['p'] = curr_page
+                res = util.req(url=self._bookmarks_url, params=params)
+                res_json = util.json_loads(res.content)
+                bookmark_ids += [illust['id'] for illust in res_json['bookmarks']]
+                last_page = res_json['lastPage']
+        except (ReqException, json.JSONDecodeError, KeyError) as e:
+            util.log(str(e), type='error')
+            util.log('Failed to get bookmarks from id:', self.id)
+
+        bookmarks = util.generate_artworks_from_ids(bookmark_ids)
+        return bookmarks
+
+
+    def _get_content_artworks(self, type):
+        params = dict()
+        params['id'] = self.id
+        params['type'] = type
+        curr_page = 0
+        last_page = 1 # a number not equal to curr_page
+        items_ids = []
+
+        try:
+            while curr_page < last_page:
+                curr_page += 1
+                params['p'] = curr_page
+                res = util.req(url=self._content_url, params=params)
+                res_json = util.json_loads(res.content)
+                items_ids += [illust['id'] for illust in res_json['illusts']]
+                last_page = res_json['lastPage']
+        except (ReqException, json.JSONDecodeError, KeyError) as e:
+            util.log(str(e), type='error')
+            util.log('Failed to get ' + type + ' from id:', self.id)
+
+        artworks = util.generate_artworks_from_ids(items_ids)
+        return artworks
+
+
+
+    def __init__(self, username=None, password=None, pixiv_id=None):
+
+        # check input
+        if not (username and password or pixiv_id):
+            raise UserError('Please supply username and password or pixiv id')
+
+        # login session
+        self.session = None
+        self.details = dict()
+
+        # find pixiv id from username and password
+        if username and password:
+            try:
+                self.session = LoginPage().login(username=username, password=password)
+                status_data = util.req(session=self.session, url=self._self_details_url)
+                status_data_json = util.json_loads(status_data.text)
+                pixiv_id = status_data_json['body']['user_status']['user_id']
+            except ReqException as e:
+                util.log(str(e), type='error save')
+                raise UserError('Failed to load user data')
+
+        # get information from pixiv id
+        if pixiv_id:
+            self.data = dict()
+            try:
+                params = dict({'id': pixiv_id})
+                data = util.req(url=self._user_details_url, params=params)
+                data_json = util.json_loads(data.text)
+            except (ReqException, json.JSONDecodeError) as e:
+                util.log(str(e), type='error')
+                raise UserError('Failed to load user data')
+
+        # save user information
+        data_json = data_json['user_details']
+        self.id = data_json['user_id']
+        self.account = data_json['user_account']
+        self.name = data_json['user_name']
+        self.create_time = data_json['user_create_time']
+        self.location = data_json['location']
+        self.country = data_json['user_country']
+        self.birth = data_json['user_birth']
+        self.age = data_json['user_age']
+        self.follows = data_json['follows']
+        self.background = data_json['bg_url']
+        self.title = data_json['meta']['title']
+        self.description = data_json['meta']['description']
+        self.pixiv_url = data_json['meta']['canonical']
+
+        # init user's contents
+        self.illusts = []
+        self.mangas = []
+        self.bookmarks = []
+        self.has_illusts = data_json['has_illusts']
+        self.has_mangas = data_json['has_mangas']
+        # self.has_novels = data_json['has_novels']
+        self.has_bookmarks = data_json['has_bookmarks']
+
+        # now get items of the user
+
+        if self.has_illusts:
+            self.illusts = self._get_content_artworks(type='illusts')
+            util.log('Added', len(self.illusts), 'illustrations')
+
+        if self.has_mangas:
+            self.mangas = self._get_content_artworks(type='manga')
+            util.log('Added', len(self.mangas), 'mangas')
+
+        if self.has_bookmarks and self.session:
+            self.bookmarks = self._get_bookmark_artworks()
+            util.log('Added', len(self.bookmarks), 'bookmarks')

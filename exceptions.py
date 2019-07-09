@@ -1,19 +1,27 @@
 
 
-def ReqException(Exception):
+class PikaxException(Exception):
     pass
 
-def PostKeyError(Exception):
+
+
+class ReqException(PikaxException):
     pass
 
-def LoginError(Exception):
+class PostKeyError(PikaxException):
     pass
 
-def IDError(Exception):
+class LoginError(PikaxException):
     pass
 
-def ArtworkError(Exception):
+class IDError(PikaxException):
     pass
 
-def OtherUserPageError(Exception):
+class ArtworkError(PikaxException):
+    pass
+
+class OtherUserPageError(PikaxException):
+    pass
+
+class UserError(PikaxException):
     pass

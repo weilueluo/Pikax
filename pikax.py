@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import time, util
-import re, sys, os, settings
+import re, sys, os, settings, json
 from multiprocessing import Manager
-from pages import SearchPage, RankingPage, LoginPage
-from items import Artwork, PixivResult, OtherUser
+from pages import SearchPage, RankingPage
+from items import Artwork, PixivResult, User
 from exceptions import LoginError, ReqException
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-__all__ = ['Pixiv', 'User']
+__all__ = ['Pixiv']
 
 class Pixiv:
 
@@ -19,151 +19,120 @@ class Pixiv:
         self.user = None
 
     def search(self, keyword, limit=None, type=None, dimension=None, mode=None, popularity=None):
-        """
-        Search in pixiv using parameters
+        util.log('Searching:', keyword)
 
-        keyword: string to search
-        type: manga | illust | ugoira | default any
-        dimension: vertical | horizontal | square | default any
-        mode: strict_tag | loose | default tag contains
-        popularity: a number, add after search keyword as: number users入り | default date descending
-        page: which page of the search results to crawl | default 1
-
-        return a PixivResult object
-        """
-        ids = self.search_page.get_ids(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, limit=limit)
+        artworks = self.search_page.search(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, limit=limit)
         folder = settings.SEARCH_RESULTS_FOLDER.format(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, limit=limit)
-        results = PixivResult(util.generate_artworks_from_ids(ids), folder)
+        results = PixivResult(artworks, folder)
+
         return results
 
     def rank(self, mode='daily', limit=None, date=None, content=None):
-        """
-        Get ranking in pixiv according to parameters
+        util.log('Ranking:', mode)
 
-        mode: daily | weekly | monthly | rookie | original | male | female | default daily
-        max_page: 1 page = 50 artworks | default all pages
-        date: up to which date | default today, format: yyyymmdd
-        content: illust | manga | ugoria | default any
-
-        return a PixivResult object
-        """
-        ids = self.ranking_page.rank(mode=mode, limit=limit, date=date, content=content)
-        results = PixivResult(util.generate_artworks_from_ids(ids))
-        results.folder = settings.RANK_RESULTS_FOLDER.format(mode=mode, limit=limit, date=date, content=content)
+        artworks = self.ranking_page.rank(mode=mode, limit=limit, date=date, content=content)
+        folder = settings.RANK_RESULTS_FOLDER.format(mode=mode, limit=limit, date=date, content=content)
+        results = PixivResult(artworks, folder)
         return results
 
-    def download(self, pixiv_result=None, pixiv_id=None, user_id=None, folder=""):
-        """
-        Take a PixivResult object and download its content
+    # PixivResult > user_id > artwork_id
+    def download(self, pixiv_result=None, artwork_id=None, user_id=None, folder=""):
+        util.log('downloading')
 
-        folder: folder path to save the downloads
-
-        does not return anything
-        """
         if pixiv_result:
             download(pixiv_result, folder)
-        if pixiv_id:
-            Artwork(pixiv_id).download(folder=folder)
-
+        elif user_id:
+            pass
+        elif pixiv_id:
+            try:
+                Artwork(artwork_id).download(folder=folder)
+            except ArtworkError as e:
+                util.log(str(e), type='error')
 
     def login(self, username, password):
         """
         Take username and password attempt to login pixiv
 
-        return a user object
+        return a User object
         """
+        util.log('Login:', username)
         return User(username=username, password=password)
 
-# raise LoginError if failed to login
-class User:
-    url = 'https://www.pixiv.net/bookmark.php?'
-    def __init__(self, username, password):
-        try:
-            self.session = LoginPage().login(username=username, password=password)
-            err_msg = 'Failed getting data from user:' + str(username)
-            res = util.req(type='get', session=self.session, url=self.url, err_msg=err_msg)
-            res = re.search(r'class="user-name"title="(.*?)"', res.text)
-            self.username = res.group(1) if res else username
-        except ReqException as e:
-            util.log(str(e), type='error save')
-            self.username = username
+    def access(self, pixiv_id):
+        util.log('access:', pixiv_id)
+        return User(pixiv_id=pixiv_id)
 
 
-    def _get_my_favorites_ids(self, params):
-        ids = []
-        curr_page = 0
-        exception_count = 0
-        while True:
-            curr_page += 1
-            if curr_page != 1:
-                params['p'] = curr_page
-
-            try:
-                res = util.req(type='get', session=self.session, url=self.url, params=params)
-            except ReqException as e:
-                util.log(str(e), type='error save')
-                exception_count += 1
-                if exception_count > settings.MAX_WHILE_TRUE_LOOP_EXCEPTIONS:
-                    util.log('Too many exceptions encountered:', exception_count, 'terminating ... ', type='inform save')
-                    break
-                else:
-                    continue
-
-            ids_found = re.findall('(\d{8})_p\d', res.text)
-            if len(ids_found) == 0:
-                util.log('0 id found in this page, reached end')
-                break
-            else:
-                ids += ids_found
-                if len(ids) != len(set(ids)):
-                    util.log('We found duplicates in the favs, which likely to indicate failure while retrieve correct items...', type='inform save')
-                    util.log('url:', self.url, 'params:', params, type='inform save')
-            time.sleep(1) # dont req too fasts
-        return ids
-
-    # raise ValueError if type is invalid
-    def favs(self, type=None, limit=None):
-        """
-        type: public | private | default both
-        """
-        params = dict()
-        if type:
-            if type == 'public':
-                params['rest'] = 'show'
-            elif type == 'private':
-                params['rest'] = 'hide'
-            else:
-                raise ValueError('Invalid type:', str(type))
-            ids = self._get_my_favorites_ids(params=params)
-        else:
-            params['rest'] = 'show'
-            public_ids = self._get_my_favorites_ids(params=params)
-            params['rest'] = 'hide'
-            private_ids = self._get_my_favorites_ids(params=params)
-            ids = public_ids + private_ids
-        results = PixivResult(util.generate_artworks_from_ids(ids, limit=limit))
-        results.folder = settings.FAV_DOWNLOAD_FOLDER.format(username=self.username)
-        return results
-
-    def access(self, pixiv_id, type=None):
-        return OtherUser(pixiv_id=pixiv_id, session=self.session)
+# def _get_my_favorites_ids(self, params):
+#     ids = []
+#     curr_page = 0
+#     exception_count = 0
+#     while True:
+#         curr_page += 1
+#         if curr_page != 1:
+#             params['p'] = curr_page
+#
+#         try:
+#             res = util.req(type='get', session=self.session, url=self.url, params=params)
+#         except ReqException as e:
+#             util.log(str(e), type='error save')
+#             exception_count += 1
+#             if exception_count > settings.MAX_WHILE_TRUE_LOOP_EXCEPTIONS:
+#                 util.log('Too many exceptions encountered:', exception_count, 'terminating ... ', type='inform save')
+#                 break
+#             else:
+#                 continue
+#
+#         ids_found = re.findall('(\d{8})_p\d', res.text)
+#         if len(ids_found) == 0:
+#             util.log('0 id found in this page, reached end')
+#             break
+#         else:
+#             ids += ids_found
+#             if len(ids) != len(set(ids)):
+#                 util.log('We found duplicates in the favs, which likely to indicate failure while retrieve correct items...', type='inform save')
+#                 util.log('url:', self.url, 'params:', params, type='inform save')
+#         time.sleep(1) # dont req too fasts
+#     return ids
+#
+# # raise ValueError if type is invalid
+# def favs(self, type=None, limit=None):
+#     """
+#     type: public | private | default both
+#     """
+#     params = dict()
+#     if type:
+#         if type == 'public':
+#             params['rest'] = 'show'
+#         elif type == 'private':
+#             params['rest'] = 'hide'
+#         else:
+#             raise ValueError('Invalid type:', str(type))
+#         ids = self._get_my_favorites_ids(params=params)
+#     else:
+#         params['rest'] = 'show'
+#         public_ids = self._get_my_favorites_ids(params=params)
+#         params['rest'] = 'hide'
+#         private_ids = self._get_my_favorites_ids(params=params)
+#         ids = public_ids + private_ids
+#     results = PixivResult(util.generate_artworks_from_ids(ids, limit=limit))
+#     results.folder = settings.FAV_DOWNLOAD_FOLDER.format(username=self.username)
+#     return results
+#
+# def access(self, pixiv_id, type=None):
+#     return OtherUser(pixiv_id=pixiv_id, session=self.session)
 
 
 class download:
 
     def download_list_of_items(self, items, results_dict):
-        expected = len(items)
-        items = [item for item in items if item is not None]
-        reality = len(items)
-        if expected != reality:
-            util.log('Failed to generate', expected - reality, 'items')
         for item in items:
             item.download(folder=self.folder, results_dict=results_dict)
 
     def __init__(self, pixiv_result, folder):
         results_dict = self._download_initilizer(pixiv_result, folder)
         start_time = time.time()
-        util.multiprocessing_(items=pixiv_result.artworks, small_list_executor=self.download_list_of_items, results_dict=results_dict)
+        util.multiprocessing_(items=pixiv_result.artworks, small_list_executor=self.download_list_of_items, results_saver=results_dict)
         end_time = time.time()
         self._log_download_results(pixiv_result, start_time, end_time, folder, results_dict)
 
@@ -171,7 +140,7 @@ class download:
         if not folder:
             folder = pixiv_result.folder
         self.folder = folder
-        self.folder = util.clean(self.folder) # remove not allowed chracters as file name in windows
+        self.folder = util.clean_filename(self.folder) # remove not allowed chracters as file name in windows
         if not os.path.exists(self.folder):
             os.mkdir(self.folder)
         results_dict = Manager().dict()
@@ -184,7 +153,7 @@ class download:
     def _log_download_results(self, pixiv_result, start_time, end_time, folder="", results_dict=dict()):
         if not folder:
             folder = pixiv_result.folder
-        folder = util.clean(folder)
+        folder = util.clean_filename(folder)
         if not os.path.exists(folder):
             os.mkdir(folder)
         util.log('', end=settings.CLEAR_LINE, type='inform') # remove last printed saved ok line
