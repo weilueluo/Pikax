@@ -14,6 +14,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 - 搜索
 - 排行榜
 - 收藏
+- 作品
 ---
 ### 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 #### 下载当日排行榜前20的插画

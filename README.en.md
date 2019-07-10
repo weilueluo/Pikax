@@ -12,7 +12,8 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ### Currently supported download features
 - Search
 - Ranking
-- User Favorites
+- Favorites
+- Artworks
 ---
 ### Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 #### Download today's top 20 illustration
