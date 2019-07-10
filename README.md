@@ -1,4 +1,4 @@
-> # 还在码，不可用，嘤嘤嘤
+> # 有些功能不可用，嘤嘤嘤
 # Pikax:unicorn:
 Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]下载工具。
 
