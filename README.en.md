@@ -1,7 +1,7 @@
 > # Under Development, some funtions not available (sad)
 > ## Just realise they only return part of the results if you dont login, jsadkfbahjsd
 # Pikax:unicorn:
-Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) download tool
+Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) mass download tool
 #### [Chinese ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.md)
 ---
 ### Requirements
@@ -32,25 +32,34 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, limit=10)
   pixiv.download(results)
 ```
-#### Download user's artworks (Change username and password in [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py) if you want to download yours)
+#### Download user's artworks (required username and password [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py) contains a temp account)
 ```
   from pikax import Pixiv
 
   # yours
   pixiv = Pixiv()
-  user = pixiv.login(username=settings.username, password=settings.password)
-  favorites = user.favs(type='public', limit=20)
-  pixiv.download(favorites)
+  user = pixiv.login(username=settings.username, password=settings.password) # login
+  bookmarks = user.bookmarks(limit=20) # get bookmarks
+  pixiv.download(bookmarks) # download
 
   # others
   pixiv = Pixiv()
-  user = pixiv.login(username=settings.username, password=settings.password)
-  other_user = user.access(pixiv_id=3872398)
-  favorites = other_user.favs(limit=25) # favorites
-  pixiv.download(favorites)
-  illusts = other_user.illusts(limit=15) # illustrations
-  pixiv.download(illusts)
-  mangas = other_user.mangas(limit=5) # mangas
-  pixiv.download(mangas)
+  user = pixiv.login(settings.username, settings.password) # login
+
+  other_user = user.visits(user_id=3872398) # visit other user by id
+
+  illusts = other_user.illusts(limit=None) # get his illustrations
+  pixiv.download(illusts) # download
+
+  mangas = other_user.mangas(limit=5) # get his mangas
+  pixiv.download(mangas) # download
+
+  bookmarks = other_user.bookmarks(limit=None) # get his bookmarks
+  pixiv.download(bookmarks) # download
 ```
+#### download by artwork id
+````
+  pixiv = Pixiv()
+  pixiv.download(artwork_id=75608670)
+````
 #### Visit [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py) for more examples and details

@@ -35,23 +35,35 @@ def download_search_example():
 
 def download_other_user_items_example():
     pixiv = Pixiv()
-    other_user = pixiv.access(pixiv_id=3872398)
-    illusts = other_user.illusts(limit=None)
-    pixiv.download(illusts)
-    mangas = other_user.mangas(limit=5)
-    pixiv.download(mangas)
+    user = pixiv.login(settings.username, settings.password) # login
 
-# def download_own_favourites_example():
-#     pixiv = Pixiv()
-#     user = pixiv.login(username=settings.username, password=settings.password)
-#     favorites = user.favs(type='public', limit=None)
-#     pixiv.download(favorites)
+    other_user = user.visits(user_id=3872398) # visit other user by id
+
+    illusts = other_user.illusts(limit=25) # get his illustrations
+    pixiv.download(illusts) # download
+
+    mangas = other_user.mangas(limit=5) # get his mangas
+    pixiv.download(mangas) # download
+
+    bookmarks = other_user.bookmarks(limit=30) # get his bookmarks
+    pixiv.download(bookmarks) # download
+
+def download_own_bookmarks_example():
+    pixiv = Pixiv()
+    user = pixiv.login(username=settings.username, password=settings.password) # login
+    bookmarks = user.bookmarks(limit=20) # get bookmarks
+    pixiv.download(bookmarks) # download
+
+def download_by_artwork_id_example():
+    pixiv = Pixiv()
+    pixiv.download(artwork_id=75608670)
 
 def main():
     # download_daily_rankings_example()
     # download_search_example()
-    # download_own_favourites_example()
-    download_other_user_items_example()
+    # download_own_bookmarks_example()
+    # download_other_user_items_example()
+    download_by_artwork_id_example()
 
 if __name__ == '__main__':
     main()

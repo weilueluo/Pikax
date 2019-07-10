@@ -1,7 +1,7 @@
 > # 有些功能不可用，嘤嘤嘤
 > ## 刚发现不登录的话ajax只返回一部分结果，真的狗啊
 # Pikax:unicorn:
-Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]下载工具。
+Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]批量下载工具。
 
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
 ---
@@ -33,25 +33,35 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, limit=10)
   pixiv.download(results)
 ````
-#### 下载用户的作品（自己的插画需要更改在[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py)里的账号和密码）
+#### 下载用户的作品 （需要登录，[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py)有临时的账号）
 ````
   from pikax import Pixiv
 
   # 自己的
   pixiv = Pixiv()
-  user = pixiv.login(username=settings.username, password=settings.password)
-  favorites = user.favs(type='public', limit=20)
-  pixiv.download(favorites)
+  user = pixiv.login(username=settings.username, password=settings.password) # 登录
+  bookmarks = user.bookmarks(limit=20) # 获取收藏
+  pixiv.download(bookmarks) # 下载
 
   # 别人的
   pixiv = Pixiv()
-  user = pixiv.login(username=settings.username, password=settings.password)
-  other_user = user.access(pixiv_id=3872398)
-  favorites = other_user.favs(limit=25) # 收藏
-  pixiv.download(favorites)
-  illusts = other_user.illusts(limit=15) # 插画
-  pixiv.download(illusts)
-  mangas = other_user.mangas(limit=5) # 漫画
-  pixiv.download(mangas)
+  user = pixiv.login(settings.username, settings.password) # 登录
+
+  other_user = user.visits(user_id=3872398) # 访问其他用户
+
+  illusts = other_user.illusts(limit=None) # 获取他的画作
+  pixiv.download(illusts) # 下载
+
+  mangas = other_user.mangas(limit=5) # 获取他的漫画
+  pixiv.download(mangas) # 下载
+
+  bookmarks = other_user.bookmarks(limit=None) # 获取他的收藏
+  pixiv.download(bookmarks) # 下载
+````
+
+#### 用作品id下载
+````
+  pixiv = Pixiv()
+  pixiv.download(artwork_id=75608670)
 ````
 #### 更多例子和详情请参考[demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)

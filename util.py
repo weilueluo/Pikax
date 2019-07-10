@@ -63,14 +63,14 @@ def req(url, type='get', session=None, params=None, data=None, headers=settings.
                 elif type == 'POST':
                     res = session.post(url=url, headers=headers, params=params, timeout=timeout, verify=verify, data=data)
                 else:
-                    log('Request type error:', type, type='inform save')
+                    raise ReqException('Request type error:', type, type='inform save')
             else:
                 if type == 'GET':
                     res = requests.get(url=url, headers=headers, params=params, timeout=timeout, verify=verify)
                 elif type == 'POST':
                     res = requests.post(url=url, headers=headers, params=params, timeout=timeout, verify=verify, data=data)
                 else:
-                    log('Request type error:', type, type='inform save')
+                    raise ReqException('Request type error:', type, type='inform save')
 
             if log_req:
                 log(res.status_code)
@@ -84,20 +84,25 @@ def req(url, type='get', session=None, params=None, data=None, headers=settings.
             else:
                 log('Requests returned Falsey, retries:', retries, type='inform save')
         except requests.exceptions.Timeout as e:
-            log(type, url, params, 'Time Out:', retries, type='inform save')
+            log(type, url, params, 'Time Out:', retries, type='save')
             log('Reason:', str(e), type='inform save')
         except requests.exceptions.RequestException as e:
             if err_msg:
-                log('RequestException:', err_msg, type='inform save')
+                log('RequestException:', err_msg, type='save')
             else:
-                log('Exception while', type, type='inform save')
+                log('Exception while', type, type='save')
             log('Reason:', str(e), 'Retries:', retries, type='inform save')
 
         time.sleep(1) # dont request again too fast
         retries += 1
 
     # if still fails after all retries
-    raise ReqException(str(type) + ' failed: ' + str(url) + ' params: ' + str(params))
+    exception_msg = str(type) + ' failed: ' + str(url) + ' params: ' + str(params)
+    if res:
+        exception_msg += sls + 'response content:' + res.text
+    else:
+        exception_msg += sls + 'theres is no response'
+    raise ReqException(exception_msg)
 
 
 # attempt to decode given json, raise JSONDecodeError if fails
@@ -106,7 +111,7 @@ def json_loads(text, encoding='utf-8'):
 
 
 def _generate_small_list_of_artworks(ids, artworks):
-    artworks += [Artwork(id) for id in ids]
+    artworks += [Artwork.factory(id) for id in ids]
 
 # return a list of artworks given a list of ids, using pool
 def generate_artworks_from_ids(ids, limit=None):

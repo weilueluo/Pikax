@@ -37,15 +37,16 @@ class Pixiv:
 
     # PixivResult > user_id > artwork_id
     def download(self, pixiv_result=None, artwork_id=None, user_id=None, folder=""):
-        util.log('downloading')
+        util.log('Downloading ... ', start='\r\n', type='inform')
 
         if pixiv_result:
             download(pixiv_result, folder)
         elif user_id:
             pass
-        elif pixiv_id:
+        elif artwork_id:
             try:
                 Artwork(artwork_id).download(folder=folder)
+                util.log('', type='inform') # move to next line
             except ArtworkError as e:
                 util.log(str(e), type='error')
 
