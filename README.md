@@ -1,4 +1,5 @@
 > # 有些功能不可用，嘤嘤嘤
+> ## 刚发现不登录的话ajax只返回一部分结果，真的狗啊
 # Pikax:unicorn:
 Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]下载工具。
 
