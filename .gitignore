@@ -4,6 +4,8 @@
 *.html
 *.txt
 
+__pycache__
+
 #*
 
 pikax/test*
