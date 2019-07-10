@@ -33,12 +33,13 @@ def download_search_example():
     results = pixiv.search(keyword='オリジナル', type='illust', dimension='horizontal', popularity=10000, limit=20)
     pixiv.download(results)
 
-# def download_other_user_items_example():
-#     pixiv = Pixiv()
-#     illusts = other_user.illusts(limit=15)
-#     pixiv.download(illusts)
-#     mangas = other_user.mangas(limit=5)
-#     pixiv.download(mangas)
+def download_other_user_items_example():
+    pixiv = Pixiv()
+    other_user = pixiv.access(pixiv_id=3872398)
+    illusts = other_user.illusts(limit=None)
+    pixiv.download(illusts)
+    mangas = other_user.mangas(limit=5)
+    pixiv.download(mangas)
 
 # def download_own_favourites_example():
 #     pixiv = Pixiv()
@@ -47,10 +48,10 @@ def download_search_example():
 #     pixiv.download(favorites)
 
 def main():
-    download_daily_rankings_example()
-    download_search_example()
+    # download_daily_rankings_example()
+    # download_search_example()
     # download_own_favourites_example()
-    # download_other_user_items_example()
+    download_other_user_items_example()
 
 if __name__ == '__main__':
     main()

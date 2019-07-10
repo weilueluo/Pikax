@@ -11,7 +11,6 @@ class LoginPage:
     _post_key_req_type = 'get'
     _login_url = 'https://accounts.pixiv.net/api/login?lang=en'
 
-
     def __init__(self):
         self._session = requests.Session()
 
@@ -54,7 +53,7 @@ class SearchPage:
     type: illust | default illust # not implemented manga | ugoria
     dimension: vertical | horizontal | square | default any
     mode: strict_tag | loose | default tag contains
-    popularity: a number, add after search keyword as: number users入り, use 'popular' if you want to get better results | default date descending, all results, which is not as good usually
+    popularity: a number, add after search keyword as: number users入り, use 'popular' if you want to get better results | default date descending
     limit: how many artworks to get | default all
     """
 
@@ -159,7 +158,7 @@ class RankingPage:
         if content == 'illust':
             not_allowed = ['original', 'male', 'female']
             if mode in not_allowed:
-                raise ValueError('Invalid input mode, illust content is not available for', not_allowed)
+                raise ValueError('Invalid input mode, illust content is not yet available for', not_allowed)
 
 
     """

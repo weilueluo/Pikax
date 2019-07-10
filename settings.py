@@ -42,8 +42,8 @@ Folder format for downloading favorites
 """
 FAV_DOWNLOAD_FOLDER = '#{username}\'s favs'
 # below used in other user only
-MANGAS_DOWNLOAD_FOLDER = '#{username}\'s mangas'
-ILLUSTS_DOWNLOAD_FOLDER = '#{username}\'s illusts'
+USER_MANGAS_DOWNLOAD_FOLDER = '#{title}\'s  mangas'
+USER_ILLUSTS_DOWNLOAD_FOLDER = '#{title}\'s illusts'
 SEARCH_RESULTS_FOLDER = '#PixivSearch_{keyword}_{type}_{dimension}_{mode}_{popularity}_{limit}'
 RANK_RESULTS_FOLDER = '#PixivRanking-{mode}-{limit}-{date}-{content}'
 
