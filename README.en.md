@@ -1,4 +1,5 @@
 > # Under Development, some funtions not available (sad)
+> ## Just realise they only return part of the results if you dont login, jsadkfbahjsd
 # Pikax:unicorn:
 Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) download tool
 #### [Chinese ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.md)
