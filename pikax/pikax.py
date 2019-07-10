@@ -10,9 +10,9 @@ from .exceptions import LoginError, ReqException
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-__all__ = ['Pixiv']
+__all__ = ['Pikax']
 
-class Pixiv:
+class Pikax:
 
     def __init__(self):
         self.search_page = SearchPage()
