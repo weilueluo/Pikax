@@ -13,11 +13,6 @@ mode: daily | weekly | monthly | rookie | default daily # has problem: | male | 
 limit: number of artworks to search | default all
 date: up to which date | default today, format: yyyymmdd
 content: illust | manga | ugoria | default any
-
-Pixiv.favorites:
-username: your pixiv username
-password: your pixiv password
-type: public | private | default both, which of your collections want to save
 """
 
 from pikax.pikax import Pixiv, User
