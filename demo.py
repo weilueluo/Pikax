@@ -35,16 +35,15 @@ def download_search_example():
 def download_other_user_items_example():
     pixiv = Pikax()
     user = pixiv.login(settings.username, settings.password) # login
-
-    other_user = user.visits(user_id=3872398) # visit other user by id
+    other_user = user.visits(user_id=201323) # visit other user by id
 
     illusts = other_user.illusts(limit=25) # get his illustrations
     pixiv.download(illusts) # download
 
-    mangas = other_user.mangas(limit=5) # get his mangas
+    mangas = other_user.mangas(limit=10) # get his mangas
     pixiv.download(mangas) # download
 
-    bookmarks = other_user.bookmarks(limit=30) # get his bookmarks
+    bookmarks = other_user.bookmarks(limit=20) # get his bookmarks
     pixiv.download(bookmarks) # download
 
 def download_own_bookmarks_example():
@@ -55,14 +54,14 @@ def download_own_bookmarks_example():
 
 def download_by_artwork_id_example():
     pixiv = Pikax()
-    pixiv.download(artwork_id=75608670)
+    pixiv.download(artwork_id=75530638)
 
 def main():
-    download_daily_rankings_example()
-    download_search_example()
-    download_own_bookmarks_example()
+    # download_daily_rankings_example()
+    # download_search_example()
+    # download_own_bookmarks_example()
     download_other_user_items_example()
-    download_by_artwork_id_example()
+    # download_by_artwork_id_example()
 
 if __name__ == '__main__':
     main()

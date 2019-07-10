@@ -99,10 +99,6 @@ def req(url, type='get', session=None, params=None, data=None, headers=settings.
 
     # if still fails after all retries
     exception_msg = str(type) + ' failed: ' + str(url) + ' params: ' + str(params)
-    if res:
-        exception_msg += sls + 'response content:' + res.text
-    else:
-        exception_msg += sls + 'theres is no response'
     raise ReqException(exception_msg)
 
 

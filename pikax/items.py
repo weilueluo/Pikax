@@ -35,19 +35,16 @@ class Artwork():
             respond = util.req(type='get', url=ajax_url, log_req=False)
             image_data = util.json_loads(respond.content)
             # self.data = dict()
-            self.original_url = image_data['body']['urls']['original']
-            self.views = image_data['body']['viewCount']
-            self.bookmarks = image_data['body']['bookmarkCount']
-            self.likes = image_data['body']['likeCount']
-            self.comments = image_data['body']['commentCount']
-            self.title = image_data['body']['illustTitle']
-            self.author = image_data['body']['userName']
-            res = re.search(r'/([\d]+_.*)', self.original_url)
-            if res != None:
-                self.file_name = str(self.author) + '_' + res.group(1)
-            else:
-                util.log('Cannot find file name of artwork id', self.id, type='save inform')
-                self.file_name = 'unknown_' + self.original_url
+            image_data = image_data['body']
+            self.original_url = image_data['urls']['original']
+            self.views = image_data['viewCount']
+            self.bookmarks = image_data['bookmarkCount']
+            self.likes = image_data['likeCount']
+            self.comments = image_data['commentCount']
+            self.title = image_data['illustTitle']
+            self.author = image_data['userName']
+            self.page_count = image_data['pageCount']
+            self.original_url = re.sub(r'(?<=_p)\d', '{page_num}' ,self.original_url)
         except ReqException as e:
             util.log(str(e), type='error save')
             traceback.print_exc()
@@ -62,30 +59,42 @@ class Artwork():
             return None
 
     def download(self, folder="", results_dict=None):
-        pic_detail = '[' + str(self.title) + '] by [' + str(self.author) + ']'
-        self.file_name = util.clean_filename(self.file_name)
-        if folder:
-            self.file_name = util.clean_filename(folder) + '/' + self.file_name
-        if os.path.isfile(self.file_name):
-            if results_dict:
-                results_dict['skipped'] += 1
-            util.log(pic_detail, 'skipped, reason:', self.file_name, 'exists')
-            return
         # pixiv check will check referer
         self.headers['referer'] = self.referer_url + self.id
-        try:
-            err_msg = pic_detail + ' Failed'
-            original_pic_respond = util.req(type='get', url=self.original_url, headers=self.headers, err_msg=err_msg, log_req=False)
-            with open(self.file_name, 'wb') as file:
-                file.write(original_pic_respond.content)
-                util.log(pic_detail + ' OK', type='inform', start=settings.CLEAR_LINE, end='\r')
-            if results_dict:
+        curr_page = 0
+        success = True
+        while curr_page < self.page_count: # start from 0 to page_count - 1
+            pic_detail = '[' + str(self.title) + '] p' + str(curr_page) + ' by [' + str(self.author) + ']'
+            url = self.original_url.format(page_num=curr_page)
+            file_name_search = re.search(r'(\d{8}_p\d.*)', url)
+            file_name = file_name_search.group(1) if file_name_search else url
+            file_name = util.clean_filename(self.author) + '_' + util.clean_filename(file_name)
+            if folder:
+                file_name = util.clean_filename(folder) + '/' + file_name
+
+            if os.path.isfile(file_name):
+                util.log(pic_detail, 'skipped.', 'Reason:', file_name, 'already exists or access not granted')
+                return
+                
+            try:
+                err_msg = pic_detail + ' Failed'
+                original_pic_respond = util.req(type='get', url=url, headers=self.headers, err_msg=err_msg, log_req=False)
+                with open(file_name, 'wb') as file:
+                    file.write(original_pic_respond.content)
+                    util.log(pic_detail + ' OK', type='inform', start=settings.CLEAR_LINE, end='\r')
+            except ReqException as e:
+                util.log(str(e), type='error save')
+                util.log(pic_detail + ' FAILED', type='inform save', start=settings.CLEAR_LINE)
+                success = False
+
+            curr_page += 1
+
+        if results_dict:
+            if success:
                 results_dict['success'] += 1
-        except ReqException as e:
-            util.log(str(e), type='error save')
-            util.log(pic_detail + ' FAILED', type='inform save', start=settings.CLEAR_LINE)
-            if results_dict:
+            else:
                 results_dict['failed'] += 1
+
 
 class PixivResult:
     """
@@ -169,7 +178,7 @@ class User:
         return bookmarks
 
 
-    # for manga only, illust found another ajax
+    # for manga only, illust found better ajax url
     def _get_content_artworks(self, type, limit=None):
         params = dict()
         params['id'] = self.id
@@ -227,26 +236,30 @@ class User:
                 params = dict({'id': user_id})
                 data = util.req(session=self.session, url=self._user_details_url, params=params)
                 data_json = util.json_loads(data.text)
+
             except (ReqException, json.JSONDecodeError) as e:
                 util.log(str(e), type='error')
                 raise UserError('Failed to load user information')
         else:
             raise UserError('Failed to get user id')
         # save user information
-        data_json = data_json['user_details']
-        self.id = data_json['user_id']
-        self.account = data_json['user_account']
-        self.name = data_json['user_name']
-        self.create_time = data_json['user_create_time']
-        self.location = data_json['location']
-        self.country = data_json['user_country']
-        self.birth = data_json['user_birth']
-        self.age = data_json['user_age']
-        self.follows = data_json['follows']
-        self.background_url = data_json['bg_url']
-        self.title = data_json['meta']['title']
-        self.description = data_json['meta']['description']
-        self.pixiv_url = data_json['meta']['canonical']
+        try:
+            data_json = data_json['user_details']
+            self.id = data_json['user_id']
+            self.account = data_json['user_account']
+            self.name = data_json['user_name']
+            self.create_time = data_json['user_create_time']
+            self.location = data_json['location']
+            self.country = data_json['user_country']
+            self.follows = data_json['follows']
+            self.background_url = data_json['bg_url']
+            self.title = data_json['meta']['title']
+            self.description = data_json['meta']['description']
+            self.pixiv_url = data_json['meta']['canonical']
+            self.birth = data_json['user_birth']
+            self.age = data_json['user_age']
+        except KeyError as e:
+            util.log('failed to get user info in init:', str(e))
 
         # init user's contents
         self.illust_artworks = []
