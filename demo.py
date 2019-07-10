@@ -20,8 +20,8 @@ password: your pixiv password
 type: public | private | default both, which of your collections want to save
 """
 
-from pikax import Pixiv, User
-import settings
+from pikax.pikax import Pixiv, User
+from pikax.pikax import settings
 
 def download_daily_rankings_example():
     pixiv = Pixiv()
@@ -59,10 +59,10 @@ def download_by_artwork_id_example():
     pixiv.download(artwork_id=75608670)
 
 def main():
-    # download_daily_rankings_example()
-    # download_search_example()
-    # download_own_bookmarks_example()
-    # download_other_user_items_example()
+    download_daily_rankings_example()
+    download_search_example()
+    download_own_bookmarks_example()
+    download_other_user_items_example()
     download_by_artwork_id_example()
 
 if __name__ == '__main__':

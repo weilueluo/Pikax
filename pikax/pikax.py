@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import time, util
-import re, sys, os, settings, json
+import time, re, sys, os, json
 from multiprocessing import Manager
-from pages import SearchPage, RankingPage
-from items import Artwork, PixivResult, User
-from exceptions import LoginError, ReqException
+
+from . import util, settings
+from .pages import SearchPage, RankingPage
+from .items import Artwork, PixivResult, User
+from .exceptions import LoginError, ReqException
 
 sys.stdout.reconfigure(encoding='utf-8')
 

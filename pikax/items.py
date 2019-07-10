@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import traceback
-import re, os, time, util, threading, settings, json
-from pages import LoginPage
-from exceptions import ReqException, ArtworkError, UserError
+import re, os, time, threading, json
+
+from . import settings, util
+from .pages import LoginPage
+from .exceptions import ReqException, ArtworkError, UserError
 
 __all__ = ['Artwork', 'PixivResult']
 

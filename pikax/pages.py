@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import re, time, util, settings, requests, json
-from exceptions import LoginError, ReqException, PostKeyError, IDError
+import re, time, requests, json
+
+from . import settings, util
+from .exceptions import LoginError, ReqException, PostKeyError, IDError
 
 __all__ = ['LoginPage', 'SearchPage', 'RankingPage']
 

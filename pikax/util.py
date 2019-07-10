@@ -1,12 +1,13 @@
 
 
-import sys, json, settings, requests, os, time, math, re
+import sys, json, requests, os, time, math, re
 import multiprocessing
-from multiprocessing import Pool as ThreadPool
-from items import Artwork
 from multiprocessing import Process, current_process, Manager
 from threading import Thread
-from exceptions import ReqException
+
+from . import settings
+from .items import Artwork
+from .exceptions import ReqException
 
 sls = os.linesep
 
