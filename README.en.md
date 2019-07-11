@@ -10,9 +10,9 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ```
 ### Currently supported download features
 - Search
-  - inputs: keyword/tags, limit, type, dimension, mode, popularity
+  - keyword/tags, limit, type, dimension, mode, popularity
 - Ranking
-  - inputs: mode, limit, date, content
+  - mode, limit, date, content
 - Favorites (required login)
   - yours or other
 - Artworks (required login)
