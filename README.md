@@ -17,36 +17,42 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   - 你的或者别人的
 - 作品 （需要登录）
   - 你的或者别人的
+
+### 在计划中的功能
+- R18作品
+- 搜索画师
+- 作品/画师 过滤
+- 。。。
 ---
 ### 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 #### 下载当日排行榜前20的插画
 ````
-  from pikax import Pixiv
+  from pikax.pikax import Pikax
 
-  pixiv = Pixiv()
+  pixiv = Pikax()
   results = pixiv.rank(limit=20, content='illust', mode='daily')
   pixiv.download(results, folder='#Pixiv_daily_ranking')
 ````
 #### 搜索并下载少女相关，赞数约10000的10张横向插画
 ````
-  from pikax import Pixiv
+  from pikax.pikax import Pikax
 
-  pixiv = Pixiv()
+  pixiv = Pikax()
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, limit=10)
   pixiv.download(results)
 ````
 #### 下载用户的作品 （需要登录，[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py)有临时的账号）
 ````
-  from pikax import Pixiv
+  from pikax.pikax import Pikax
 
   # 自己的
-  pixiv = Pixiv()
+  pixiv = Pikax()
   user = pixiv.login(username=settings.username, password=settings.password) # 登录
   bookmarks = user.bookmarks(limit=20) # 获取收藏
   pixiv.download(bookmarks) # 下载
 
   # 别人的
-  pixiv = Pixiv()
+  pixiv = Pikax()
   user = pixiv.login(settings.username, settings.password) # 登录
 
   other_user = user.visits(user_id=3872398) # 访问其他用户
@@ -63,7 +69,9 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 
 #### 用作品id下载
 ````
-  pixiv = Pixiv()
+  from pikax.pikax import Pikax
+
+  pixiv = Pikax()
   pixiv.download(artwork_id=75608670)
 ````
 #### 更多例子和详情请参考[demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
