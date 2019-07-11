@@ -1,27 +1,61 @@
 
+"""
+This module contains different exceptions for Pikax
+"""
 
 class PikaxException(Exception):
+    """Base Exception for all exceptions in Pikax
+    """
     pass
 
 
 
 class ReqException(PikaxException):
+    """
+    This exception is raised when something when wrong with sending requests to servers
+
+    **See Also**
+    :func: util.req
+    """
     pass
 
 class PostKeyError(PikaxException):
+    """When failed to retrieve post key during login
+
+    This may be a direct cause of LoginError
+
+    **See Also**
+    :func: pages.LoginPage.login
+    :class: LoginError
+    """
     pass
 
 class LoginError(PikaxException):
-    pass
+    """When attempt to login has failed
 
-class IDError(PikaxException):
+    **See Also**
+    :func: pages.LoginPage.login
+    """
     pass
 
 class ArtworkError(PikaxException):
-    pass
+    """When failed to initialize a artwork object
 
-class OtherUserPageError(PikaxException):
+    :func: items.Artwork.__init__
+    """
     pass
 
 class UserError(PikaxException):
+    """When failed to initialize a User object
+
+    **See Also**
+    :func: items.User.__init__
+    """
     pass
+
+class SearchError(PikaxException):
+    """When failed to initialize a search in SearchPage
+
+    **See Also**
+    :func: pages.SearchPage.search
+    """

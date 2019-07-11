@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""Contain classes for use
+
+**Classes**
+:class: Pikax
+"""
 
 import time, re, sys, os, json
 from multiprocessing import Manager
@@ -13,13 +18,30 @@ sys.stdout.reconfigure(encoding='utf-8')
 __all__ = ['Pikax']
 
 class Pikax:
+"""Representing Pixiv.net
 
+**Functions**
+:func search: returns a PixivResult Object
+:func rank: returns a PixivResult Object
+:func download: download artworks given PixivResult and folder as str
+:func login: returns a User Object given username and password
+
+"""
     def __init__(self):
         self.search_page = SearchPage()
         self.ranking_page = RankingPage()
         self.user = None
 
     def search(self, keyword, limit=None, type=None, dimension=None, mode=None, popularity=None):
+        """Search Pixiv and returns PixivResult Object
+
+        **Description**
+        Invoke search method in SearchPage and create a PixivResult Object using default folder in settings
+
+        **Returns**
+        :return: result of the search in SearchPage with default search folder as in settings.py
+        :rtype: PixivResult Object
+        """
         util.log('Searching:', keyword)
 
         artworks = self.search_page.search(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, limit=limit)
@@ -29,6 +51,15 @@ class Pikax:
         return results
 
     def rank(self, mode='daily', limit=None, date=None, content=None):
+        """Rank Pixiv and returns PixivResult Object
+
+        **Description**
+        Invoke rank method in RankingPage and create a PixivResult Object using default folder in settings
+
+        **Returns**
+        :return: result of the rank in RankingPage with default rank folder as in settings.py
+        :rtype: PixivResult Object
+        """
         util.log('Ranking:', mode)
 
         artworks = self.ranking_page.rank(mode=mode, limit=limit, date=date, content=content)
@@ -38,6 +69,35 @@ class Pikax:
 
     # PixivResult > user_id > artwork_id
     def download(self, pixiv_result=None, artwork_id=None, user_id=None, folder=""):
+        """Download the given pixiv_result or artwork_id with given folder
+
+        **Description**
+        download the given PixivResult Object or artwork_id
+        if PixivResult is given, artwork_id is ignored
+
+        **Parameters**
+        :param pixiv_result:
+            the PixivResult Object which contains artworks to download
+        :type pixiv_result:
+            PixivResult or None
+
+        :param artwork_id:
+            the artwork id of the artwork to download
+        :type artwork_id:
+            str or None
+
+        :param folder:
+            the folder used to save the download result, default folder in settings.py
+            is used if not given
+        :type folder:
+            str or None
+
+        **Returns**
+        :return: None
+        :rtype: None
+
+        """
+
         util.log('Downloading ... ', start='\r\n', type='inform')
 
         if pixiv_result:
@@ -52,17 +112,22 @@ class Pikax:
                 util.log(str(e), type='error')
 
     def login(self, username, password):
-        """
-        Take username and password attempt to login pixiv
+        """Return the logined User Object
 
-        return a User object
+        **Description**
+        returns the User Object build from given username and password
+
+        **returns**
+        :return: a logged User
+        :rtype: User
+
         """
         util.log('Login:', username)
         return User(username=username, password=password)
 
-    def access(self, pixiv_id):
-        util.log('access:', pixiv_id)
-        return User(pixiv_id=pixiv_id)
+    # def access(self, pixiv_id):
+    #     util.log('access:', pixiv_id)
+    #     return User(pixiv_id=pixiv_id)
 
 
 # def _get_my_favorites_ids(self, params):

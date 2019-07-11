@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+
+"""
+This module contains items for general use
+
+:class: Artwork
+:class: PixivResult
+:class: User
+"""
 import traceback
 import re, os, time, threading, json
 
@@ -6,35 +14,44 @@ from . import settings, util
 from .pages import LoginPage
 from .exceptions import ReqException, ArtworkError, UserError
 
-__all__ = ['Artwork', 'PixivResult']
+__all__ = ['Artwork', 'PixivResult', 'User']
 
 
 # raise ArtworkError if failed to init
 class Artwork():
-    referer_url = 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='
-    ajax_url = 'https://www.pixiv.net/ajax/illust/'
-    headers = {
+    """Representing a artwork in Pixiv.next
+
+    **Functions**
+    :func factory: used for multiprocessing, return None if failed to create
+    :func download: used to download this artwork
+
+    **Instance Variables**
+    - self.id # int
+    - self.original_url # str
+    - self.views # int
+    - self.bookmarks # int
+    - self.likes # int
+    - self.comments # str
+    - self.title # str
+    - self.author # str
+
+    **Raises**
+    :raises ArtworkError: if failed to init
+    """
+
+    _referer_url = 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='
+    _ajax_url = 'https://www.pixiv.net/ajax/illust/'
+    _headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     }
     # https://www.pixiv.net/touch/ajax/illust/details?illust_id=75637165
-    """
-    self.id
-    self.original_url
-    self.views
-    self.bookmarks
-    self.likes
-    self.comments
-    self.title
-    self.author
-    """
 
     def __init__(self, id):
-        self.id = str(id)
-        ajax_url = self.ajax_url + self.id
+        self.id = id
+        _ajax_url = self._ajax_url + str(self.id)
         try:
-            respond = util.req(type='get', url=ajax_url, log_req=False)
+            respond = util.req(type='get', url=_ajax_url, log_req=False)
             image_data = util.json_loads(respond.content)
-            # self.data = dict()
             image_data = image_data['body']
             self.original_url = image_data['urls']['original']
             self.views = image_data['viewCount']
@@ -52,6 +69,12 @@ class Artwork():
 
     # for multiprocessing, return None if failed to init artwork
     def factory(id):
+        """return a Artwork Object given its id, None if failed
+
+        **Returns**
+        :return: Artwork of that id
+        :rtype: Artwork
+        """
         try:
             return Artwork(id)
         except ArtworkError as e:
@@ -59,8 +82,31 @@ class Artwork():
             return None
 
     def download(self, folder="", results_dict=None):
+        """Download this Artwork Object
+
+        **Description**
+        Download this artwork given folder or default folder as in settings.py,
+        results_dict is from multiprocessing.Manager used to store download statistic if given
+        this will download all pages of the artwork
+
+        **Parameters**
+        :param folder:
+            Folder to store the download item, default folder in settings.py is used if not given
+        :type folder:
+            str
+
+        :param results_dict:
+            the dict used to store statistic for download, from multiprocessing.Manager
+        :type results_dict:
+            python dict or None
+
+        **Returns**
+        :return: None
+        :rtype: None
+
+        """
         # pixiv check will check referer
-        self.headers['referer'] = self.referer_url + self.id
+        self._headers['referer'] = self._referer_url + str(self.id)
         curr_page = 0
         success = True
         while curr_page < self.page_count: # start from 0 to page_count - 1
@@ -78,7 +124,7 @@ class Artwork():
 
             try:
                 err_msg = pic_detail + ' Failed'
-                original_pic_respond = util.req(type='get', url=url, headers=self.headers, err_msg=err_msg, log_req=False)
+                original_pic_respond = util.req(type='get', url=url, headers=self._headers, err_msg=err_msg, log_req=False)
                 with open(file_name, 'wb') as file:
                     file.write(original_pic_respond.content)
                     util.log(pic_detail + ' OK', type='inform', start=settings.CLEAR_LINE, end='\r')
@@ -97,13 +143,18 @@ class Artwork():
 
 
 class PixivResult:
-    """
-    - iterable
-    self.artworks
-    self.folder
+    """Encapsulate results of actions, interface for download
+
+    **Description**
+    this class is used to store artworks and folder as string,
+    designed to pass to Pikax.download, it is iterable
+
+    **Instance Variables**
+    - self.artworks # list
+    - self.folder # str
     """
     def __init__(self, artworks, folder=""):
-        self.artworks = artworks
+        self.artworks = list(artworks)
         count = 0
         if folder:
             self.folder = folder

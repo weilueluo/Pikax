@@ -1,14 +1,28 @@
 # -*- coding: utf-8 -*-
 
+"""
+This module contains classes representing different pages in Pixiv.net
+Each page encapsulate their capabilities
+
+**Classes**
+:class: LoginPage
+:class: SearchPage
+:class: RankingPage
+"""
+
 import re, time, requests, json
 
 from . import settings, util
-from .exceptions import LoginError, ReqException, PostKeyError, IDError
+from .exceptions import LoginError, ReqException, PostKeyError, SearchError
 
 __all__ = ['LoginPage', 'SearchPage', 'RankingPage']
 
 # raise LoginError if failed to login
 class LoginPage:
+    """Representing login page in pixiv.net
+
+    :func login: used to attempt login
+    """
     _post_key_url = 'https://accounts.pixiv.net/login?'
     _post_key_req_type = 'get'
     _login_url = 'https://accounts.pixiv.net/api/login?lang=en'
@@ -29,6 +43,22 @@ class LoginPage:
             raise PostKeyError('Failed to find post key')
 
     def login(self, username, password):
+        """Used to attempt log into pixiv.net
+
+        **Parameters**
+        :param str username: username of your pixiv account
+        :param str password: password of your pixiv account
+
+
+        **Returns**
+        :return: a Session Object which used to login pixiv.net
+        :rtype: requests.Session
+
+        **Raises**
+        :raises LoginError: if login fails
+
+        """
+
         try:
             data = {
                 'pixiv_id': username,
@@ -45,24 +75,78 @@ class LoginPage:
 
 
 class SearchPage:
+    """Representing the search page in pixiv.net
+
+    **Functions**
+    :func search: Used to search in pixiv.net
+
+    """
     search_url = 'https://www.pixiv.net/search.php?'
     search_popularity_postfix = u'users入り'
     search_regex = r'(\d{8})_p\d'
-    popularity_list = [10000, 5000, 1000, 500] # TODO: falsey result when search with 20000
-
-    """
-    keyword: string to search
-    type: illust | default illust # not implemented manga | ugoria
-    dimension: vertical | horizontal | square | default any
-    mode: strict_tag | loose | default tag contains
-    popularity: a number, add after search keyword as: number users入り, use 'popular' if you want to get better results | default date descending
-    limit: how many artworks to get | default all
-    """
+    popularity_list = [20000, 10000, 5000, 1000, 500]
 
     def __init__(self):
         pass
 
     def search(self, keyword, limit=None, type=None, dimension=None, mode=None, popularity=None):
+        """Used to search in pixiv.net
+
+        **Parameters**
+        :param keyword:
+            a space separated of tags, used for search
+        :type keyword:
+             str
+
+        :param limit:
+            number of artworks is trimmed to this number if too many, may not be enough
+        :type limit:
+             int or None(default)
+
+        :param type:
+            type of artworks,
+            'illust' | 'manga', default any
+        :type type:
+             str or None(default)
+
+        :param dimension:
+            dimension of the artworks, 'vertical' | 'horizontal' | 'square', default any
+        :type dimension:
+             str or None(default)
+
+        :param mode:
+            define the way of matching artworks with a artwork,
+            'strict_tag' matches when any keyword is same as a tag in the artwork
+            'loose' matches when any keyword appears in title, description or tags of the artwork
+            default matches when any keyword is part of a tag of the artwork
+        :type mode:
+             str or None(default)
+
+        :param popularity:
+            this is based on a pixiv search trick to return popular results for non-premium users,
+            eg, pixiv automatically adds a 1000users入り tag when a artwork has 1000 likes
+            when popularity is given, the str ' ' + popularity + 'users入り' is added to keyword string,
+            common popularity of 100, 500, 1000, 5000, 10000, 20000 is strongly suggested, since pixiv does
+            not add tag for random likes such as 342users入り
+            when str 'popular' is given, it will search for all results with users入り tag in [20000, 10000, 5000, 1000, 500]
+            note that 'popular' is the only string accepted
+        :type popularity:
+            int or str or None(default)
+
+        **Returns**
+        :return: a list of Artwork Object
+        :rtype: python list
+
+
+        **Raises**
+        :raises SearchError: if invalid mode or dimension is given
+
+
+        **See Also**
+        :class: items.Artwork
+
+        """
+
         if not keyword:
             keyword = ''
 
@@ -80,7 +164,7 @@ class SearchPage:
             elif dimension == 'square':
                 params['ratio'] = '0'
             else:
-                raise ValueError('Invalid dimension given:', dimension)
+                raise SearchError('Invalid dimension given:', dimension)
 
         if mode: # default match if contain tags
             if mode == 'strict_tag': # specified tags only
@@ -88,7 +172,7 @@ class SearchPage:
             elif mode == 'loose':
                 params['s_mode'] = 's_tc'
             else:
-                raise ValueError('Invalid mode given:', mode)
+                raise SearchError('Invalid mode given:', mode)
 
         # search starts
         if popularity == 'popular':
@@ -163,6 +247,13 @@ class SearchPage:
 
 
 class RankingPage:
+    """Representing ranking page in pixiv.net
+
+    **Functions**
+    :func rank: used to get artworks in rank page in pixiv.net
+
+    """
+
     url = 'https://www.pixiv.net/ranking.php?'
 
     def __init__(self):
@@ -175,13 +266,42 @@ class RankingPage:
                 raise ValueError('Invalid input mode, illust content is not yet available for', not_allowed)
 
 
-    """
-    mode: daily | weekly | monthly | rookie | original | male | female | default daily
-    limit: num of artworks | default all
-    date: up to which date | default today, python date object or string yyyymmdd
-    content: illust | default illust # not implemented  | manga | ugoria
-    """
     def rank(self, mode='daily', limit=None, date=None, content='illust'):
+        """Used to get artworks from pixiv ranking page
+
+        **Parameters**
+        :param mode:
+            type of ranking as in pixiv.net,
+            'daily' | 'weekly' | 'monthly' | 'rookie' | 'original' | 'male' | 'female', default daily
+        :type mode:
+            str
+
+        :param limit:
+            number of artworks to return, may not be enough, default all
+        :type limit:
+            int or None
+
+        :param date:
+            the date when ranking occur,
+            if string given it must be in 'yyyymmdd' format
+            eg. given '20190423' and mode daily will return the daily ranking of pixiv on 2019 April 23
+            eg. given '20190312' and mode monthly will return the monthly ranking from 2019 Feb 12 to 2019 March 12
+            default today
+        :type date:
+            Datetime or str or None
+
+        :param content:
+            type of artwork to return,
+            'illust' | 'manga', default 'illust'
+        :type mode:
+            str
+
+        **Returns**
+        :return: a list of artworks
+        :rtype: python list
+
+        """
+
         self._check_inputs(mode=mode, content=content)
         params = dict()
         params['format'] = 'json'
@@ -207,7 +327,7 @@ class RankingPage:
                 res = util.json_loads(res.content)
             except (ReqException, json.JSONDecodeError) as e:
                 util.log(str(e), type='error save')
-                util.log('Error while loading page:', page_num , 'in ranking page', type='inform save')
+                util.log('End of rank at page:', page_num , type='inform save')
                 # exception_count += 1
                 # if exception_count > settings.MAX_WHILE_TRUE_LOOP_EXCEPTIONS:
                 #     util.log('Too many exceptions encountered:', exception_count, 'terminating ...', type='inform save')
@@ -240,101 +360,3 @@ class RankingPage:
         artworks = util.generate_artworks_from_ids(ids)
 
         return artworks
-
-
-# not used
-# raise IDError if failed to retrieves id, raise OtherUserPageError if failed to init
-# class OtherUserPage:
-#     data_url = 'https://www.pixiv.net/ajax/user/{pixiv_id}/illusts/bookmarks?'
-#     bookmark_url = 'https://www.pixiv.net/bookmark.php?'
-#     artwork_url = 'https://www.pixiv.net/ajax/user/{pixiv_id}/profile/all'
-#     params = {
-#         'tag': '',
-#         'offset': '0',
-#         'limit': '1',
-#         'rest': 'show'
-#     }
-#     """
-#     self vars:
-#         id
-#         title
-#     """
-#
-#     def _add_public_fav_ids(self):
-#         try:
-#             ids_url = self.data_url.format(pixiv_id=self.id, limit=self.total_fav)
-#             ids_data = util.req(type='get', session=self.session, url=ids_url, params=self.params)
-#             ids_data = util.json_loads(ids_data.content)
-#             self.public_fav_ids = [artwork['id'] for artwork in ids_data['body']['works']]
-#             self.public_fav_ids_length = len(self.public_fav_ids)
-#             util.log(self.username + '\'s favs found:', self.public_fav_ids_length, type='inform')
-#         except (ReqException, json.JSONDecodeError) as e:
-#             util.log(str(e), type='error save')
-#             util.log('Failed to retrieve public ids data from id:', self.id, type='inform save')
-#             raise IDError('Failed to add public fav ids')
-#
-#     def _add_illust_ids(self):
-#         try:
-#             err_msg = 'Failed to get data from id: ' + str(self.id)
-#             res = util.req(type='get', url=self.artwork_url.format(pixiv_id=self.id), err_msg=err_msg)
-#             data = util.json_loads(res.content)
-#             if data['error']:
-#                 util.log('Error in returned illust data, id:', self.id , type='inform save')
-#                 raise ReqException()
-#             self.data = data
-#             self.illust_ids = [id for id in self.data['body']['illusts']]
-#         except (ReqException, json.JSONDecodeError) as e:
-#             util.log(str(e), type='error save')
-#             raise IDError('Failed to add illust ids')
-#
-#     def _add_manga_ids(self):
-#         try:
-#             err_msg = 'Failed to get data from id: ' + str(self.id)
-#             res = util.req(type='get', url=self.artwork_url.format(pixiv_id=self.id), err_msg=err_msg)
-#             data = util.json_loads(res.content)
-#             if data['error']:
-#                 util.log('Error in returned manga data, id:', self.id , type='inform save')
-#                 raise ReqException()
-#             self.data = data
-#             self.manga_ids = [id for id in self.data['body']['manga']]
-#         except (RequestException, json.JSONDecodeError) as e:
-#             util.log(str(e), type='error save')
-#             raise IDError('Failed to add manga ids')
-#
-#     def __init__(self, pixiv_id, session):
-#         self.public_fav_ids = []
-#         self.id = pixiv_id
-#         self.session = session
-#         self.public_fav_ids = None
-#         self.illust_ids = None
-#         self.data = None
-#         self.manga_ids = None
-#         req_url = self.data_url.format(pixiv_id=self.id)
-#         err_msg = 'Error while generating user page, id: ' + str(self.id)
-#         try:
-#             res = util.req(type='get', session=self.session, url=req_url, params=self.params, err_msg=err_msg)
-#             data = util.json_loads(res.text)
-#             if data['error']:
-#                 util.log('Error in returned manga data, id:', self.id , type='inform save')
-#                 raise ReqException()
-#             self.total_fav = data['body']['total']
-#             title = data['body']['extraData']['meta']['title']
-#             self.params['limit'] = self.total_fav
-#             username = re.search(r'「(.*?)」', title)
-#             self.username = username.group(1) if username else title
-#         except (ReqException, json.JSONDecodeError) as e:
-#             util.log(str(e), type='error save')
-#             util.log('Failed to load data from userpage in init, id:', self.id, type='inform save')
-#             raise OtherUserPageError('Failed to init user page')
-#
-#     def get_public_fav_ids(self, limit=None):
-#         self._add_public_fav_ids()
-#         return util.trim_to_limit(items=self.public_fav_ids, limit=limit)
-#
-#     def get_illust_ids(self, limit=None):
-#         self._add_illust_ids()
-#         return util.trim_to_limit(items=self.illust_ids, limit=limit)
-#
-#     def get_manga_ids(self, limit=None):
-#         self._add_manga_ids()
-#         return util.trim_to_limit(items=self.manga_ids, limit=limit)
