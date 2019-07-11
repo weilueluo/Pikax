@@ -18,15 +18,15 @@ sys.stdout.reconfigure(encoding='utf-8')
 __all__ = ['Pikax']
 
 class Pikax:
-"""Representing Pixiv.net
+    """Representing Pixiv.net
 
-**Functions**
-:func search: returns a PixivResult Object
-:func rank: returns a PixivResult Object
-:func download: download artworks given PixivResult and folder as str
-:func login: returns a User Object given username and password
+    **Functions**
+    :func search: returns a PixivResult Object
+    :func rank: returns a PixivResult Object
+    :func download: download artworks given PixivResult and folder as str
+    :func login: returns a User Object given username and password
 
-"""
+    """
     def __init__(self):
         self.search_page = SearchPage()
         self.ranking_page = RankingPage()

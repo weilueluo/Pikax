@@ -7,7 +7,6 @@ This module contains items for general use
 :class: PixivResult
 :class: User
 """
-import traceback
 import re, os, time, threading, json
 
 from . import settings, util
@@ -64,7 +63,6 @@ class Artwork():
             self.original_url = re.sub(r'(?<=_p)\d', '{page_num}' ,self.original_url)
         except ReqException as e:
             util.log(str(e), type='error save')
-            traceback.print_exc()
             raise ArtworkError('Failed to init artwork from id: ' + str(self.id))
 
     # for multiprocessing, return None if failed to init artwork
@@ -109,6 +107,7 @@ class Artwork():
         self._headers['referer'] = self._referer_url + str(self.id)
         curr_page = 0
         success = True
+        skipped = False
         while curr_page < self.page_count: # start from 0 to page_count - 1
             pic_detail = '[' + str(self.title) + '] p' + str(curr_page) + ' by [' + str(self.author) + ']'
             url = self.original_url.format(page_num=curr_page)
@@ -120,7 +119,9 @@ class Artwork():
 
             if os.path.isfile(file_name):
                 util.log(pic_detail, 'skipped.', 'Reason:', file_name, 'already exists or access not granted')
-                return
+                skipped = True
+                curr_page += 1
+                continue
 
             try:
                 err_msg = pic_detail + ' Failed'
@@ -136,7 +137,9 @@ class Artwork():
             curr_page += 1
 
         if results_dict:
-            if success:
+            if skipped:
+                results_dict['skipped'] += 1
+            elif success:
                 results_dict['success'] += 1
             else:
                 results_dict['failed'] += 1
@@ -293,33 +296,35 @@ class User:
                 raise UserError('Failed to load user information')
         else:
             raise UserError('Failed to get user id')
+
         # save user information
+        data_json = data_json['user_details']
+        self.id = data_json['user_id']
+        self.account = data_json['user_account']
+        self.name = data_json['user_name']
+        self.create_time = data_json['user_create_time']
+        self.title = data_json['meta']['title']
+        self.description = data_json['meta']['description']
+        self.pixiv_url = data_json['meta']['canonical']
+        self.follows = data_json['follows']
+        self.background_url = data_json['bg_url']
+
+        # not all user has those
         try:
-            data_json = data_json['user_details']
-            self.id = data_json['user_id']
-            self.account = data_json['user_account']
-            self.name = data_json['user_name']
-            self.create_time = data_json['user_create_time']
             self.location = data_json['location']
             self.country = data_json['user_country']
-            self.follows = data_json['follows']
-            self.background_url = data_json['bg_url']
-            self.title = data_json['meta']['title']
-            self.description = data_json['meta']['description']
-            self.pixiv_url = data_json['meta']['canonical']
             self.birth = data_json['user_birth']
             self.age = data_json['user_age']
         except KeyError as e:
-            util.log('failed to get user info in init:', str(e))
-
+            pass
         # init user's contents
         self.illust_artworks = []
         self.manga_artworks = []
         self.bookmark_artworks = []
-        self.has_illusts = data_json['has_illusts']
-        self.has_mangas = data_json['has_mangas']
+        self.has_illusts = data_json['has_illusts'] or False
+        self.has_mangas = data_json['has_mangas'] or False
         # self.has_novels = data_json['has_novels']
-        self.has_bookmarks = data_json['has_bookmarks']
+        self.has_bookmarks = data_json['has_bookmarks'] or False
 
 
     def _get_illust_artworks(self, limit=None):

@@ -66,10 +66,29 @@ def test_rank_random(num_of_tests):
         except ValueError as e:
             print(str(e))
 
+
+from pikax import settings
+def test_user():
+    pikax = Pikax()
+    user = pikax.login(settings.username, settings.password)
+    favs = user.bookmarks()
+    pikax.download(favs)
+    illusts = user.illusts() # should be 0
+    pikax.download(illusts)
+
+    other_user = user.visits(user_id=212801)
+    his_favs = other_user.bookmarks(limit=25)
+    pikax.download(his_favs)
+    his_illusts = other_user.illusts(limit=125)
+    pikax.download(his_illusts)
+    his_mangas = other_user.mangas()
+    pikax.download(his_mangas)
+
 def main():
     # test_search_normal_inputs()
     # test_search_random(10)
-    test_rank_random(10)
+    # test_rank_random(10)
+    test_user()
 
 
 

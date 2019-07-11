@@ -8,7 +8,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ```
   pip install requests
 ```
-### Currently supported download features
+### Currently supported features
 - Search
   - keyword/tags, limit, type, dimension, mode, popularity
 - Ranking
@@ -17,6 +17,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   - yours or other
 - Artworks (required login)
   - yours or other
+- Multiprocessing & multithreading download
 
 ### Features incoming
 - R18 Artworks
