@@ -1,7 +1,5 @@
-> # 建设中。。 有些功能可能会出错， 嘤嘤嘤
 # Pikax:unicorn:
 Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]批量下载工具。
-
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
 ---
 ### 需要
