@@ -1,7 +1,7 @@
 """
 Pikax.search:
 keyword: string to search
-type: manga | illust | ugoira | default any
+type: manga | illust | default any
 dimension: vertical | horizontal | square | default any
 mode: strict_tag | loose | default tag contains
 popularity: a number, add after search keyword as: number users入り, use 'popular' if you want to get better results | default date descending, all results, which is not as good usually

@@ -63,6 +63,8 @@ class SearchPage:
         pass
 
     def search(self, keyword, limit=None, type=None, dimension=None, mode=None, popularity=None):
+        if not keyword:
+            keyword = ''
 
         # setting parameters
         start = time.time()
@@ -91,8 +93,16 @@ class SearchPage:
         # search starts
         if popularity == 'popular':
             ids = []
+            total_limit = limit
             for popularity in self.popularity_list:
                 ids += self._get_ids(params=params, keyword=keyword, limit=limit, popularity=popularity)
+                if total_limit:
+                    num_of_ids_sofar = len(ids)
+                    if num_of_ids_sofar > total_limit:
+                        ids = util.trim_to_limit(ids, total_limit)
+                        break
+                    else:
+                        limit = total_limit - num_of_ids_sofar
         else:
             ids = self._get_ids(params=params, keyword=keyword, limit=limit, popularity=popularity)
 
@@ -104,7 +114,9 @@ class SearchPage:
 
         return artworks
 
-    def _get_ids(self, params, keyword, popularity, limit=None, curr_page=1, ids_sofar=[]):
+    def _get_ids(self, params, keyword, popularity, limit):
+        curr_page = 1
+        ids_sofar = []
         while True:
             # get a page's ids
             params['p'] = curr_page
@@ -116,11 +128,11 @@ class SearchPage:
                 err_msg = 'Failed getting ids from params ' + str(params) + ' page: ' + str(curr_page)
                 results = util.req(type='get', url=self.search_url, params=params, err_msg=err_msg)
             except ReqException as e:
+                util.log(str(e), type='error save')
                 if curr_page == 1:
                     util.log('Theres no result found for input', type='inform')
                 else:
-                    util.log(str(e), type='error save')
-                    util.log('Failed to retrieve data from page: ' + str(curr_page) + ', terminated', type='inform save')
+                    util.log('End of search at page: ' + str(curr_page) + ', terminated', type='inform save')
                 return ids_sofar
 
             ids = re.findall(self.search_regex, results.text)
@@ -156,7 +168,7 @@ class RankingPage:
     def __init__(self):
         pass
 
-    def _check_inputs(self, content, date, mode):
+    def _check_inputs(self, content,mode):
         if content == 'illust':
             not_allowed = ['original', 'male', 'female']
             if mode in not_allowed:
@@ -166,24 +178,27 @@ class RankingPage:
     """
     mode: daily | weekly | monthly | rookie | original | male | female | default daily
     limit: num of artworks | default all
-    date: up to which date | default today, format: yyyymmdd
+    date: up to which date | default today, python date object or string yyyymmdd
     content: illust | default illust # not implemented  | manga | ugoria
     """
     def rank(self, mode='daily', limit=None, date=None, content='illust'):
-        self._check_inputs(mode=mode, date=date, content=content)
+        self._check_inputs(mode=mode, content=content)
         params = dict()
         params['format'] = 'json'
-        if date:
-            params['date'] = date
         if content:
             params['content'] = content
         params['mode'] = mode
+
+        if date:
+            if not type(date) == str: # then it has to be datetime objects
+                date = format(date, '%Y%m%d')
+            params['date'] = date
 
 
         start = time.time()
         ids = []
         page_num = 0
-        exception_count = 0
+        # exception_count = 0
         while True:
             page_num += 1
             params['p'] = page_num
@@ -193,12 +208,12 @@ class RankingPage:
             except (ReqException, json.JSONDecodeError) as e:
                 util.log(str(e), type='error save')
                 util.log('Error while loading page:', page_num , 'in ranking page', type='inform save')
-                exception_count += 1
-                if exception_count > settings.MAX_WHILE_TRUE_LOOP_EXCEPTIONS:
-                    util.log('Too many exceptions encountered:', exception_count, 'terminating ...', type='inform save')
-                    break
-                else:
-                    continue
+                # exception_count += 1
+                # if exception_count > settings.MAX_WHILE_TRUE_LOOP_EXCEPTIONS:
+                #     util.log('Too many exceptions encountered:', exception_count, 'terminating ...', type='inform save')
+                break
+                # else:
+                #     continue
             if 'error' in res:
                 util.log('End of page while searching', str(params) + '. Finished')
                 break

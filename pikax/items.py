@@ -75,7 +75,7 @@ class Artwork():
             if os.path.isfile(file_name):
                 util.log(pic_detail, 'skipped.', 'Reason:', file_name, 'already exists or access not granted')
                 return
-                
+
             try:
                 err_msg = pic_detail + ' Failed'
                 original_pic_respond = util.req(type='get', url=url, headers=self.headers, err_msg=err_msg, log_req=False)

@@ -48,11 +48,11 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', type
         print(start, *objects, sep=sep, end=end, file=file, flush=flush)
 
 # send request using requests, raise ReqException if fails all retries
-def req(url, type='get', session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS, timeout=settings.TIMEOUT, err_msg=None, log_req=True, verify=True):
+def req(url, type='get', session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS, timeout=settings.TIMEOUT, err_msg=None, log_req=True, verify=True, retries=settings.MAX_RETRIES_FOR_REQUEST):
 
     type = type.upper()
-    retries = 0
-    while retries < settings.MAX_RETRIES_FOR_REQUEST:
+    curr_retries = 0
+    while curr_retries < retries:
         if log_req:
             log(type + ':', str(url), 'with params:', str(params), end=' ')
         try:
@@ -81,21 +81,21 @@ def req(url, type='get', session=None, params=None, data=None, headers=settings.
                 if res.status_code < 400:
                     return res
                 else:
-                    log('Status code error:', res.status_code, 'retries:', retries, type='inform save')
+                    log('Status code error:', res.status_code, 'retries:', curr_retries, type='save')
             else:
-                log('Requests returned Falsey, retries:', retries, type='inform save')
+                log('Requests returned Falsey, retries:', curr_retries, type='save')
         except requests.exceptions.Timeout as e:
-            log(type, url, params, 'Time Out:', retries, type='save')
+            log(type, url, params, 'Time Out:', curr_retries, type='save')
             log('Reason:', str(e), type='inform save')
         except requests.exceptions.RequestException as e:
             if err_msg:
                 log('RequestException:', err_msg, type='save')
             else:
                 log('Exception while', type, type='save')
-            log('Reason:', str(e), 'Retries:', retries, type='inform save')
+            log('Reason:', str(e), 'Retries:', curr_retries, type='save')
 
-        time.sleep(1) # dont request again too fast
-        retries += 1
+        curr_retries += 1
+        time.sleep(0.5) # dont request again too fast
 
     # if still fails after all retries
     exception_msg = str(type) + ' failed: ' + str(url) + ' params: ' + str(params)
