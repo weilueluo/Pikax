@@ -1,4 +1,3 @@
-> # Under Development, some funtions may be buggy, QAQ
 # Pikax:unicorn:
 Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) mass download tool
 #### [Chinese ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.md)
