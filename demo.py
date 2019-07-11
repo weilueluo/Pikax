@@ -11,8 +11,8 @@ limit: how many artworks to get | default all
 Pikax.rank:
 mode: daily | weekly | monthly | rookie | default daily # has problem: | male | female | original
 limit: number of artworks to search | default all
-date: up to which date | default today, format: yyyymmdd
-content: illust | manga | ugoria | default any
+date: up to which date | default today, string format: yyyymmdd or python datetime object
+content: illust | manga | default any
 
 Pikax.favorites:
 username: your pixiv username
