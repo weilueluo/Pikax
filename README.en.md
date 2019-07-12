@@ -13,11 +13,10 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   - keyword/tags, limit, type, dimension, mode, popularity
 - Ranking
   - mode, limit, date, content
-- Favorites (required login)
-  - yours or other
-- Artworks (required login)
-  - yours or other
+- Yours or others
+  - Illustrations, mangas, bookmarks
 - Multiprocessing & multithreading download
+
 
 ### Features incoming
 - R18 Artworks
@@ -25,12 +24,14 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 - Filter Artworks/Artists
 - ...
 ---
+> ### Pixiv will generate incomplete data if you do not login
 ### Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 #### Download today's top 20 illustration
 ```
   from pikax.pikax import Pikax
 
   pixiv = Pikax()
+  pixiv.login(settings.username, settings.password) # not necessary but strongly suggested
   results = pixiv.rank(limit=20, content='illust', mode='daily')
   pixiv.download(results, folder='#Pixiv_daily_ranking')
 ```
@@ -39,6 +40,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   from pikax.pikax import Pikax
 
   pixiv = Pikax()
+  pixiv.login(settings.username, settings.password) # not necessary but strongly suggested
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, limit=10)
   pixiv.download(results)
 ```
@@ -52,10 +54,13 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   bookmarks = user.bookmarks(limit=20) # get bookmarks
   pixiv.download(bookmarks) # download
 
-  # others
+  # any user
   pixiv = Pikax()
-  user = pixiv.login(settings.username, settings.password) # login
 
+  # not suggested, but allowed
+  other_user = pixiv.access(user_id=3872398)
+  # suggested
+  user = pixiv.login(settings.username, settings.password) # login
   other_user = user.visits(user_id=3872398) # visit other user by id
 
   illusts = other_user.illusts(limit=None) # get his illustrations

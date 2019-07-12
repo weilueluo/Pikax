@@ -13,10 +13,8 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   - 关键字/标签，数量，类别，尺寸，模式，受欢迎程度
 - 排行榜
   - 日期，数量，模式，内容种类
-- 收藏 （需要登录）
-  - 你的或者别人的
-- 作品 （需要登录）
-  - 你的或者别人的
+- 你的或者别人的
+  - 插画，漫画，收藏
 - 多核多线程下载
 
 ### 在计划中的功能
@@ -25,12 +23,14 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 - 作品/画师 过滤
 - 。。。
 ---
+> ### [Pixiv](https://www.pixiv.net/) 只返回部分结果如果没有登录
 ### 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 #### 下载当日排行榜前20的插画
 ````
   from pikax.pikax import Pikax
 
   pixiv = Pikax()
+  pixiv.login(settings.username, settings.password) # 不必要但强烈推荐
   results = pixiv.rank(limit=20, content='illust', mode='daily')
   pixiv.download(results, folder='#Pixiv_daily_ranking')
 ````
@@ -39,6 +39,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   from pikax.pikax import Pikax
 
   pixiv = Pikax()
+  pixiv.login(settings.username, settings.password) # 不必要但强烈推荐
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, limit=10)
   pixiv.download(results)
 ````
@@ -52,11 +53,15 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   bookmarks = user.bookmarks(limit=20) # 获取收藏
   pixiv.download(bookmarks) # 下载
 
-  # 别人的
+  # 任何用户
   pixiv = Pikax()
-  user = pixiv.login(settings.username, settings.password) # 登录
 
-  other_user = user.visits(user_id=3872398) # 访问其他用户
+  # 不推荐，但允许
+  other_user = pixiv.access(user_id=3872398)
+  # 推荐
+  user = pixiv.login(settings.username, settings.password) # 登录
+  other_user = user.visits(user_id=3872398) # 以此访问其他用户
+
 
   illusts = other_user.illusts(limit=None) # 获取他的画作
   pixiv.download(illusts) # 下载

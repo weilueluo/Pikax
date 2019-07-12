@@ -81,15 +81,15 @@ class SearchPage:
     :func search: Used to search in pixiv.net
 
     """
-    search_url = 'https://www.pixiv.net/search.php?'
-    search_popularity_postfix = u'users入り'
-    search_regex = r'(\d{8})_p\d'
-    popularity_list = [20000, 10000, 5000, 1000, 500]
+    _search_url = 'https://www.pixiv.net/search.php?'
+    _search_popularity_postfix = u'users入り'
+    _search_regex = r'(\d{8})_p\d'
+    _popularity_list = [20000, 10000, 5000, 1000, 500]
 
-    def __init__(self):
-        pass
+    def __init__(self, session=None):
+        self._session = session
 
-    def search(self, keyword, limit=None, type=None, dimension=None, mode=None, popularity=None):
+    def search(self, keyword, limit=None, type=None, dimension=None, mode=None, popularity=None, order='date_desc'):
         """Used to search in pixiv.net
 
         **Parameters**
@@ -139,7 +139,7 @@ class SearchPage:
 
 
         **Raises**
-        :raises SearchError: if invalid mode or dimension is given
+        :raises SearchError: if invalid order, mode or dimension is given
 
 
         **See Also**
@@ -174,11 +174,19 @@ class SearchPage:
             else:
                 raise SearchError('Invalid mode given:', mode)
 
+        if order == 'date_desc':
+            params['order'] = 'date_d'
+        elif order == 'date_asc':
+            params['order'] = 'date'
+        else:
+            raise SearchError('Invalid order given:', order)
+
+
         # search starts
         if popularity == 'popular':
             ids = []
             total_limit = limit
-            for popularity in self.popularity_list:
+            for popularity in self._popularity_list:
                 ids += self._get_ids(params=params, keyword=keyword, limit=limit, popularity=popularity)
                 if total_limit:
                     num_of_ids_sofar = len(ids)
@@ -206,20 +214,20 @@ class SearchPage:
             params['p'] = curr_page
             params['word'] = str(keyword)
             if popularity != None:
-                params['word'] += ' ' + str(popularity) + self.search_popularity_postfix
+                params['word'] += ' ' + str(popularity) + self._search_popularity_postfix
             util.log('Searching id for params:', params, 'at page:', curr_page)
             try:
                 err_msg = 'Failed getting ids from params ' + str(params) + ' page: ' + str(curr_page)
-                results = util.req(type='get', url=self.search_url, params=params, err_msg=err_msg)
+                results = util.req(type='get', session=self._session, url=self._search_url, params=params, err_msg=err_msg)
             except ReqException as e:
                 util.log(str(e), error=True, save=True)
                 if curr_page == 1:
                     util.log('Theres no result found for input', inform=True, save=True)
                 else:
-                    util.log('End of search at page: ' + str(curr_page) + ', terminated', inform=True, save=True)
+                    util.log('End of search at page: ' + str(curr_page), inform=True, save=True)
                 return ids_sofar
 
-            ids = re.findall(self.search_regex, results.text)
+            ids = re.findall(self._search_regex, results.text)
 
             # set length of old ids and new ids,
             # use later to check if reached end of all pages
@@ -256,8 +264,8 @@ class RankingPage:
 
     url = 'https://www.pixiv.net/ranking.php?'
 
-    def __init__(self):
-        pass
+    def __init__(self, session=None):
+        self._session = session
 
     def _check_inputs(self, content,mode):
         if content == 'illust':
@@ -323,7 +331,7 @@ class RankingPage:
             page_num += 1
             params['p'] = page_num
             try:
-                res = util.req(type='get', url=self.url, params=params)
+                res = util.req(type='get', session=self._session, url=self.url, params=params)
                 res = util.json_loads(res.content)
             except (ReqException, json.JSONDecodeError) as e:
                 util.log(str(e), error=True, save=True)

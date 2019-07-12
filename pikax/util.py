@@ -17,7 +17,7 @@ from multiprocessing import Process, current_process, Manager
 from threading import Thread
 
 from . import settings
-from .items import Artwork
+
 from .exceptions import ReqException
 
 sls = os.linesep
@@ -26,12 +26,13 @@ _log_type = settings.LOG_TYPE
 _std_enabled = _log_type.find('std') != -1
 _inform_enabled = _log_type.find('inform') != -1
 _save_enabled = _log_type.find('save') != -1
+_warn_enabled = _log_type.find('warn') != -1
 
 
-__all__ = ['log', 'req', 'json_loads', 'generate_artworks_from_ids', 'trim_to_limit', 'multiprocessing_', 'clean_filename', 'print_json']
+__all__ = ['log', 'req', 'json_loads', 'generate_artworks_from_ids', 'trim_to_limit', 'multiprocessing_', 'clean_filename', 'print_json', 'read_only_attrs']
 
 
-def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', type='', inform=False, save=False, error=False):
+def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', type='', inform=False, save=False, error=False, warn=False):
     """Print according to params and settings.py
 
     **Description**
@@ -65,14 +66,16 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', type
 
 
     """
-    global _std_enabled, _inform_enabled, _save_enabled
+    global _std_enabled, _inform_enabled, _save_enabled, _warn_enabled
     if _inform_enabled and inform:
         print(start, '>>>', *objects, sep=sep, end=end, file=file, flush=flush)
     if _save_enabled and save:
         print(start, *objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a'), flush=False)
     if _inform_enabled and error:
         print(start, '!!!', *objects, sep=sep, end=end, file=file, flush=flush)
-    if _std_enabled and not (inform or save or error):
+    if _warn_enabled and warn:
+        print(start, '###', *objects, sep=sep, end=end, file=file, flush=flush)
+    if _std_enabled and not (inform or save or error or warn):
         print(start, *objects, sep=sep, end=end, file=file, flush=flush)
 
 # send request using requests, raise ReqException if fails all retries
@@ -209,6 +212,7 @@ def json_loads(text, encoding='utf-8'):
 
 
 def _generate_small_list_of_artworks(ids, artworks):
+    from .items import Artwork # import here to avoid circular dependency
     artworks += [Artwork.factory(id) for id in ids]
 
 # return a list of artworks given a list of ids, using pool
@@ -222,11 +226,11 @@ def generate_artworks_from_ids(ids, limit=None):
     multiprocessing_(items=ids, small_list_executor=_generate_small_list_of_artworks, results_saver=artworks)
     log('Done. Time Taken: ' + str(time.time() - start) + 's', inform=True)
     total = len(artworks)
-    log('Total Expected:', total)
+    log('Total Expected:', total, inform=True)
     artworks = [artwork for artwork in artworks if artwork is not None]
     success = len(artworks)
-    log('Failed:', total - success)
-    log('Success:', success)
+    log('Failed:', total - success, inform=True)
+    log('Success:', success, inform=True )
     return artworks
 
 # trim the given items length to given limit
@@ -313,3 +317,20 @@ def multiprocessing_(items, small_list_executor, results_saver=None):
         process.start()
     for process in processes:
         process.join()
+
+
+# https://github.com/oz123/oz123.github.com/blob/master/media/uploads/readonly_properties.py
+def read_only_attrs(*attrs):
+    def class_changer(cls):
+        class User(cls):
+            def __setattr__(self, name, new_value):
+                if name not in attrs:
+                    pass
+                elif name not in self.__dict__:
+                    pass
+                else:
+                    raise AttributeError('This attribute cannot be changed:', name)
+
+                return super().__setattr__(name, new_value)
+        return User
+    return class_changer

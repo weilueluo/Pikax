@@ -13,6 +13,7 @@ from . import settings, util
 from .pages import LoginPage
 from .exceptions import ReqException, ArtworkError, UserError
 
+
 __all__ = ['Artwork', 'PixivResult', 'User']
 
 
@@ -63,7 +64,7 @@ class Artwork():
             self.original_url = re.sub(r'(?<=_p)\d', '{page_num}' ,self.original_url)
         except ReqException as e:
             util.log(str(e), error=True, save=True)
-            raise ArtworkError('Failed to init artwork from id: ' + str(self.id))
+            raise ArtworkError('Artwork id:', str(self.id), 'has been deleted or does not exists')
 
     # for multiprocessing, return None if failed to init artwork
     def factory(id):
@@ -175,23 +176,34 @@ class PixivResult:
         return len(self.artworks)
 
 # raise LoginError if failed to login
+@util.read_only_attrs('id', 'account', 'name', 'follows', 'background_url', 'title', 'description', 'pixiv_url', 'has_bookmarks', 'has_illusts', 'has_mangas')
 class User:
     """This class represent a user and contains actions which needs login in pixiv.net
 
+    **Description**
+    Session will be generate if username and password or a requests.Session object
+    is provided. User can be created with user id only but this will cause incomplete
+    data to be received and will also receive a warning:
+    "User initialized without username and password or session will results in incomplete data"
+
     **Instance Variables**
+
+    - self.illusts # PixivResult
+    - self.mangas # PixivResult
+    - self.session # requests.Session
+
+    ### Below are read only
     - self.id # str
     - self.account # string
     - self.name # string
-    - self.create_time # string
     - self.follows # int
     - self.background_url # string
     - self.title # string
     - self.description # string
     - self.pixiv_url # string
-
-    - self.illusts # PixivResult
-    - self.mangas # PixivResult
-
+    - self.has_mangas # boolean
+    - self.has_bookmarks # boolean
+    - self.has_illusts # boolean
 
     **Functions**
     :func illusts: returns illustrations uploaded by this user
@@ -212,6 +224,65 @@ class User:
     _content_url = 'https://www.pixiv.net/touch/ajax/user/illusts?'
     _bookmarks_url = 'https://www.pixiv.net/touch/ajax/user/bookmarks?'
     _illusts_url = 'https://www.pixiv.net/touch/ajax/illust/user_illusts?user_id={user_id}'
+
+
+    def __init__(self, username=None, password=None, user_id=None, session=None):
+
+        # check input
+        if not ((username and password) or user_id):
+            raise UserError('Please supply username and password or user id (and session)')
+
+        if not (username and password and session) and user_id:
+            util.log('User initialized without username and password or session may results in incomplete data', warn=True, save=True)
+
+        # login session
+        self.session = session
+
+        # find pixiv id from username and password
+        if username and password:
+            try:
+                self.session = LoginPage().login(username=username, password=password)
+                status_data = util.req(session=self.session, url=self._self_details_url)
+                status_data_json = util.json_loads(status_data.text)
+                user_id = status_data_json['body']['user_status']['user_id']
+            except ReqException as e:
+                util.log(str(e), error=True, save=True)
+                raise UserError('Failed to load user id')
+
+        # get information from user id
+        if user_id:
+            self.data = dict()
+            try:
+                params = dict({'id': user_id})
+                data = util.req(session=self.session, url=self._user_details_url, params=params)
+                data_json = util.json_loads(data.text)
+
+            except (ReqException, json.JSONDecodeError) as e:
+                util.log(str(e), error=True, save=True)
+                raise UserError('Failed to load user information')
+        else:
+            raise UserError('Failed to get user id')
+
+        # save user information
+        data_json = data_json['user_details']
+        self.id = data_json['user_id']
+        self.account = data_json['user_account']
+        self.name = data_json['user_name']
+        self.title = data_json['meta']['title']
+        self.description = data_json['meta']['description']
+        self.pixiv_url = data_json['meta']['canonical']
+        self.follows = data_json['follows']
+        self.background_url = data_json['bg_url']
+
+        # init user's contents
+        self.illust_artworks = []
+        self.manga_artworks = []
+        self.bookmark_artworks = []
+        self.has_illusts = data_json['has_illusts'] or False
+        self.has_mangas = data_json['has_mangas'] or False
+        # self.has_novels = data_json['has_novels']
+        self.has_bookmarks = data_json['has_bookmarks'] or False
+
 
     def _get_bookmark_artworks(self, limit=None):
         params = dict()
@@ -237,7 +308,6 @@ class User:
 
         bookmarks = util.generate_artworks_from_ids(bookmark_ids)
         return bookmarks
-
 
     # for manga only, illust found better ajax url
     def _get_content_artworks(self, type, limit=None):
@@ -267,64 +337,6 @@ class User:
 
         artworks = util.generate_artworks_from_ids(items_ids)
         return artworks
-
-
-
-    def __init__(self, username=None, password=None, user_id=None, session=None):
-
-        # check input
-        if not (username and password or user_id and session):
-            raise UserError('Please supply username and password or pixiv id and session')
-
-        # login session
-        self.session = session
-
-        # find pixiv id from username and password
-        if username and password:
-            try:
-                self.session = LoginPage().login(username=username, password=password)
-                status_data = util.req(session=self.session, url=self._self_details_url)
-                status_data_json = util.json_loads(status_data.text)
-                user_id = status_data_json['body']['user_status']['user_id']
-            except ReqException as e:
-                util.log(str(e), error=True, save=True)
-                raise UserError('Failed to load user id')
-
-        # get information from pixiv id
-        if user_id:
-            self.data = dict()
-            try:
-                params = dict({'id': user_id})
-                data = util.req(session=self.session, url=self._user_details_url, params=params)
-                data_json = util.json_loads(data.text)
-
-            except (ReqException, json.JSONDecodeError) as e:
-                util.log(str(e), error=True, save=True)
-                raise UserError('Failed to load user information')
-        else:
-            raise UserError('Failed to get user id')
-
-        # save user information
-        data_json = data_json['user_details']
-        self.id = data_json['user_id']
-        self.account = data_json['user_account']
-        self.name = data_json['user_name']
-        self.create_time = data_json['user_create_time']
-        self.title = data_json['meta']['title']
-        self.description = data_json['meta']['description']
-        self.pixiv_url = data_json['meta']['canonical']
-        self.follows = data_json['follows']
-        self.background_url = data_json['bg_url']
-
-        # init user's contents
-        self.illust_artworks = []
-        self.manga_artworks = []
-        self.bookmark_artworks = []
-        self.has_illusts = data_json['has_illusts'] or False
-        self.has_mangas = data_json['has_mangas'] or False
-        # self.has_novels = data_json['has_novels']
-        self.has_bookmarks = data_json['has_bookmarks'] or False
-
 
     def _get_illust_artworks(self, limit=None):
         try:

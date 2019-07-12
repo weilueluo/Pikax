@@ -5,7 +5,7 @@
 :class: Pikax
 """
 
-import time, re, sys, os, json
+import time, re, sys, os, json, datetime
 from multiprocessing import Manager
 
 from . import util, settings
@@ -20,6 +20,10 @@ __all__ = ['Pikax']
 class Pikax:
     """Representing Pixiv.net
 
+    **Description**
+    If it is not log in,
+
+
     **Functions**
     :func search: returns a PixivResult Object
     :func rank: returns a PixivResult Object
@@ -27,12 +31,12 @@ class Pikax:
     :func login: returns a User Object given username and password
 
     """
-    def __init__(self):
-        self.search_page = SearchPage()
-        self.ranking_page = RankingPage()
-        self.user = None
+    def __init__(self, session=None):
+        self.search_page = SearchPage(session=session)
+        self.ranking_page = RankingPage(session=session)
+        self.session = session
 
-    def search(self, keyword, limit=None, type=None, dimension=None, mode=None, popularity=None):
+    def search(self, keyword, limit=None, type=None, dimension=None, mode=None, popularity=None, order=None):
         """Search Pixiv and returns PixivResult Object
 
         **Description**
@@ -43,8 +47,9 @@ class Pikax:
         :rtype: PixivResult Object
         """
         util.log('Searching:', keyword)
-
-        artworks = self.search_page.search(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, limit=limit)
+        if not self.session:
+            util.log('Pixiv search without login may results in incomplete data', warn=True, save=True)
+        artworks = self.search_page.search(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, limit=limit, order=order)
         folder = settings.SEARCH_RESULTS_FOLDER.format(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, limit=limit)
         results = PixivResult(artworks, folder)
 
@@ -61,7 +66,8 @@ class Pikax:
         :rtype: PixivResult Object
         """
         util.log('Ranking:', mode)
-
+        if not self.session:
+            util.log('Pixiv rank without login may results in incomplete data', warn=True, save=True)
         artworks = self.ranking_page.rank(mode=mode, limit=limit, date=date, content=content)
         folder = settings.RANK_RESULTS_FOLDER.format(mode=mode, limit=limit, date=date, content=content)
         results = PixivResult(artworks, folder)
@@ -116,6 +122,7 @@ class Pikax:
 
         **Description**
         returns the User Object build from given username and password
+        this will alert pixiv's search and rank to be log in as well
 
         **returns**
         :return: a logged User
@@ -123,11 +130,16 @@ class Pikax:
 
         """
         util.log('Login:', username)
-        return User(username=username, password=password)
+        user = User(username=username, password=password)
+        self.session = user.session
+        self.search_page = SearchPage(session=self.session)
+        self.ranking_page = RankingPage(session=self.session)
+        util.log('Pixiv is now logged in as [{username}]'.format(username=username), inform=True, save=True)
+        return user
 
-    # def access(self, pixiv_id):
-    #     util.log('access:', pixiv_id)
-    #     return User(pixiv_id=pixiv_id)
+    def access(self, user_id):
+        util.log('access:', user_id, 'with session:', self.session)
+        return User(user_id=user_id, session=self.session)
 
 
 

@@ -1,6 +1,8 @@
 
 from pikax.pikax import Pikax
 from pikax.exceptions import PikaxException
+from pikax import settings
+
 
 popularity_list = [100, 'popular', None]
 limit_list = [5, 1000, None]
@@ -37,6 +39,7 @@ def test_search_normal_inputs():
 import random
 def test_search_random(num_of_tests):
     pikax = Pikax()
+    pikax.login(settings.username, settings.password)
     for i in range(0, num_of_tests):
         keyword = random.choice(keyword_list)
         popularity = random.choice(popularity_list)
@@ -55,6 +58,7 @@ rank_dates = [datetime(year=2019,month=4,day=23), None]
 rank_contents = ['illust', None]
 def test_rank_random(num_of_tests):
     pikax = Pikax()
+    pikax.login(settings.username, settings.password)
     for i in range(0, num_of_tests):
         mode = random.choice(rank_modes)
         limit = random.choice(rank_limits)
@@ -67,7 +71,7 @@ def test_rank_random(num_of_tests):
             print(str(e))
 
 
-from pikax import settings
+
 def test_user():
     pikax = Pikax()
     user = pikax.login(settings.username, settings.password)
@@ -79,17 +83,27 @@ def test_user():
     other_user = user.visits(user_id=212801)
     his_favs = other_user.bookmarks(limit=25)
     pikax.download(his_favs)
-    his_illusts = other_user.illusts(limit=125)
+    his_illusts = other_user.illusts(limit=20)
     pikax.download(his_illusts)
     his_mangas = other_user.mangas()
     pikax.download(his_mangas)
 
+
+from pikax.pikax import Pikax, settings
+def test():
+    pass
+
+
+
+
+
+
+
 def main():
     # test_search_normal_inputs()
-    # test_search_random(10)
-    # test_rank_random(10)
+    test_search_random(3)
+    test_rank_random(3)
     # test_user()
-
 
 
 if __name__ == '__main__':

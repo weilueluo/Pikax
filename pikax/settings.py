@@ -28,7 +28,7 @@ LOG_TYPE
 
 'inform' will overwrite 'std'
 """
-LOG_TYPE = 'inform std'
+LOG_TYPE = 'inform std warn'
 
 
 """
@@ -46,7 +46,7 @@ USER_MANGAS_DOWNLOAD_FOLDER = '#{title}\'s  mangas'
 USER_ILLUSTS_DOWNLOAD_FOLDER = '#{title}\'s illusts'
 USER_BOOKMARKS_DOWNLOAD_FOLDER = '#{title}\'s bookmarks'
 SEARCH_RESULTS_FOLDER = '#PixivSearch_{keyword}_{type}_{dimension}_{mode}_{popularity}_{limit}'
-RANK_RESULTS_FOLDER = '#PixivRanking-{mode}-{limit}-{date}-{content}'
+RANK_RESULTS_FOLDER = '#PixivRanking-{mode}-{limit}-{content}-{date}'
 
 """
 String to clear previous stdout line
