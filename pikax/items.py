@@ -62,7 +62,7 @@ class Artwork():
             self.page_count = image_data['pageCount']
             self.original_url = re.sub(r'(?<=_p)\d', '{page_num}' ,self.original_url)
         except ReqException as e:
-            util.log(str(e), type='error save')
+            util.log(str(e), error=True, save=True)
             raise ArtworkError('Failed to init artwork from id: ' + str(self.id))
 
     # for multiprocessing, return None if failed to init artwork
@@ -76,7 +76,7 @@ class Artwork():
         try:
             return Artwork(id)
         except ArtworkError as e:
-            util.log(str(e), type='error save')
+            util.log(str(e), error=True, save=True)
             return None
 
     def download(self, folder="", results_dict=None):
@@ -128,10 +128,10 @@ class Artwork():
                 original_pic_respond = util.req(type='get', url=url, headers=self._headers, err_msg=err_msg, log_req=False)
                 with open(file_name, 'wb') as file:
                     file.write(original_pic_respond.content)
-                    util.log(pic_detail + ' OK', type='inform', start=settings.CLEAR_LINE, end='\r')
+                    util.log(pic_detail + ' OK', inform=True, start=settings.CLEAR_LINE, end='\r')
             except ReqException as e:
-                util.log(str(e), type='error save')
-                util.log(pic_detail + ' FAILED', type='inform save', start=settings.CLEAR_LINE)
+                util.log(str(e), error=True, save=True)
+                util.log(pic_detail + ' FAILED', inform=True, save=True, start=settings.CLEAR_LINE)
                 success = False
 
             curr_page += 1
@@ -232,7 +232,7 @@ class User:
                         break
                 last_page = res_json['lastPage']
         except (ReqException, json.JSONDecodeError, KeyError) as e:
-            util.log(str(e), type='error')
+            util.log(str(e), error=True)
             util.log('Failed to get bookmarks from id:', self.id)
 
         bookmarks = util.generate_artworks_from_ids(bookmark_ids)
@@ -262,7 +262,7 @@ class User:
                         break
                 last_page = res_json['lastPage']
         except (ReqException, json.JSONDecodeError, KeyError) as e:
-            util.log(str(e), type='error')
+            util.log(str(e), error=True)
             util.log('Failed to get ' + type + ' from id:', self.id)
 
         artworks = util.generate_artworks_from_ids(items_ids)
@@ -287,7 +287,7 @@ class User:
                 status_data_json = util.json_loads(status_data.text)
                 user_id = status_data_json['body']['user_status']['user_id']
             except ReqException as e:
-                util.log(str(e), type='error save')
+                util.log(str(e), error=True, save=True)
                 raise UserError('Failed to load user id')
 
         # get information from pixiv id
@@ -299,7 +299,7 @@ class User:
                 data_json = util.json_loads(data.text)
 
             except (ReqException, json.JSONDecodeError) as e:
-                util.log(str(e), type='error')
+                util.log(str(e), error=True, save=True)
                 raise UserError('Failed to load user information')
         else:
             raise UserError('Failed to get user id')
@@ -333,7 +333,7 @@ class User:
             artworks = util.generate_artworks_from_ids(illust_ids, limit=limit)
             return artworks
         except ReqException as e:
-            util.log(str(e), type='error')
+            util.log(str(e), error=True, save=True)
             util.log('Failed to get illustrations from user id:', self.id)
             return []
 
@@ -416,6 +416,6 @@ class User:
         **Parameters**
         :param user_id: the user id of the user to visit
         :type user_id: int
-        
+
         """
         return User(user_id=user_id, session=self.session)

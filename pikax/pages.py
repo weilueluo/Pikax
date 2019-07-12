@@ -39,7 +39,7 @@ class LoginPage:
             util.log('Post key successfully retrieved: {post_key}'.format(post_key=post_key))
             return post_key
         except (ReqException, AttributeError) as e:
-            util.log(str(e), type='error save')
+            util.log(str(e), error=True, save=True)
             raise PostKeyError('Failed to find post key')
 
     def login(self, username, password):
@@ -67,10 +67,10 @@ class LoginPage:
             }
             util.log('Sending request to attempt login ...')
             respond = util.req(type='post', session=self._session, url=self._login_url, data=data)
-            util.log('Login successfully into Pixiv as [{username}]'.format(username=username), type='inform')
+            util.log('Login successfully into Pixiv as [{username}]'.format(username=username), inform=True)
             return self._session
         except ReqException as e:
-            util.log(str(e), type='error save')
+            util.log(str(e), error=True, save=True)
             raise LoginError('Login failed. Please check your internet or username and password in settings.py', type='inform save')
 
 
@@ -212,11 +212,11 @@ class SearchPage:
                 err_msg = 'Failed getting ids from params ' + str(params) + ' page: ' + str(curr_page)
                 results = util.req(type='get', url=self.search_url, params=params, err_msg=err_msg)
             except ReqException as e:
-                util.log(str(e), type='error save')
+                util.log(str(e), error=True, save=True)
                 if curr_page == 1:
-                    util.log('Theres no result found for input', type='inform')
+                    util.log('Theres no result found for input', inform=True, save=True)
                 else:
-                    util.log('End of search at page: ' + str(curr_page) + ', terminated', type='inform save')
+                    util.log('End of search at page: ' + str(curr_page) + ', terminated', inform=True, save=True)
                 return ids_sofar
 
             ids = re.findall(self.search_regex, results.text)
@@ -239,7 +239,7 @@ class SearchPage:
             # now check if any new items is added
             if old_len == new_len: # if no new item added, end of search pages
                 if limit != None: # if limit is specified, it means search ended without meeting user's limit
-                    util.log('Search did not return enough items for limit:', new_len, '<', limit, type='inform save')
+                    util.log('Search did not return enough items for limit:', new_len, '<', limit, inform=True, save=True)
                 return ids_sofar
 
             # search next page
@@ -326,14 +326,9 @@ class RankingPage:
                 res = util.req(type='get', url=self.url, params=params)
                 res = util.json_loads(res.content)
             except (ReqException, json.JSONDecodeError) as e:
-                util.log(str(e), type='error save')
-                util.log('End of rank at page:', page_num , type='inform save')
-                # exception_count += 1
-                # if exception_count > settings.MAX_WHILE_TRUE_LOOP_EXCEPTIONS:
-                #     util.log('Too many exceptions encountered:', exception_count, 'terminating ...', type='inform save')
+                util.log(str(e), error=True, save=True)
+                util.log('End of rank at page:', page_num , inform=True, save=True)
                 break
-                # else:
-                #     continue
             if 'error' in res:
                 util.log('End of page while searching', str(params) + '. Finished')
                 break
@@ -353,9 +348,9 @@ class RankingPage:
         if limit:
             num_of_ids = len(ids)
             if limit > num_of_ids:
-                util.log('Items found in ranking is less than requirement:', num_of_ids, '<', limit, type='inform')
+                util.log('Items found in ranking is less than requirement:', num_of_ids, '<', limit, inform=True)
 
-        util.log('Done. Total ids found:', len(ids), type='inform')
+        util.log('Done. Total ids found:', len(ids), inform=True)
 
         artworks = util.generate_artworks_from_ids(ids)
 

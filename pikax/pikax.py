@@ -98,7 +98,7 @@ class Pikax:
 
         """
 
-        util.log('Downloading ... ', start='\r\n', type='inform')
+        util.log('Downloading ... ', start='\r\n', inform=True)
 
         if pixiv_result:
             download(pixiv_result, folder)
@@ -107,9 +107,9 @@ class Pikax:
         elif artwork_id:
             try:
                 Artwork(artwork_id).download(folder=folder)
-                util.log('', type='inform') # move to next line
+                util.log('', inform=True) # move to next line
             except ArtworkError as e:
-                util.log(str(e), type='error')
+                util.log(str(e), error=True, save=True)
 
     def login(self, username, password):
         """Return the logined User Object
@@ -129,65 +129,6 @@ class Pikax:
     #     util.log('access:', pixiv_id)
     #     return User(pixiv_id=pixiv_id)
 
-
-# def _get_my_favorites_ids(self, params):
-#     ids = []
-#     curr_page = 0
-#     exception_count = 0
-#     while True:
-#         curr_page += 1
-#         if curr_page != 1:
-#             params['p'] = curr_page
-#
-#         try:
-#             res = util.req(type='get', session=self.session, url=self.url, params=params)
-#         except ReqException as e:
-#             util.log(str(e), type='error save')
-#             exception_count += 1
-#             if exception_count > settings.MAX_WHILE_TRUE_LOOP_EXCEPTIONS:
-#                 util.log('Too many exceptions encountered:', exception_count, 'terminating ... ', type='inform save')
-#                 break
-#             else:
-#                 continue
-#
-#         ids_found = re.findall('(\d{8})_p\d', res.text)
-#         if len(ids_found) == 0:
-#             util.log('0 id found in this page, reached end')
-#             break
-#         else:
-#             ids += ids_found
-#             if len(ids) != len(set(ids)):
-#                 util.log('We found duplicates in the favs, which likely to indicate failure while retrieve correct items...', type='inform save')
-#                 util.log('url:', self.url, 'params:', params, type='inform save')
-#         time.sleep(1) # dont req too fasts
-#     return ids
-#
-# # raise ValueError if type is invalid
-# def favs(self, type=None, limit=None):
-#     """
-#     type: public | private | default both
-#     """
-#     params = dict()
-#     if type:
-#         if type == 'public':
-#             params['rest'] = 'show'
-#         elif type == 'private':
-#             params['rest'] = 'hide'
-#         else:
-#             raise ValueError('Invalid type:', str(type))
-#         ids = self._get_my_favorites_ids(params=params)
-#     else:
-#         params['rest'] = 'show'
-#         public_ids = self._get_my_favorites_ids(params=params)
-#         params['rest'] = 'hide'
-#         private_ids = self._get_my_favorites_ids(params=params)
-#         ids = public_ids + private_ids
-#     results = PixivResult(util.generate_artworks_from_ids(ids, limit=limit))
-#     results.folder = settings.FAV_DOWNLOAD_FOLDER.format(username=self.username)
-#     return results
-#
-# def access(self, pixiv_id, type=None):
-#     return OtherUser(pixiv_id=pixiv_id, session=self.session)
 
 
 class download:
@@ -223,9 +164,9 @@ class download:
         folder = util.clean_filename(folder)
         if not os.path.exists(folder):
             os.mkdir(folder)
-        util.log('', end=settings.CLEAR_LINE, type='inform') # remove last printed saved ok line
-        util.log('', type='inform') # move to next line
+        util.log('', end=settings.CLEAR_LINE, inform=True) # remove last printed saved ok line
+        util.log('', inform=True) # move to next line
         for key, value in results_dict.items():
-            util.log(key.title(), ':', value, type='inform save')
-        util.log('Time Taken:', str(end_time - start_time) + 's', type='inform save')
-        util.log('Done', str(results_dict['success'] + results_dict['skipped'])  + '/' + str(results_dict['total_expected']) ,'=>', folder, type='inform save')
+            util.log(key.title(), ':', value, inform=True, save=True)
+        util.log('Time Taken:', str(end_time - start_time) + 's', inform=True, save=True)
+        util.log('Done', str(results_dict['success'] + results_dict['skipped'])  + '/' + str(results_dict['total_expected']) ,'=>', folder, inform=True, save=True)

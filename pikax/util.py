@@ -1,5 +1,16 @@
 
+"""
+This module contains utilities/tools for pikax
 
+:func log: print according to parameters and settings
+:func req: attempt to send network requests using requests lib and returns the result
+:func json_loads: given string or bytes, loads and return its json using standard lib
+:func generate_artworks_from_ids: returns lists of artworks given list of ids using multiprocessing/multithreading
+:func trim_to_limit: returns a trimmed list if items if length exceeded limit given
+:func clean_filename: returns the given string after removing no allowed characters
+:func print_json: print json in formatted way, used for debug
+
+"""
 import sys, json, requests, os, time, math, re
 import multiprocessing
 from multiprocessing import Process, current_process, Manager
@@ -16,40 +27,130 @@ _std_enabled = _log_type.find('std') != -1
 _inform_enabled = _log_type.find('inform') != -1
 _save_enabled = _log_type.find('save') != -1
 
-_pixiv_host = 'https://www.pixiv.net'
 
-# login url:
-
-# search for ids with parameters
-_ranking_url = '{host}/ranking.php?'
-_ranking_log_url = '{host}/ranking_log.php?'
-_search_url = '{host}/search.php?'
-
-# with user id:
-_artworks_url = '{host}/touch/ajax/user/illusts?'
-
-# with login:
-_self_status_url = '{host}/touch/ajax/user/self/status'
+__all__ = ['log', 'req', 'json_loads', 'generate_artworks_from_ids', 'trim_to_limit', 'multiprocessing_', 'clean_filename', 'print_json']
 
 
-__all__ = ['log', 'req', 'json_loads', 'generate_artworks_from_ids', 'trim_to_limit', 'multiprocessing_', 'clean_filename']
+def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', type='', inform=False, save=False, error=False):
+    """Print according to params and settings.py
+
+    **Description**
+    settings.py's LOG_TYPE controls the overall behaviour of this function
+    eg. whether each type of log should be available
+    caller code controls the type of log
+    eg. whether the strings send to log should be type of inform
+    This function copied all params of python's print function, except flush is set to True,
+    and some custom parameters as shown below
+
+    **Parameters**
+    :param start:
+        the string to print at the start, preceeding all other string, including inform & save 's prefix
+    :type start:
+        string
+
+    :param inform:
+        if this is True, a prefix ' >>>' is added at the front of the strings given, default False
+    :type inform:
+        boolean
+
+    :param error:
+        if this is True, a prefix ' !!!' is added at the front of the strings given, default False
+    :type error:
+        boolean
+
+    :param save:
+        if this is True, the strings given is also saved to LOG_FILE as specified in settings.py, default False
+    :type save:
+        boolean
 
 
-def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', type=''):
+    """
     global _std_enabled, _inform_enabled, _save_enabled
-    if type:
-        if _inform_enabled and type.find('inform') != -1:
-            print(start, '>>>', *objects, sep=sep, end=end, file=file, flush=flush)
-        if _save_enabled and type.find('save') != -1:
-            print(start, *objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a'), flush=False)
-        if _inform_enabled and type.find('error') != -1:
-            print(start, '!!!!!', *objects, sep=sep, end=end, file=file, flush=flush)
-    elif _std_enabled:
+    if _inform_enabled and inform:
+        print(start, '>>>', *objects, sep=sep, end=end, file=file, flush=flush)
+    if _save_enabled and save:
+        print(start, *objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a'), flush=False)
+    if _inform_enabled and error:
+        print(start, '!!!', *objects, sep=sep, end=end, file=file, flush=flush)
+    if _std_enabled and not (inform or save or error):
         print(start, *objects, sep=sep, end=end, file=file, flush=flush)
 
 # send request using requests, raise ReqException if fails all retries
 def req(url, type='get', session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS, timeout=settings.TIMEOUT, err_msg=None, log_req=True, verify=True, retries=settings.MAX_RETRIES_FOR_REQUEST):
+    """Send requests according to given paramters using requests library
 
+    **Description**
+    This function send request using requests library,
+    however its parameters does not accepts all paramters as in requests.get/post
+    and some custom paramters is added as shown below
+
+    **Parameters**
+    :param url:
+        the url used for requesting
+    :type url:
+        string
+
+    :param type:
+        the type of requests to send, given string is converted to uppercase before checking, default get
+    :type type:
+        string
+
+    :param session:
+        if this is given, session.get/post is used instead of requests.get/post, default None
+    :type session:
+        requests.Session
+
+    :param params:
+        the paramters send along request, default None
+    :type params:
+        same as params in requests library
+
+    :param data:
+        the data send along when post method is used, default None
+    :type data:
+        same as data in requests library
+
+    :param headers:
+        the headers send along when requesting, default None
+    :type headers:
+        same as headers in requests library
+
+    :param timeout:
+        time out used when send requests, in seconds, default use settings.TIMEOUT
+    :type timeout:
+        int
+
+    :param err_msg:
+        the error message used when requests.exceptions.RequestException is raised during requesting
+    :type err_msg:
+        string
+
+    :param log_req:
+        specify whether to log the details of this request, default True
+    :type log_req:
+        boolean
+
+    :param verify:
+        specify whether to verify the server when sending requests, useful for accessing server blocked
+        due to vulerability issue
+    :type verify:
+        boolean
+
+    :param retries:
+        number of retries if request fails, if not given, settings.MAX_RETRIES_FOR_REQUEST is used
+    :type retries:
+        int
+
+
+    **Returns**
+    :return: respond of the request
+    :rtype: requests.Response Object
+
+
+    **Raises**
+    :raises ReqException: if all retries fails or invalid type is given
+
+    """
     type = type.upper()
     curr_retries = 0
     while curr_retries < retries:
@@ -64,14 +165,14 @@ def req(url, type='get', session=None, params=None, data=None, headers=settings.
                 elif type == 'POST':
                     res = session.post(url=url, headers=headers, params=params, timeout=timeout, verify=verify, data=data)
                 else:
-                    raise ReqException('Request type error:', type, type='inform save')
+                    raise ReqException('Request type error:', type)
             else:
                 if type == 'GET':
                     res = requests.get(url=url, headers=headers, params=params, timeout=timeout, verify=verify)
                 elif type == 'POST':
                     res = requests.post(url=url, headers=headers, params=params, timeout=timeout, verify=verify, data=data)
                 else:
-                    raise ReqException('Request type error:', type, type='inform save')
+                    raise ReqException('Request type error:', type)
 
             if log_req:
                 log(res.status_code)
@@ -81,18 +182,18 @@ def req(url, type='get', session=None, params=None, data=None, headers=settings.
                 if res.status_code < 400:
                     return res
                 else:
-                    log('Status code error:', res.status_code, 'retries:', curr_retries, type='save')
+                    log('Status code error:', res.status_code, 'retries:', curr_retries, save=True)
             else:
-                log('Requests returned Falsey, retries:', curr_retries, type='save')
+                log('Requests returned Falsey, retries:', curr_retries, save=True)
         except requests.exceptions.Timeout as e:
-            log(type, url, params, 'Time Out:', curr_retries, type='save')
-            log('Reason:', str(e), type='inform save')
+            log(type, url, params, 'Time Out:', curr_retries, save=True)
+            log('Reason:', str(e), save=True, inform=True)
         except requests.exceptions.RequestException as e:
             if err_msg:
-                log('RequestException:', err_msg, type='save')
+                log('RequestException:', err_msg, save=True)
             else:
-                log('Exception while', type, type='save')
-            log('Reason:', str(e), 'Retries:', curr_retries, type='save')
+                log(settings.DEFAULT_REQUEST_ERROR_MSG.format(type=type), save=True)
+            log('Reason:', str(e), 'Retries:', curr_retries, save=True)
 
         curr_retries += 1
         time.sleep(0.5) # dont request again too fast
@@ -113,14 +214,13 @@ def _generate_small_list_of_artworks(ids, artworks):
 # return a list of artworks given a list of ids, using pool
 def generate_artworks_from_ids(ids, limit=None):
     start = time.time()
-    log('Generating Artwork objects ... ', start='\r\n', type='inform')
+    log('Generating Artwork objects ... ', start='\r\n', inform=True)
     if limit:
         ids = trim_to_limit(ids, limit=limit)
 
     artworks = Manager().list()
     multiprocessing_(items=ids, small_list_executor=_generate_small_list_of_artworks, results_saver=artworks)
-    # log('Done. Tried creating', len(ids), 'artworks objects in' ,str(time.time() - start) + 's', type='inform')
-    log('Done. Time Taken: ' + str(time.time() - start) + 's', type='inform')
+    log('Done. Time Taken: ' + str(time.time() - start) + 's', inform=True)
     total = len(artworks)
     log('Total Expected:', total)
     artworks = [artwork for artwork in artworks if artwork is not None]
@@ -136,11 +236,11 @@ def trim_to_limit(items, limit):
             num_of_items = len(items)
             if limit < num_of_items:
                 items = items[:limit]
-                log('Trimmed', num_of_items, 'items =>', limit, 'items', type='inform')
+                log('Trimmed', num_of_items, 'items =>', limit, 'items', inform=True)
             else:
-                log('Number of items are less than limit:', num_of_items, '<', limit, type='inform save')
+                log('Number of items are less than limit:', num_of_items, '<', limit, inform=True, save=True)
     else:
-        log('Error, items is false', type='error save')
+        log('Error, items is false', error=True, save=True)
     return items
 
 # remove invalid file name characters for windows
@@ -176,7 +276,7 @@ def _multithreading_(items, small_list_executor, results_saver=None):
         end = (thread_count + 1) * num_of_items_per_thread
         items_for_this_thread = items[start:end]
         threads.append(Thread(target=small_list_executor, args=(items_for_this_thread, results_saver), daemon=True))
-    log('  |->',current_process().name, '=>', len(threads), 'threads =>', num_of_items, 'items', type='inform')
+    log('  |->',current_process().name, '=>', len(threads), 'threads =>', num_of_items, 'items', inform=True)
     for thread in threads:
         thread.start()
     for thread in threads:
@@ -187,7 +287,7 @@ def _multithreading_(items, small_list_executor, results_saver=None):
 # results_saver is used to save results if any
 # raise ValueError if num of max threads specified in settings is < 1
 def multiprocessing_(items, small_list_executor, results_saver=None):
-    log('Starting multiprocessing...', start='\r\n', type='inform')
+    log('Starting multiprocessing...', start='\r\n', inform=True)
     start_time = time.time()
     processes = []
     num_of_items = len(items)
@@ -208,7 +308,7 @@ def multiprocessing_(items, small_list_executor, results_saver=None):
         end = (process_count + 1) * num_of_items_per_process
         items_for_this_process = items[start:end]
         processes.append(Process(target=_multithreading_, args=(items_for_this_process, small_list_executor, results_saver), daemon=True))
-    log('|--', current_process().name, '=>', len(processes), 'processes =>', num_of_items, 'items', type='inform')
+    log('|--', current_process().name, '=>', len(processes), 'processes =>', num_of_items, 'items', inform=True)
     for process in processes:
         process.start()
     for process in processes:
