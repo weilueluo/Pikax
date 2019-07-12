@@ -5,6 +5,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 ### 需要
 - [Python3](https://www.python.org/downloads/)
 - [Requests](https://2.python-requests.org/en/master/)
+- 可以访问[Pixiv](https://www.pixiv.net/)的网络
 ```
   pip install requests
 ```
