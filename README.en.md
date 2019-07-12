@@ -5,7 +5,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ### Requirements
 - [Python3](https://www.python.org/downloads/)
 - [Requests](https://2.python-requests.org/en/master/)
-- A network that can reach Pixiv.net
+- A network that can reach [Pixiv](https://www.pixiv.net/)
 ```
   pip install requests
 ```
