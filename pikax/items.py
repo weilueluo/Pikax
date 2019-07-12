@@ -176,24 +176,31 @@ class PixivResult:
 
 # raise LoginError if failed to login
 class User:
+    """This class represent a user and contains actions which needs login in pixiv.net
 
-    """
-    self.id
-    self.account
-    self.name
-    self.create_time
-    self.location
-    self.country
-    self.birth
-    self.age
-    self.follows
-    self.background_url
-    self.title
-    self.description
-    self.pixiv_url
+    **Instance Variables**
+    - self.id # str
+    - self.account # string
+    - self.name # string
+    - self.create_time # string
+    - self.follows # int
+    - self.background_url # string
+    - self.title # string
+    - self.description # string
+    - self.pixiv_url # string
 
-    self.illusts
-    self.mangas
+    - self.illusts # PixivResult
+    - self.mangas # PixivResult
+
+
+    **Functions**
+    :func illusts: returns illustrations uploaded by this user
+    :func mangas: returns mangas uploaded by this user
+    :func bookmarks: returns bookmarks of this user
+    :func visits: returns a user which has the same session of this user
+
+    **Raises**
+    :raises UserError: if failed to init
 
     """
 
@@ -309,14 +316,6 @@ class User:
         self.follows = data_json['follows']
         self.background_url = data_json['bg_url']
 
-        # not all user has those
-        try:
-            self.location = data_json['location']
-            self.country = data_json['user_country']
-            self.birth = data_json['user_birth']
-            self.age = data_json['user_age']
-        except KeyError as e:
-            pass
         # init user's contents
         self.illust_artworks = []
         self.manga_artworks = []
@@ -339,6 +338,18 @@ class User:
             return []
 
     def illusts(self, limit=None):
+        """Returns illustrations uploaded by this user
+
+        **Parameters**
+        :param limit:
+            limit the amount of illustrations found, if exceed
+        :type limit:
+            int or None
+
+        :return: the results of attempting to retrieve this user's uploaded illustrations
+        :rtype: PixivResult Object
+
+        """
         util.log('Getting illustrations from id:', self.id)
         if self.has_illusts:
             self.illust_artworks = self._get_illust_artworks(limit=limit)
@@ -351,6 +362,18 @@ class User:
             return None
 
     def mangas(self, limit=None):
+        """Returns mangas uploaded by this user
+
+        **Parameters**
+        :param limit:
+            limit the amount of mangas found, if exceed
+        :type limit:
+            int or None
+
+        :return: the results of attempting to retrieve this user's uploaded mangas
+        :rtype: PixivResult Object
+
+        """
         util.log('Getting mangas from id:', self.id)
         if self.has_mangas:
             self.manga_artworks = self._get_content_artworks(type='manga', limit=limit)
@@ -363,6 +386,18 @@ class User:
             return None
 
     def bookmarks(self, limit=None):
+        """Returns bookmarks saved by this user
+
+        **Parameters**
+        :param limit:
+            limit the amount of bookmarks found, if exceed
+        :type limit:
+            int or None
+
+        :return: the results of attempting to retrieve this user's bookmarks
+        :rtype: PixivResult Object
+
+        """
         util.log('Getting bookmarks from id:', self.id)
         if self.has_bookmarks :
             self.bookmark_artworks = self._get_bookmark_artworks(limit=limit)
@@ -376,4 +411,11 @@ class User:
         return result
 
     def visits(self, user_id):
+        """Returns a user build from given user id and this user's session
+
+        **Parameters**
+        :param user_id: the user id of the user to visit
+        :type user_id: int
+        
+        """
         return User(user_id=user_id, session=self.session)
