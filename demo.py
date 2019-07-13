@@ -36,7 +36,10 @@ def download_search_example():
 
 def download_other_user_items_example():
     pixiv = Pikax()
-    other_user = pixiv.access(user_id=201323) # not suggested, but allowed
+
+    # not suggested
+    other_user = pixiv.access(user_id=201323)
+    # suggested
     user = pixiv.login(settings.username, settings.password) # login
     other_user = user.visits(user_id=201323) # visit other user by id
 

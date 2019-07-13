@@ -41,7 +41,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   from pikax.pikax import Pikax
 
   pixiv = Pikax()
-  pixiv.login(settings.username, settings.password) # not necessary but strongly suggested
+  pixiv.login(settings.username, settings.password) # login
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, limit=10)
   pixiv.download(results)
 ```
@@ -58,9 +58,6 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   # any user
   pixiv = Pikax()
 
-  # not suggested, but allowed
-  other_user = pixiv.access(user_id=3872398)
-  # suggested
   user = pixiv.login(settings.username, settings.password) # login
   other_user = user.visits(user_id=3872398) # visit other user by id
 

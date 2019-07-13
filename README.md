@@ -40,7 +40,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   from pikax.pikax import Pikax
 
   pixiv = Pikax()
-  pixiv.login(settings.username, settings.password) # 不必要但强烈推荐
+  pixiv.login(settings.username, settings.password)
   results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, limit=10)
   pixiv.download(results)
 ````
@@ -57,9 +57,6 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   # 任何用户
   pixiv = Pikax()
 
-  # 不推荐，但允许
-  other_user = pixiv.access(user_id=3872398)
-  # 推荐
   user = pixiv.login(settings.username, settings.password) # 登录
   other_user = user.visits(user_id=3872398) # 以此访问其他用户
 
