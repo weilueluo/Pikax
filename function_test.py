@@ -3,6 +3,10 @@ from pikax.pikax import Pikax
 from pikax.exceptions import PikaxException
 from pikax import settings
 
+import sys
+
+sys.stdout.reconfigure(encoding='utf-8')
+
 
 popularity_list = [100, 'popular', None]
 limit_list = [5, 1000, None]
@@ -76,34 +80,67 @@ def test_user():
     pikax = Pikax()
     user = pikax.login(settings.username, settings.password)
     favs = user.bookmarks()
-    pikax.download(favs)
     illusts = user.illusts() # should be 0
-    pikax.download(illusts)
 
     other_user = user.visits(user_id=212801)
     his_favs = other_user.bookmarks(limit=25)
-    pikax.download(his_favs)
     his_illusts = other_user.illusts(limit=20)
-    pikax.download(his_illusts)
     his_mangas = other_user.mangas()
-    pikax.download(his_mangas)
 
 
 from pikax.pikax import Pikax, settings
+from pikax import util
+from bs4 import BeautifulSoup as bs
+import re
 def test():
-    pass
+    pixiv = Pikax()
+    user = pixiv.login(settings.username, settings.password)
+    session = user.session
+
+    headers = {
+        'referer': 'https://www.pixiv.net/setting_user.php',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
+    }
+    url  = 'https://www.pixiv.net/setting_user.php'
+    # res = session.post(url, headers=headers, data=form)
+    res = session.get(url, headers=headers)
+    print(res.status_code)
+    print(res.text)
+    # tt = re.search(r'name="tt" value="(.*?)"', res.text).group(1)
+    # print(tt)
+    # form = {
+    #     'mode': 'mod',
+    #     'tt': tt,
+    #     'user_language': 'en',
+    #     'r18': 'show',
+    #     'r18g': '1',
+    #     'submit': 'save'
+    # }
+    # res = session.post(url, headers=headers, data=form)
+    # print(res.status_code)
+    # print(res.text)
+    # html = bs(res.text, 'html.parser')
+    # print(html.prettify())
 
 
 
-
-
-
+def  test2():
+    pixiv = Pikax()
+    user = pixiv.login(settings.username, settings.password)
+    print('r18:', user.r18)
+    print('r18g:', user.r18g)
+    print('changing...')
+    user.r18 = True
+    user.r18g = True
+    print('r18:', user.r18)
+    print('r18g:', user.r18g)
 
 def main():
     # test_search_normal_inputs()
-    test_search_random(3)
-    test_rank_random(3)
+    # test_search_random(3)
+    # test_rank_random(3)
     # test_user()
+    test2()
 
 
 if __name__ == '__main__':

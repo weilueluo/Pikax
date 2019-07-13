@@ -175,8 +175,26 @@ class PixivResult:
     def __len__(self):
         return len(self.artworks)
 
+
+# https://github.com/oz123/oz123.github.com/blob/master/media/uploads/readonly_properties.py
+def read_only_attrs(*attrs):
+    def class_changer(cls):
+        class User(cls):
+            def __setattr__(self, name, new_value):
+                if name not in attrs:
+                    pass
+                elif name not in self.__dict__:
+                    pass
+                else:
+                    raise AttributeError('This attribute is read only:', name)
+
+                return super().__setattr__(name, new_value)
+        return User
+    return class_changer
+
+
 # raise LoginError if failed to login
-@util.read_only_attrs('id', 'account', 'name', 'follows', 'background_url', 'title', 'description', 'pixiv_url', 'has_bookmarks', 'has_illusts', 'has_mangas')
+@read_only_attrs('id', 'account', 'name', 'follows', 'background_url', 'title', 'description', 'pixiv_url', 'has_bookmarks', 'has_illusts', 'has_mangas')
 class User:
     """This class represent a user and contains actions which needs login in pixiv.net
 
@@ -225,21 +243,26 @@ class User:
     _bookmarks_url = 'https://www.pixiv.net/touch/ajax/user/bookmarks?'
     _illusts_url = 'https://www.pixiv.net/touch/ajax/illust/user_illusts?user_id={user_id}'
 
+    # for settings
+    _settings_url = 'https://www.pixiv.net/setting_user.php'
+
 
     def __init__(self, username=None, password=None, user_id=None, session=None):
 
         # check input
+        # must provide either username and password or atleast user_id
         if not ((username and password) or user_id):
             raise UserError('Please supply username and password or user id (and session)')
 
-        if not (username and password and session) and user_id:
+        # if only user id is provided, give incomplete data warning
+        if not (username and password or session) and user_id:
             util.log('User initialized without username and password or session may results in incomplete data', warn=True, save=True)
 
         # login session
         self.session = session
 
         # find pixiv id from username and password
-        if username and password:
+        if username and password and not user_id:
             try:
                 self.session = LoginPage().login(username=username, password=password)
                 status_data = util.req(session=self.session, url=self._self_details_url)
@@ -249,19 +272,20 @@ class User:
                 util.log(str(e), error=True, save=True)
                 raise UserError('Failed to load user id')
 
-        # get information from user id
-        if user_id:
-            self.data = dict()
-            try:
-                params = dict({'id': user_id})
-                data = util.req(session=self.session, url=self._user_details_url, params=params)
-                data_json = util.json_loads(data.text)
-
-            except (ReqException, json.JSONDecodeError) as e:
-                util.log(str(e), error=True, save=True)
-                raise UserError('Failed to load user information')
-        else:
+        # if user id is not given and failed to retrieve user id
+        if not user_id:
             raise UserError('Failed to get user id')
+
+        # get information from user id
+        self.data = dict()
+        params = dict({'id': user_id})
+        try:
+            data = util.req(session=self.session, url=self._user_details_url, params=params)
+            data_json = util.json_loads(data.text)
+        except (ReqException, json.JSONDecodeError) as e:
+            util.log(str(e), error=True, save=True)
+            raise UserError('Failed to load user information')
+
 
         # save user information
         data_json = data_json['user_details']
@@ -283,6 +307,66 @@ class User:
         # self.has_novels = data_json['has_novels']
         self.has_bookmarks = data_json['has_bookmarks'] or False
 
+        # save user's settings for r18 and r18g
+        try:
+            res = util.req(url=self._settings_url, session=self.session)
+            self._r18 = re.search(r'name="r18" value="show" checked>', res.text) != None
+            self._r18g = re.search(r'name="r18g" value="2" checked>', res.text) != None
+        except ReqException as e:
+            raise UserError('Failed to retrieve r18/r18g settings')
+
+    def _get_token(self):
+        try:
+            res = util.req(url=self._settings_url, session=self.session)
+            tt_result = re.search(r'name="tt" value="(.*?)"', res.text)
+            if tt_result:
+                tt = tt_result.group(1)
+                util.log('successfully retrieved user token:', tt)
+                return tt
+            else:
+                raise UserError('Failed to find user token in respond')
+        except ReqException as e:
+            raise UserError('Failed to retrieve user token')
+
+    @property
+    def r18(self):
+        return self._r18
+
+    @r18.setter
+    def r18(self, new_r18):
+        form = dict()
+        form['mode'] = 'mod'
+        form['user_language'] = 'en'
+        form['submit'] = 'save'
+        form['r18g'] = '2' if self._r18g else '1'
+        form['r18'] = 'show' if new_r18 else 'hide'
+        form['tt'] = self._get_token()
+        try:
+            util.req(type='post', url=self._settings_url, session=self.session, data=form)
+            self._r18 = new_r18
+            util.log('r18 =>', self._r18)
+        except ReqException as e:
+            util.log('Failed to set r18 to', new_r18, 'remained as', self._r18, error=True)
+
+    @property
+    def r18g(self):
+        return self._r18g
+
+    @r18g.setter
+    def r18g(self, new_r18g):
+        form = dict()
+        form['mode'] = 'mod'
+        form['user_language'] = 'en'
+        form['submit'] = 'save'
+        form['r18g'] = '2' if new_r18g else '1'
+        form['r18'] = 'show' if self._r18 else 'hide'
+        form['tt'] = self._get_token()
+        try:
+            util.req(type='post', url=self._settings_url, session=self.session, data=form)
+            self._r18g = new_r18g
+            util.log('r18g =>', self._r18g)
+        except ReqException as e:
+            util.log('Failed to set r18g to', new_r18g, 'remained as', self._r18g, error=True)
 
     def _get_bookmark_artworks(self, limit=None):
         params = dict()

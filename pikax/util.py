@@ -17,8 +17,8 @@ from multiprocessing import Process, current_process, Manager
 from threading import Thread
 
 from . import settings
-
 from .exceptions import ReqException
+from .items import Artwork
 
 sls = os.linesep
 
@@ -212,7 +212,6 @@ def json_loads(text, encoding='utf-8'):
 
 
 def _generate_small_list_of_artworks(ids, artworks):
-    from .items import Artwork # import here to avoid circular dependency
     artworks += [Artwork.factory(id) for id in ids]
 
 # return a list of artworks given a list of ids, using pool
@@ -317,20 +316,3 @@ def multiprocessing_(items, small_list_executor, results_saver=None):
         process.start()
     for process in processes:
         process.join()
-
-
-# https://github.com/oz123/oz123.github.com/blob/master/media/uploads/readonly_properties.py
-def read_only_attrs(*attrs):
-    def class_changer(cls):
-        class User(cls):
-            def __setattr__(self, name, new_value):
-                if name not in attrs:
-                    pass
-                elif name not in self.__dict__:
-                    pass
-                else:
-                    raise AttributeError('This attribute cannot be changed:', name)
-
-                return super().__setattr__(name, new_value)
-        return User
-    return class_changer

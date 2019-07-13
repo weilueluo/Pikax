@@ -174,12 +174,13 @@ class SearchPage:
             else:
                 raise SearchError('Invalid mode given:', mode)
 
-        if order == 'date_desc':
-            params['order'] = 'date_d'
-        elif order == 'date_asc':
-            params['order'] = 'date'
-        else:
-            raise SearchError('Invalid order given:', order)
+        if order:
+            if order == 'date_desc':
+                params['order'] = 'date_d'
+            elif order == 'date_asc':
+                params['order'] = 'date'
+            else:
+                raise SearchError('Invalid order given:', order)
 
 
         # search starts
