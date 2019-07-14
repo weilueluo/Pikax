@@ -44,7 +44,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   results = pixiv.search(keyword='arknights', type='illust', dimension='horizontal', popularity=10000, limit=10, mode='safe', match=None)
   pixiv.download(results)
 ````
-#### 下载用户的作品 （需要登录，[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py)有临时的账号）
+#### 下载用户的作品
 ````
   from pikax.pikax import Pikax
 
@@ -56,7 +56,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 
   # 任何用户
   pixiv = Pikax()
-
+  
   user = pixiv.login(settings.username, settings.password) # 登录
   other_user = user.visits(user_id=3872398) # 以此访问其他用户
 
