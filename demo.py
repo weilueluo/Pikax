@@ -38,7 +38,8 @@ def download_other_user_items_example():
     pixiv = Pikax()
 
     # not suggested
-    other_user = pixiv.access(user_id=201323)
+    # other_user = pixiv.access(user_id=201323)
+    
     # suggested
     user = pixiv.login(settings.username, settings.password) # login
     other_user = user.visits(user_id=201323) # visit other user by id
@@ -65,9 +66,9 @@ def download_by_artwork_id_example():
 def main():
     download_daily_rankings_example()
     download_search_example()
-    # download_own_bookmarks_example()
+    download_own_bookmarks_example()
     download_other_user_items_example()
-    # download_by_artwork_id_example()
+    download_by_artwork_id_example()
 
 if __name__ == '__main__':
     main()

@@ -194,7 +194,7 @@ def read_only_attrs(*attrs):
 
 
 # raise LoginError if failed to login
-@read_only_attrs('id', 'account', 'name', 'follows', 'background_url', 'title', 'description', 'pixiv_url', 'lang', 'has_bookmarks', 'has_illusts', 'has_mangas')
+@read_only_attrs('login', 'id', 'account', 'name', 'follows', 'background_url', 'title', 'description', 'pixiv_url', 'has_bookmarks', 'has_illusts', 'has_mangas')
 class User:
     """This class represent a user and contains actions which needs login in pixiv.net
 
@@ -271,8 +271,14 @@ class User:
         # login session
         self.session = session
 
-        # find pixiv id from username and password
-        if username and password and not user_id:
+        # for login user
+        self._r18 = None
+        self._r18g = None
+        self._lang = None
+        self._login = False
+
+        # find pixiv id from username and password and save r18 & r18g settings
+        if username and password:
             try:
                 self.session = LoginPage().login(username=username, password=password)
                 status_data = util.req(session=self.session, url=self._self_details_url)
@@ -281,6 +287,26 @@ class User:
             except ReqException as e:
                 util.log(str(e), error=True, save=True)
                 raise UserError('Failed to load user id')
+
+            # save user's settings for r18 and r18g
+            try:
+                res = util.req(url=self._settings_url, session=self.session)
+                self._r18 = re.search(r'name="r18" value="show" checked>', res.text) != None
+                self._r18g = re.search(r'name="r18g" value="2" checked>', res.text) != None
+                lang_search_res = re.search(r'option value="(\w\w)" selected>', res.text)
+                if lang_search_res:
+                    self._lang = lang_search_res.group(1)
+                else:
+                    raise UserError('Failed to find user language in respond')
+            except ReqException as e:
+                raise UserError('Failed to retrieve r18/r18g settings')
+
+            # save user token, for changing r18 and r18g
+            self._token = self._get_token()
+            # if username and password is provided, this is a logined user
+            self._login = True
+
+
 
         # if user id is not given and failed to retrieve user id
         if not user_id:
@@ -317,21 +343,7 @@ class User:
         # self.has_novels = data_json['has_novels']
         self.has_bookmarks = data_json['has_bookmarks'] or False
 
-        # save user's settings for r18 and r18g
-        try:
-            res = util.req(url=self._settings_url, session=self.session)
-            self._r18 = re.search(r'name="r18" value="show" checked>', res.text) != None
-            self._r18g = re.search(r'name="r18g" value="2" checked>', res.text) != None
-            lang_search_res = re.search(r'option value="(\w\w)" selected>', res.text)
-            if lang_search_res:
-                self.lang = lang_search_res.group(1)
-            else:
-                raise UserError('Failed to find user language in respond')
-        except ReqException as e:
-            raise UserError('Failed to retrieve r18/r18g settings')
 
-        # save user token, for changing r18 and r18g
-        self._token = self._get_token()
 
     def _get_token(self):
         try:
@@ -346,8 +358,23 @@ class User:
         except ReqException as e:
             raise UserError('Failed to retrieve user token')
 
+
+    @property
+    def login(self):
+        return self._login
+
+    @property
+    def lang(self):
+        if not self._login:
+            raise UserError('Please login before viewing user language')
+
+        return self._lang
+
+
     @property
     def r18(self):
+        if not self._login:
+            raise UserError('Please login before viewing user r18g settings')
         return self._r18
 
     @r18.setter
@@ -361,6 +388,8 @@ class User:
 
     @property
     def r18g(self):
+        if not self._login:
+            raise UserError('Please login before viewing user r18g settings')
         return self._r18g
 
     @r18g.setter
@@ -375,10 +404,14 @@ class User:
     def _property_setter(self, r18=None, r18g=None):
         # raise ReqException if fails
         # this will change pixiv account's language to english
+        #raise user error if not login
+        if not self._login:
+            raise UserError('Please login before setting r18 & r18 content')
+
         form = dict()
         form['mode'] = 'mod'
-        form['user_language'] = self.lang
-        form['submit'] = self._user_lang_dict[self.lang]
+        form['user_language'] = self._lang
+        form['submit'] = self._user_lang_dict[self._lang]
         form['tt'] = self._token if self._token else self._get_token()
 
         if r18g != None:
