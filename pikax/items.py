@@ -331,7 +331,7 @@ class User:
             raise UserError('Failed to retrieve r18/r18g settings')
 
         # save user token, for changing r18 and r18g
-        self._token = self._get_token() or None
+        self._token = self._get_token()
 
     def _get_token(self):
         try:

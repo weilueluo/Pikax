@@ -86,10 +86,11 @@ class SearchPage:
     _search_regex = r'(\d{8})_p\d'
     _popularity_list = [20000, 10000, 5000, 1000, 500]
 
-    def __init__(self, session=None):
-        self._session = session
+    def __init__(self, user=None):
+        self._user = user
+        self._session = user.session if user != None else None
 
-    def search(self, keyword, limit=None, type=None, dimension=None, mode=None, popularity=None, order='date_desc'):
+    def search(self, keyword, limit=None, type=None, dimension=None, match=None, popularity=None, order='date_desc', mode=None):
         """Used to search in pixiv.net
 
         **Parameters**
@@ -114,12 +115,12 @@ class SearchPage:
         :type dimension:
              str or None(default)
 
-        :param mode:
+        :param match:
             define the way of matching artworks with a artwork,
             'strict_tag' matches when any keyword is same as a tag in the artwork
             'loose' matches when any keyword appears in title, description or tags of the artwork
             default matches when any keyword is part of a tag of the artwork
-        :type mode:
+        :type match:
              str or None(default)
 
         :param popularity:
@@ -132,6 +133,13 @@ class SearchPage:
             note that 'popular' is the only string accepted
         :type popularity:
             int or str or None(default)
+
+        :param mode:
+            'safe': no r18 content
+            'r18': has r18 content, if user's r18 is not turn on, it will turn it on before search
+            default: both, by user account settings
+        :type mode:
+            str or None
 
         **Returns**
         :return: a list of Artwork Object
@@ -166,10 +174,10 @@ class SearchPage:
             else:
                 raise SearchError('Invalid dimension given:', dimension)
 
-        if mode: # default match if contain tags
-            if mode == 'strict_tag': # specified tags only
+        if match: # default match if contain tags
+            if match == 'strict_tag': # specified tags only
                 params['s_mode'] = 's_tag_full'
-            elif mode == 'loose':
+            elif match == 'loose':
                 params['s_mode'] = 's_tc'
             else:
                 raise SearchError('Invalid mode given:', mode)
@@ -181,6 +189,15 @@ class SearchPage:
                 params['order'] = 'date'
             else:
                 raise SearchError('Invalid order given:', order)
+
+        if mode:
+            mode = mode.lower()
+            params['mode'] = mode
+            if mode == 'r18':
+                if not self._user:
+                    raise UserError('Please login before searching for r18 content')
+                if not self._user.r18:
+                    self._user.r18 = True
 
 
         # search starts
@@ -265,8 +282,9 @@ class RankingPage:
 
     url = 'https://www.pixiv.net/ranking.php?'
 
-    def __init__(self, session=None):
-        self._session = session
+    def __init__(self, user=None):
+        self._user = user
+        self._session = user.session if user != None else None
 
     def _check_inputs(self, content,mode):
         if content == 'illust':

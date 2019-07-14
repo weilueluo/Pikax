@@ -31,7 +31,7 @@ def download_daily_rankings_example():
 def download_search_example():
     pixiv = Pikax()
     pixiv.login(settings.username, settings.password) # optional, but strongly suggested
-    results = pixiv.search(keyword='オリジナル', type='illust', dimension='horizontal', popularity=10000, limit=20)
+    results = pixiv.search(keyword='オリジナル', type='illust', dimension='horizontal', popularity=10000, limit=20, match=None, mode='safe')
     pixiv.download(results)
 
 def download_other_user_items_example():

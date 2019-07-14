@@ -11,7 +11,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ```
 ### Currently supported features
 - Search
-  - keyword/tags, limit, type, dimension, mode, popularity
+  - keyword/tags, limit, type, dimension, mode, popularity, r18 (must login)
 - Ranking
   - mode, limit, date, content
 - Yours or others
@@ -20,7 +20,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 
 
 ### Features incoming
-- R18 Artworks
+- R18 Artworks of ranking page
 - Search Artists
 - Filter Artworks/Artists
 - ...
@@ -36,13 +36,13 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   results = pixiv.rank(limit=20, content='illust', mode='daily')
   pixiv.download(results, folder='#Pixiv_daily_ranking')
 ```
-#### Search and download 10 horizontal illustrations of keyword: young girl with 10000 likes (approx)
+#### Search and download 10 arknights related horizontal non-r18 illustrations with 10000 likes (approx)
 ```
   from pikax.pikax import Pikax
 
   pixiv = Pikax()
   pixiv.login(settings.username, settings.password) # login
-  results = pixiv.search(keyword='少女', type='illust', dimension='horizontal', popularity=10000, limit=10)
+  results = pixiv.search(keyword='arknights', type='illust', dimension='horizontal', popularity=10000, limit=10, mode='safe', match=None)
   pixiv.download(results)
 ```
 #### Download user's artworks (required username and password [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/settings.py) contains a temp account)

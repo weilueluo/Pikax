@@ -10,10 +10,11 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 popularity_list = [100, 'popular', None]
 limit_list = [5, 1000, None]
-mode_list = ['strict_tag', 'loose', None]
+match_list = ['strict_tag', 'loose', None]
 type_list = ['illust', 'manga', None]
 dimension_list = ['vertical', 'horizontal', 'square', None]
-keyword_list = ['オリジナル', None]
+keyword_list = ['arknights', 'bilibili']
+mode_list = ['r18', 'safe', None]
 # this may takes 2hrs
 def test_search_normal_inputs():
     pikax = Pikax()
@@ -27,12 +28,13 @@ def test_search_normal_inputs():
                 for limit in limit_list:
                     for mode in mode_list:
                         for type in type_list:
-                            try:
-                                curr += 1
-                                print(curr, '/', total)
-                                pikax.search(keyword=keyword, limit=limit, type=type, dimension=dimension, mode=mode, popularity=popularity)
-                            except PikaxException as e:
-                                error_list.append(str(e) + ' ' + keyword + ' ' + limit + ' ' + type + ' ' + dimension + ' ' + mode + ' ' + popularity)
+                            for match in match_list:
+                                try:
+                                    curr += 1
+                                    print(curr, '/', total)
+                                    pikax.search(keyword=keyword, limit=limit, type=type, dimension=dimension, mode=mode, popularity=popularity, match=match)
+                                except PikaxException as e:
+                                    error_list.append(str(e) + ' ' + keyword + ' ' + limit + ' ' + type + ' ' + dimension + ' ' + mode + ' ' + popularity + ' ' + match)
 
     if len(error_list) == 0:
         print('Test OK')
@@ -51,8 +53,9 @@ def test_search_random(num_of_tests):
         mode = random.choice(mode_list)
         type = random.choice(type_list)
         dimension = random.choice(dimension_list)
-        print('#', i + 1, '/', num_of_tests, ':', keyword, mode, type, dimension, popularity, limit)
-        pikax.search(keyword=keyword, limit=limit, type=type, dimension=dimension, mode=mode, popularity=popularity)
+        match = random.choice(match_list)
+        print('#', i + 1, '/', num_of_tests, ':', keyword, mode, type, dimension, popularity, limit, match)
+        pikax.search(keyword=keyword, limit=limit, type=type, dimension=dimension, mode=mode, popularity=popularity, match=match)
 
 
 from datetime import datetime
@@ -140,10 +143,10 @@ def  test2():
 
 def main():
     # test_search_normal_inputs()
-    # test_search_random(3)
-    # test_rank_random(3)
-    # test_user()
-    test2()
+    test_search_random(5)
+    test_rank_random(5)
+    test_user()
+    # test2()
 
 
 if __name__ == '__main__':

@@ -31,12 +31,12 @@ class Pikax:
     :func login: returns a User Object given username and password
 
     """
-    def __init__(self, session=None):
-        self.search_page = SearchPage(session=session)
-        self.ranking_page = RankingPage(session=session)
-        self.session = session
+    def __init__(self, user=None):
+        self.user = user
+        self.search_page = SearchPage(user=user)
+        self.ranking_page = RankingPage(user=user)
 
-    def search(self, keyword, limit=None, type=None, dimension=None, mode=None, popularity=None, order=None):
+    def search(self, keyword, limit=None, type=None, dimension=None, match=None, popularity=None, order=None, mode=None):
         """Search Pixiv and returns PixivResult Object
 
         **Description**
@@ -47,9 +47,9 @@ class Pikax:
         :rtype: PixivResult Object
         """
         util.log('Searching:', keyword)
-        if not self.session:
+        if not self.user:
             util.log('Pixiv search without login may results in incomplete data', warn=True, save=True)
-        artworks = self.search_page.search(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, limit=limit, order=order)
+        artworks = self.search_page.search(keyword=keyword, type=type, dimension=dimension, match=match, popularity=popularity, limit=limit, order=order, mode=mode)
         folder = settings.SEARCH_RESULTS_FOLDER.format(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, limit=limit)
         results = PixivResult(artworks, folder)
 
@@ -66,7 +66,7 @@ class Pikax:
         :rtype: PixivResult Object
         """
         util.log('Ranking:', mode)
-        if not self.session:
+        if not self.user:
             util.log('Pixiv rank without login may results in incomplete data', warn=True, save=True)
         artworks = self.ranking_page.rank(mode=mode, limit=limit, date=date, content=content)
         folder = settings.RANK_RESULTS_FOLDER.format(mode=mode, limit=limit, date=date, content=content)
@@ -130,16 +130,15 @@ class Pikax:
 
         """
         util.log('Login:', username)
-        user = User(username=username, password=password)
-        self.session = user.session
-        self.search_page = SearchPage(session=self.session)
-        self.ranking_page = RankingPage(session=self.session)
+        self.user = User(username=username, password=password)
+        self.search_page = SearchPage(user=self.user)
+        self.ranking_page = RankingPage(user=self.user)
         util.log('Pixiv is now logged in as [{username}]'.format(username=username), inform=True, save=True)
-        return user
+        return self.user
 
     def access(self, user_id):
-        util.log('access:', user_id, 'with session:', self.session)
-        return User(user_id=user_id, session=self.session)
+        util.log('access:', user_id, 'with user:', self.user)
+        return User(user_id=user_id, session=self.user.session if self.user else None)
 
 
 
