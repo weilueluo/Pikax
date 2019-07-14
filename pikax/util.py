@@ -158,7 +158,7 @@ def req(url, type='get', session=None, params=None, data=None, headers=settings.
     curr_retries = 0
     while curr_retries < retries:
         if log_req:
-            log(type + ':', str(url), 'with params:', str(params), end=' ')
+            log(type + ':', str(url), 'with params:', str(params), end='')
         try:
 
             # try send request according to parameters

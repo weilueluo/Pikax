@@ -194,7 +194,7 @@ def read_only_attrs(*attrs):
 
 
 # raise LoginError if failed to login
-@read_only_attrs('id', 'account', 'name', 'follows', 'background_url', 'title', 'description', 'pixiv_url', 'has_bookmarks', 'has_illusts', 'has_mangas')
+@read_only_attrs('id', 'account', 'name', 'follows', 'background_url', 'title', 'description', 'pixiv_url', 'lang', 'has_bookmarks', 'has_illusts', 'has_mangas')
 class User:
     """This class represent a user and contains actions which needs login in pixiv.net
 
@@ -222,6 +222,8 @@ class User:
     - self.has_mangas # boolean
     - self.has_bookmarks # boolean
     - self.has_illusts # boolean
+    - self.r18
+    - self.r18g
 
     **Functions**
     :func illusts: returns illustrations uploaded by this user
@@ -245,6 +247,14 @@ class User:
 
     # for settings
     _settings_url = 'https://www.pixiv.net/setting_user.php'
+    # user language for settings
+    _user_lang_dict = {
+        'zh': u'保存',
+        'zh_tw' : u'保存',
+        'ja' : u'変更',
+        'en' : u'Update',
+        'ko' : u'변경'
+    }
 
 
     def __init__(self, username=None, password=None, user_id=None, session=None):
@@ -312,8 +322,16 @@ class User:
             res = util.req(url=self._settings_url, session=self.session)
             self._r18 = re.search(r'name="r18" value="show" checked>', res.text) != None
             self._r18g = re.search(r'name="r18g" value="2" checked>', res.text) != None
+            lang_search_res = re.search(r'option value="(\w\w)" selected>', res.text)
+            if lang_search_res:
+                self.lang = lang_search_res.group(1)
+            else:
+                raise UserError('Failed to find user language in respond')
         except ReqException as e:
             raise UserError('Failed to retrieve r18/r18g settings')
+
+        # save user token, for changing r18 and r18g
+        self._token = self._get_token() or None
 
     def _get_token(self):
         try:
@@ -334,19 +352,12 @@ class User:
 
     @r18.setter
     def r18(self, new_r18):
-        form = dict()
-        form['mode'] = 'mod'
-        form['user_language'] = 'en'
-        form['submit'] = 'save'
-        form['r18g'] = '2' if self._r18g else '1'
-        form['r18'] = 'show' if new_r18 else 'hide'
-        form['tt'] = self._get_token()
         try:
-            util.req(type='post', url=self._settings_url, session=self.session, data=form)
+            self._property_setter(r18=new_r18)
             self._r18 = new_r18
             util.log('r18 =>', self._r18)
         except ReqException as e:
-            util.log('Failed to set r18 to', new_r18, 'remained as', self._r18, error=True)
+            util.log('Failed to set r18 to', str(new_r18) + ', remained as', self._r18, error=True)
 
     @property
     def r18g(self):
@@ -354,19 +365,35 @@ class User:
 
     @r18g.setter
     def r18g(self, new_r18g):
-        form = dict()
-        form['mode'] = 'mod'
-        form['user_language'] = 'en'
-        form['submit'] = 'save'
-        form['r18g'] = '2' if new_r18g else '1'
-        form['r18'] = 'show' if self._r18 else 'hide'
-        form['tt'] = self._get_token()
         try:
-            util.req(type='post', url=self._settings_url, session=self.session, data=form)
+            self._property_setter(r18g=new_r18g)
             self._r18g = new_r18g
             util.log('r18g =>', self._r18g)
         except ReqException as e:
-            util.log('Failed to set r18g to', new_r18g, 'remained as', self._r18g, error=True)
+            util.log('Failed to set r18g to', str(new_r18g) + ', remained as', self._r18g, error=True)
+
+    def _property_setter(self, r18=None, r18g=None):
+        # raise ReqException if fails
+        # this will change pixiv account's language to english
+        form = dict()
+        form['mode'] = 'mod'
+        form['user_language'] = self.lang
+        form['submit'] = self._user_lang_dict[self.lang]
+        form['tt'] = self._token if self._token else self._get_token()
+
+        if r18g != None:
+            form['r18g'] = '2' if r18 else '1'
+        else:
+            form['r18g'] = '2' if self._r18g else '1'
+
+        if r18 != None:
+            form['r18'] = 'show' if r18 else 'hide'
+        else:
+            form['r18'] = 'show' if self._r18 else 'hide'
+
+        # submit change request
+        util.req(type='post', url=self._settings_url, session=self.session, data=form)
+
 
     def _get_bookmark_artworks(self, limit=None):
         params = dict()

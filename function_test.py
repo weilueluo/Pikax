@@ -129,11 +129,14 @@ def  test2():
     user = pixiv.login(settings.username, settings.password)
     print('r18:', user.r18)
     print('r18g:', user.r18g)
+    print('lang:', user.lang)
     print('changing...')
-    user.r18 = True
-    user.r18g = True
+    user.r18 = False
+    user.r18g = False
+    user.lang = 'zh'
     print('r18:', user.r18)
     print('r18g:', user.r18g)
+    print('lang:', user.lang)
 
 def main():
     # test_search_normal_inputs()
