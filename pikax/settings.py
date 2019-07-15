@@ -66,7 +66,7 @@ MAX_WHILE_TRUE_LOOP_EXCEPTIONS = 3
 
 DEFAULT_REQUEST_ERROR_MSG = 'Exception while {type}'
 
-
+MAX_PAGES_PER_ARTWORK = 5
 
 """
 user name and password used

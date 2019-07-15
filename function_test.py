@@ -141,13 +141,48 @@ def  test2():
     print('r18g:', user.r18g)
     print('lang:', user.lang)
 
+
+from datetime import datetime, timedelta
+import time
+def pixiv_collection():
+    pixiv = Pikax()
+    user = pixiv.login(settings.username, settings.password)
+    curr_date = datetime.today()
+    offset_date = timedelta(days=1)
+    days_crawled = 0
+    start_time = time.time()
+    result = dict()
+    result['total expected'] = 0
+    result['success'] = 0
+    result['failed'] = 0
+    result['skipped'] = 0
+    while days_crawled < 1395:
+        days_crawled += 1
+        curr_date -= offset_date
+        try:
+            res = pixiv.rank(limit=50, date=curr_date, mode='daily', content='illust')
+            download_res = pixiv.download(pixiv_result=res, folder='#Pixiv_1395days_top50rank')
+            result['total expected'] += download_res['total_expected']
+            result['success'] += download_res['success']
+            result['failed'] += download_res['failed']
+            result['skipped'] += download_res['skipped']
+        except PikaxException as e:
+            with open('log.txt', 'a') as log:
+                log.write(('=' * 50) + '\r\n')
+                log.write(str(e) + '\r\n')
+    end_time = time.time()
+    print('=====================>')
+    print('Done. Time Taken:', str(end_time - start_time) + 's')
+    for key, value in result.items():
+        print(key.title(), ':', str(value))
+
 def main():
     # test_search_normal_inputs()
-    test_search_random(5)
-    test_rank_random(5)
-    test_user()
+    # test_search_random(5)
+    # test_rank_random(5)
+    # test_user()
     # test2()
-
+    pixiv_collection()
 
 if __name__ == '__main__':
     main()

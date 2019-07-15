@@ -110,6 +110,9 @@ class Artwork():
         success = True
         skipped = False
         while curr_page < self.page_count: # start from 0 to page_count - 1
+            if settings.MAX_PAGES_PER_ARTWORK:
+                if curr_page >= settings.MAX_PAGES_PER_ARTWORK:
+                    break
             pic_detail = '[' + str(self.title) + '] p' + str(curr_page) + ' by [' + str(self.author) + ']'
             url = self.original_url.format(page_num=curr_page)
             file_name_search = re.search(r'(\d{8}_p\d.*)', url)

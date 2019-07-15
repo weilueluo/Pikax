@@ -5,7 +5,7 @@
 :class: Pikax
 """
 
-import time, re, sys, os, json, datetime
+import time, re, sys, os, json, datetime, math
 from multiprocessing import Manager
 
 from . import util, settings
@@ -105,9 +105,8 @@ class Pikax:
         """
 
         util.log('Downloading ... ', start='\r\n', inform=True)
-
-        if pixiv_result:
-            download(pixiv_result, folder)
+        if pixiv_result != None:
+            return download.download(pixiv_result, folder)
         elif user_id:
             pass
         elif artwork_id:
@@ -142,42 +141,87 @@ class Pikax:
 
 
 
+
+##
+## for download stuff below
+##
+
 class download:
 
-    def download_list_of_items(self, items, results_dict):
+    def _download_list_of_items(items, results_dict):
         for item in items:
-            item.download(folder=self.folder, results_dict=results_dict)
+            item.download(folder=results_dict['folder'], results_dict=results_dict)
 
-    def __init__(self, pixiv_result, folder):
-        results_dict = self._download_initilizer(pixiv_result, folder)
-        start_time = time.time()
-        util.multiprocessing_(items=pixiv_result.artworks, small_list_executor=self.download_list_of_items, results_saver=results_dict)
-        end_time = time.time()
-        self._log_download_results(pixiv_result, start_time, end_time, folder, results_dict)
+    def _sort_by_pages_count(item):
+        return item.page_count
 
-    def _download_initilizer(self, pixiv_result, folder):
+
+    def _rearrange_into_optimal_chunks(items, next=True):
+
+        num_of_items = len(items)
+        num_of_slots = os.cpu_count()
+        while num_of_slots > 1:
+            num_of_items_per_slot = math.ceil(num_of_items / num_of_slots)
+            if num_of_items_per_slot < settings.MIN_ITEMS_PER_THREAD:
+                num_of_slots -= 1
+            else:
+                break
+
+        if num_of_slots > num_of_items:
+            num_of_slots = num_of_items
+
+        slots = []
+        for i in range(0, num_of_slots):
+            slots.append([])
+
+        # descending page count
+        items.sort(key=download._sort_by_pages_count, reverse=True)
+        for index, item in enumerate(items):
+            index = index % num_of_slots
+            slots[index].append(item)
+
+        final_list = []
+        for slot in slots:
+
+            # do it twice, one for process one for threading
+            if next:
+                slot = download._rearrange_into_optimal_chunks(slot, next=False)
+            final_list += slot
+
+        # print('final_list:', end='')
+        # for i in final_list:
+        #     print(i.page_count, ',', end='')
+        # print('num of slots:', num_of_slots)
+
+        return final_list
+
+    def _download_initilizer(pixiv_result, folder):
         if not folder:
             folder = pixiv_result.folder
-        self.folder = folder
-        self.folder = util.clean_filename(self.folder) # remove not allowed chracters as file name in windows
-        if not os.path.exists(self.folder):
-            os.mkdir(self.folder)
+        folder = util.clean_filename(folder) # remove not allowed chracters as file name in windows
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+        pixiv_result.artworks = download._rearrange_into_optimal_chunks(pixiv_result.artworks)
         results_dict = Manager().dict()
         results_dict['total_expected'] = len(pixiv_result.artworks)
         results_dict['success'] = 0
         results_dict['failed'] = 0
         results_dict['skipped'] = 0
+        results_dict['folder'] = folder
         return results_dict
 
-    def _log_download_results(self, pixiv_result, start_time, end_time, folder="", results_dict=dict()):
-        if not folder:
-            folder = pixiv_result.folder
-        folder = util.clean_filename(folder)
-        if not os.path.exists(folder):
-            os.mkdir(folder)
+    def _log_download_results(pixiv_result, start_time, end_time, folder="", results_dict=dict()):
         util.log('', end=settings.CLEAR_LINE, inform=True) # remove last printed saved ok line
         util.log('', inform=True) # move to next line
         for key, value in results_dict.items():
             util.log(key.title(), ':', value, inform=True, save=True)
         util.log('Time Taken:', str(end_time - start_time) + 's', inform=True, save=True)
         util.log('Done', str(results_dict['success'] + results_dict['skipped'])  + '/' + str(results_dict['total_expected']) ,'=>', folder, inform=True, save=True)
+
+    def download(pixiv_result, folder):
+        results_dict = download._download_initilizer(pixiv_result, folder)
+        start_time = time.time()
+        util.multiprocessing_(items=pixiv_result.artworks, small_list_executor=download._download_list_of_items, results_saver=results_dict)
+        end_time = time.time()
+        download._log_download_results(pixiv_result, start_time, end_time, folder, results_dict)
+        return results_dict
