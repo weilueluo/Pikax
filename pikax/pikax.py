@@ -55,7 +55,7 @@ class Pikax:
 
         return results
 
-    def rank(self, mode='daily', limit=None, date=None, content=None):
+    def rank(self, mode=None, limit=None, date=None, content=None, type='daily'):
         """Rank Pixiv and returns PixivResult Object
 
         **Description**
@@ -68,7 +68,7 @@ class Pikax:
         util.log('Ranking:', mode)
         if not self.user:
             util.log('Pixiv rank without login may results in incomplete data', warn=True, save=True)
-        artworks = self.ranking_page.rank(mode=mode, limit=limit, date=date, content=content)
+        artworks = self.ranking_page.rank(mode=mode, limit=limit, date=date, content=content, type=type)
         folder = settings.RANK_RESULTS_FOLDER.format(mode=mode, limit=limit, date=date, content=content)
         results = PixivResult(artworks, folder)
         return results
@@ -142,9 +142,9 @@ class Pikax:
 
 
 
-##
-## for download stuff below
-##
+#
+# for download stuff below
+#
 
 class download:
 
@@ -153,6 +153,9 @@ class download:
             item.download(folder=results_dict['folder'], results_dict=results_dict)
 
     def _sort_by_pages_count(item):
+        if settings.MAX_PAGES_PER_ARTWORK:
+            if item.page_count > settings.MAX_PAGES_PER_ARTWORK:
+                return settings.MAX_PAGES_PER_ARTWORK
         return item.page_count
 
 
@@ -216,7 +219,7 @@ class download:
         for key, value in results_dict.items():
             util.log(key.title(), ':', value, inform=True, save=True)
         util.log('Time Taken:', str(end_time - start_time) + 's', inform=True, save=True)
-        util.log('Done', str(results_dict['success'] + results_dict['skipped'])  + '/' + str(results_dict['total_expected']) ,'=>', folder, inform=True, save=True)
+        util.log('Done', str(results_dict['success'] + results_dict['skipped'])  + '/' + str(results_dict['total_expected']), inform=True, save=True)
 
     def download(pixiv_result, folder):
         results_dict = download._download_initilizer(pixiv_result, folder)

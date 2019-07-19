@@ -11,5 +11,10 @@ def test():
     print(l)
 
 
+from pikax.pikax import Pikax, settings
+
 if __name__ == '__main__':
-    test()
+    pixiv = Pikax()
+    pixiv.login(settings.username, settings.password) # optional, but strongly suggested
+    results = pixiv.rank(limit=50, content='illust', mode='daily', date=None)
+    pixiv.download(results, folder='../image from images/')

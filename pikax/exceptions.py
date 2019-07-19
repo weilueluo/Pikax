@@ -59,3 +59,7 @@ class SearchError(PikaxException):
     **See Also**
     :func: pages.SearchPage.search
     """
+    pass
+    
+class RankError(PikaxException):
+    pass

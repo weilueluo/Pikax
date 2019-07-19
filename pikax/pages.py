@@ -13,7 +13,7 @@ Each page encapsulate their capabilities
 import re, time, requests, json
 
 from . import settings, util
-from .exceptions import LoginError, ReqException, PostKeyError, SearchError
+from .exceptions import LoginError, ReqException, PostKeyError, SearchError, RankError
 
 __all__ = ['LoginPage', 'SearchPage', 'RankingPage']
 
@@ -195,7 +195,7 @@ class SearchPage:
             params['mode'] = mode
             if mode == 'r18':
                 if not self._user:
-                    raise UserError('Please login before searching for r18 content')
+                    raise SearchError('Please login before searching for r18 content')
                 if not self._user.r18:
                     self._user.r18 = True
 
@@ -286,21 +286,26 @@ class RankingPage:
         self._user = user
         self._session = user.session if user != None else None
 
-    def _check_inputs(self, content,mode):
+    def _check_inputs(self, content, type, mode):
         if content == 'illust':
-            not_allowed = ['original', 'male', 'female']
-            if mode in not_allowed:
-                raise ValueError('Invalid input mode, illust content is not yet available for', not_allowed)
+            allowed = ['daily', 'weekly', 'monthly', 'rookie']
+            if type not in allowed:
+                raise RankError('Illust content is only available for type in', allowed)
+        if mode == 'r18':
+            if self._user == None:
+                raise RankError('Please login before retrieving r18 rankings')
+            allowed = ['daily', 'weekly', 'male', 'female']
+            if type not in allowed:
+                raise RankError('R18 mode is only available for type in', allowed)
 
-
-    def rank(self, mode='daily', limit=None, date=None, content='illust'):
+    def rank(self, type='daily', limit=None, date=None, content='illust', mode='safe'):
         """Used to get artworks from pixiv ranking page
 
         **Parameters**
-        :param mode:
+        :param type:
             type of ranking as in pixiv.net,
             'daily' | 'weekly' | 'monthly' | 'rookie' | 'original' | 'male' | 'female', default daily
-        :type mode:
+        :type type:
             str
 
         :param limit:
@@ -329,17 +334,20 @@ class RankingPage:
 
         """
 
-        self._check_inputs(mode=mode, content=content)
+        self._check_inputs(mode=mode, content=content, type=type)
         params = dict()
         params['format'] = 'json'
         if content:
             params['content'] = content
-        params['mode'] = mode
+        params['mode'] = type
 
         if date:
             if not type(date) == str: # then it has to be datetime objects
                 date = format(date, '%Y%m%d')
             params['date'] = date
+
+        if mode == 'r18':
+            params['mode'] += '_r18'
 
 
         start = time.time()

@@ -25,7 +25,7 @@ from pikax.pikax import Pikax, settings
 def download_daily_rankings_example():
     pixiv = Pikax()
     pixiv.login(settings.username, settings.password) # optional, but strongly suggested
-    results = pixiv.rank(limit=50, content='illust', mode='daily', date=None)
+    results = pixiv.rank(limit=100, content='illust', type='daily', date=None)
     pixiv.download(results, folder='#Pikax_daily_ranking')
 
 def download_search_example():
@@ -63,12 +63,26 @@ def download_by_artwork_id_example():
     pixiv = Pikax()
     pixiv.download(artwork_id=75530638)
 
+
+def download_r18_ranking_example():
+    pixiv = Pikax()
+    pixiv.login(settings.username, settings.password)
+    res = pixiv.rank(type='daily',limit=50, mode='r18')
+    pixiv.download(res)
+
+def download_r18_search_example():
+    pixiv = Pikax()
+    pixiv.login(settings.username, settings.password)
+    res = pixiv.search(keyword='miku', type='illust', limit=50, mode='r18')
+    pixiv.download(res)
+
 def main():
     download_daily_rankings_example()
-    # download_search_example()
-    # download_own_bookmarks_example()
-    # download_other_user_items_example()
-    # download_by_artwork_id_example()
-
+    download_search_example()
+    download_own_bookmarks_example()
+    download_other_user_items_example()
+    download_by_artwork_id_example()
+    download_r18_search_example()
+    download_r18_ranking_example()
 if __name__ == '__main__':
     main()

@@ -14,7 +14,7 @@ match_list = ['strict_tag', 'loose', None]
 type_list = ['illust', 'manga', None]
 dimension_list = ['vertical', 'horizontal', 'square', None]
 keyword_list = ['arknights', 'bilibili']
-mode_list = ['r18', 'safe', None]
+mode_list = ['r18', 'safe']
 # this may takes 2hrs
 def test_search_normal_inputs():
     pikax = Pikax()
@@ -147,7 +147,8 @@ import time
 def pixiv_collection():
     pixiv = Pikax()
     user = pixiv.login(settings.username, settings.password)
-    curr_date = datetime.today()
+    # last: 2018 11 28
+    curr_date = datetime(year=2019, month=5, day=1)
     offset_date = timedelta(days=1)
     days_crawled = 0
     start_time = time.time()
@@ -178,11 +179,11 @@ def pixiv_collection():
 
 def main():
     # test_search_normal_inputs()
-    # test_search_random(5)
+    test_search_random(10)
     # test_rank_random(5)
     # test_user()
     # test2()
-    pixiv_collection()
+    # pixiv_collection()
 
 if __name__ == '__main__':
     main()
