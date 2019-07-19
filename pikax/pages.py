@@ -84,11 +84,67 @@ class SearchPage:
     _search_url = 'https://www.pixiv.net/search.php?'
     _search_popularity_postfix = u'users入り'
     _search_regex = r'(\d{8})_p\d'
-    _popularity_list = [20000, 10000, 5000, 1000, 500]
 
     def __init__(self, user=None):
         self._user = user
         self._session = user.session if user != None else None
+        self._logged = user != None
+
+    def _set_general_params(self, type, dimension, match, order, mode):
+        params = dict()
+        if type: # default match all type
+            params['type'] = type
+
+        if dimension: # default match all ratios
+            if dimension == 'horizontal':
+                params['ratio'] = '0.5'
+            elif dimension == 'vertical':
+                params['ratio'] = '-0.5'
+            elif dimension == 'square':
+                params['ratio'] = '0'
+            else:
+                raise SearchError('Invalid dimension given:', dimension)
+
+        if match: # default match if contain tags
+            if match == 'strict_tag': # specified tags only
+                params['s_mode'] = 's_tag_full'
+            elif match == 'loose':
+                params['s_mode'] = 's_tc'
+            else:
+                raise SearchError('Invalid mode given:', mode)
+
+        if order:
+            if order == 'date_desc':
+                params['order'] = 'date_d'
+            elif order == 'date_asc':
+                params['order'] = 'date'
+            else:
+                raise SearchError('Invalid order given:', order)
+
+        if mode:
+            mode = mode.lower()
+            params['mode'] = mode
+            if mode == 'r18':
+                if not self._user:
+                    raise SearchError('Please login before searching for r18 content')
+                if not self._user.r18:
+                    self._user.r18 = True
+
+        return params
+
+    def _search_all_popularities_in_list(self, params, keyword, limit):
+        ids = []
+        total_limit = limit
+        for popularity in settings.SEARCH_POPULARITY_LIST:
+            ids += self._search(params=params, keyword=keyword, limit=limit, popularity=popularity)
+            if total_limit:
+                num_of_ids_sofar = len(ids)
+                if num_of_ids_sofar > total_limit:
+                    ids = util.trim_to_limit(ids, total_limit)
+                    break
+                else:
+                    limit = total_limit - num_of_ids_sofar
+        return ids
 
     def search(self, keyword, limit=None, type=None, dimension=None, match=None, popularity=None, order='date_desc', mode=None):
         """Used to search in pixiv.net
@@ -155,66 +211,23 @@ class SearchPage:
 
         """
 
+        if not self._logged:
+            util.log('Search without login may results in incomplete data', warn=True, save=True)
+
+        # for recording
+        start = time.time()
+
+        # setting parameters
+        params = self._set_general_params(type=type, dimension=dimension, match=match, order=order, mode=mode)
+
         if not keyword:
             keyword = ''
 
-        # setting parameters
-        start = time.time()
-        params = dict()
-        if type: # default match all type
-            params['type'] = type
-
-        if dimension: # default match all ratios
-            if dimension == 'horizontal':
-                params['ratio'] = '0.5'
-            elif dimension == 'vertical':
-                params['ratio'] = '-0.5'
-            elif dimension == 'square':
-                params['ratio'] = '0'
-            else:
-                raise SearchError('Invalid dimension given:', dimension)
-
-        if match: # default match if contain tags
-            if match == 'strict_tag': # specified tags only
-                params['s_mode'] = 's_tag_full'
-            elif match == 'loose':
-                params['s_mode'] = 's_tc'
-            else:
-                raise SearchError('Invalid mode given:', mode)
-
-        if order:
-            if order == 'date_desc':
-                params['order'] = 'date_d'
-            elif order == 'date_asc':
-                params['order'] = 'date'
-            else:
-                raise SearchError('Invalid order given:', order)
-
-        if mode:
-            mode = mode.lower()
-            params['mode'] = mode
-            if mode == 'r18':
-                if not self._user:
-                    raise SearchError('Please login before searching for r18 content')
-                if not self._user.r18:
-                    self._user.r18 = True
-
-
         # search starts
         if popularity == 'popular':
-            ids = []
-            total_limit = limit
-            for popularity in self._popularity_list:
-                ids += self._get_ids(params=params, keyword=keyword, limit=limit, popularity=popularity)
-                if total_limit:
-                    num_of_ids_sofar = len(ids)
-                    if num_of_ids_sofar > total_limit:
-                        ids = util.trim_to_limit(ids, total_limit)
-                        break
-                    else:
-                        limit = total_limit - num_of_ids_sofar
+            ids = self._search_all_popularities_in_list(params=params, keyword=keyword, limit=limit)
         else:
-            ids = self._get_ids(params=params, keyword=keyword, limit=limit, popularity=popularity)
+            ids = self._search(params=params, keyword=keyword, limit=limit, popularity=popularity)
 
         # log ids found
         util.log('Found', str(len(ids)), 'ids for', keyword, 'in', str(time.time() - start) + 's')
@@ -224,7 +237,7 @@ class SearchPage:
 
         return artworks
 
-    def _get_ids(self, params, keyword, popularity, limit):
+    def _search(self, params, keyword, popularity, limit):
         curr_page = 1
         ids_sofar = []
         while True:
@@ -285,6 +298,7 @@ class RankingPage:
     def __init__(self, user=None):
         self._user = user
         self._session = user.session if user != None else None
+        self._logged = user != None
 
     def _check_inputs(self, content, type, mode):
         if content == 'illust':
@@ -297,6 +311,56 @@ class RankingPage:
             allowed = ['daily', 'weekly', 'male', 'female']
             if type not in allowed:
                 raise RankError('R18 mode is only available for type in', allowed)
+
+    def _set_general_params(self, content, date, mode, type):
+        params = dict()
+
+        params['format'] = 'json'
+        params['mode'] = type
+
+        if content:
+            params['content'] = content
+
+        if date:
+            if not isinstance(date, str): # then it has to be datetime.datetime
+                date = format(date, '%Y%m%d')
+            params['date'] = date
+
+        if mode == 'r18':
+            params['mode'] += '_r18'
+
+        return params
+
+    def _rank(self, params, limit):
+        ids = []
+        page_num = 0
+        # exception_count = 0
+        while True:
+            page_num += 1
+            params['p'] = page_num
+            try:
+                res = util.req(type='get', session=self._session, url=self.url, params=params)
+                res = util.json_loads(res.content)
+            except (ReqException, json.JSONDecodeError) as e:
+                util.log(str(e), error=True, save=True)
+                util.log('End of rank at page:', page_num , inform=True, save=True)
+                break
+            if 'error' in res:
+                util.log('End of page while searching', str(params) + '. Finished')
+                break
+            else:
+                ids += [content['illust_id'] for content in res['contents']]
+
+            # check if number of ids reached requirement
+            if limit:
+                num_of_ids_found = len(ids)
+                if limit == num_of_ids_found:
+                    break
+                elif limit < num_of_ids_found:
+                    ids = util.trim_to_limit(ids, limit)
+                    break
+
+        return ids
 
     def rank(self, type='daily', limit=None, date=None, content='illust', mode='safe'):
         """Used to get artworks from pixiv ranking page
@@ -333,60 +397,31 @@ class RankingPage:
         :rtype: python list
 
         """
+        if not self._logged:
+            util.log('Rank without login may results in incomplete data', warn=True, save=True)
 
-        self._check_inputs(mode=mode, content=content, type=type)
-        params = dict()
-        params['format'] = 'json'
-        if content:
-            params['content'] = content
-        params['mode'] = type
-
-        if date:
-            if not type(date) == str: # then it has to be datetime objects
-                date = format(date, '%Y%m%d')
-            params['date'] = date
-
-        if mode == 'r18':
-            params['mode'] += '_r18'
-
-
+        # for recoding
         start = time.time()
-        ids = []
-        page_num = 0
-        # exception_count = 0
-        while True:
-            page_num += 1
-            params['p'] = page_num
-            try:
-                res = util.req(type='get', session=self._session, url=self.url, params=params)
-                res = util.json_loads(res.content)
-            except (ReqException, json.JSONDecodeError) as e:
-                util.log(str(e), error=True, save=True)
-                util.log('End of rank at page:', page_num , inform=True, save=True)
-                break
-            if 'error' in res:
-                util.log('End of page while searching', str(params) + '. Finished')
-                break
-            else:
-                ids += [content['illust_id'] for content in res['contents']]
 
-            # check if number of ids reached requirement
-            if limit:
-                num_of_ids_found = len(ids)
-                if limit == num_of_ids_found:
-                    break
-                elif limit < num_of_ids_found:
-                    ids = util.trim_to_limit(ids, limit)
-                    break
+        # some combinations are not allowed
+        self._check_inputs(mode=mode, content=content, type=type)
+
+        # set paramters
+        params = self._set_general_params(content=content, date=date, mode=mode, type=type)
+
+        # rank starts
+        ids = self._rank(params=params, limit=limit)
+
+        # if limit is specified, check if met
+        if limit:
+            num_of_ids_found = len(ids)
+            if num_of_ids_found < limit:
+                util.log('Items found in ranking is less than requirement:', num_of_ids_found, '<', limit, inform=True)
 
         # log results
-        if limit:
-            num_of_ids = len(ids)
-            if limit > num_of_ids:
-                util.log('Items found in ranking is less than requirement:', num_of_ids, '<', limit, inform=True)
-
         util.log('Done. Total ids found:', len(ids), inform=True)
 
+        # build artwork objects from ids found
         artworks = util.generate_artworks_from_ids(ids)
 
         return artworks

@@ -223,13 +223,13 @@ def generate_artworks_from_ids(ids, limit=None):
 
     artworks = Manager().list()
     multiprocessing_(items=ids, small_list_executor=_generate_small_list_of_artworks, results_saver=artworks)
-    log('Done. Time Taken: ' + str(time.time() - start) + 's', inform=True)
     total = len(artworks)
     log('Total Expected:', total, inform=True)
     artworks = [artwork for artwork in artworks if artwork is not None]
     success = len(artworks)
     log('Failed:', total - success, inform=True)
     log('Success:', success, inform=True )
+    log('Done. Time Taken: ' + str(time.time() - start) + 's', inform=True)
     return artworks
 
 # trim the given items length to given limit

@@ -35,6 +35,7 @@ class Pikax:
         self.user = user
         self.search_page = SearchPage(user=user)
         self.ranking_page = RankingPage(user=user)
+        self.logged = user != None
 
     def search(self, keyword, limit=None, type=None, dimension=None, match=None, popularity=None, order=None, mode=None):
         """Search Pixiv and returns PixivResult Object
@@ -47,10 +48,11 @@ class Pikax:
         :rtype: PixivResult Object
         """
         util.log('Searching:', keyword)
-        if not self.user:
-            util.log('Pixiv search without login may results in incomplete data', warn=True, save=True)
+
         artworks = self.search_page.search(keyword=keyword, type=type, dimension=dimension, match=match, popularity=popularity, limit=limit, order=order, mode=mode)
+
         folder = settings.SEARCH_RESULTS_FOLDER.format(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, limit=limit)
+
         results = PixivResult(artworks, folder)
 
         return results
@@ -66,15 +68,14 @@ class Pikax:
         :rtype: PixivResult Object
         """
         util.log('Ranking:', mode)
-        if not self.user:
-            util.log('Pixiv rank without login may results in incomplete data', warn=True, save=True)
+
         artworks = self.ranking_page.rank(mode=mode, limit=limit, date=date, content=content, type=type)
         folder = settings.RANK_RESULTS_FOLDER.format(mode=mode, limit=limit, date=date, content=content)
         results = PixivResult(artworks, folder)
         return results
 
     # PixivResult > user_id > artwork_id
-    def download(self, pixiv_result=None, artwork_id=None, user_id=None, folder=""):
+    def download(self, pixiv_result=None, artwork_id=None, folder=""):
         """Download the given pixiv_result or artwork_id with given folder
 
         **Description**
@@ -107,8 +108,6 @@ class Pikax:
         util.log('Downloading ... ', start='\r\n', inform=True)
         if pixiv_result != None:
             return download.download(pixiv_result, folder)
-        elif user_id:
-            pass
         elif artwork_id:
             try:
                 Artwork(artwork_id).download(folder=folder)
@@ -133,6 +132,7 @@ class Pikax:
         self.search_page = SearchPage(user=self.user)
         self.ranking_page = RankingPage(user=self.user)
         util.log('Pixiv is now logged in as [{username}]'.format(username=username), inform=True, save=True)
+        self.logged = True
         return self.user
 
     def access(self, user_id):
@@ -219,7 +219,7 @@ class download:
         for key, value in results_dict.items():
             util.log(key.title(), ':', value, inform=True, save=True)
         util.log('Time Taken:', str(end_time - start_time) + 's', inform=True, save=True)
-        util.log('Done', str(results_dict['success'] + results_dict['skipped'])  + '/' + str(results_dict['total_expected']), inform=True, save=True)
+        util.log('Done', str(results_dict['success'] + results_dict['skipped'])  + '/' + str(results_dict['total_expected']), end='\r\n', inform=True, save=True)
 
     def download(pixiv_result, folder):
         results_dict = download._download_initilizer(pixiv_result, folder)

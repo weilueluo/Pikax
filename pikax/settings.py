@@ -68,6 +68,8 @@ DEFAULT_REQUEST_ERROR_MSG = 'Exception while {type}'
 
 MAX_PAGES_PER_ARTWORK = None
 
+SEARCH_POPULARITY_LIST = [20000, 10000, 5000, 1000, 500]
+
 """
 user name and password used
 """
