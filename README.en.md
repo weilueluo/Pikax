@@ -32,7 +32,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 
   pixiv = Pikax()
   pixiv.login(settings.username, settings.password) # not necessary but strongly suggested
-  results = pixiv.rank(limit=20, content='illust', mode='daily')
+  results = pixiv.rank(limit=20, content='illust', type='daily', mode='safe')
   pixiv.download(results, folder='#Pixiv_daily_ranking')
 ```
 #### Search and download 10 arknights related horizontal non-r18 illustrations with 10000 likes (approx)
