@@ -11,16 +11,15 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ```
 ### Currently supported features
 - Search
-  - keyword/tags, limit, type, dimension, mode, popularity, r18 (must login)
+  - keyword/tags, limit, type, dimension, mode, popularity, r18
 - Ranking
-  - mode, limit, date, content
+  - mode, limit, date, content, r18
 - Yours or others
-  - Illustrations, mangas, bookmarks
+  - illustrations, mangas, bookmarks
 - Multiprocessing & multithreading download
 
 
 ### Features incoming
-- R18 Artworks of ranking page
 - Search Artists
 - Filter Artworks/Artists
 - ...
