@@ -78,7 +78,7 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', type
         print(start, *objects, sep=sep, end=end, file=file, flush=flush)
 
 # send request using requests, raise ReqException if fails all retries
-def req(url, type='get', session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS, timeout=settings.TIMEOUT, err_msg=None, log_req=True, verify=True, retries=settings.MAX_RETRIES_FOR_REQUEST):
+def req(url, type='get', session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS, timeout=settings.TIMEOUT, err_msg=None, log_req=True, retries=settings.MAX_RETRIES_FOR_REQUEST, proxies=settings.REQUEST_PROXIES):
     """Send requests according to given paramters using requests library
 
     **Description**
@@ -132,16 +132,15 @@ def req(url, type='get', session=None, params=None, data=None, headers=settings.
     :type log_req:
         boolean
 
-    :param verify:
-        specify whether to verify the server when sending requests, useful for accessing server blocked
-        due to vulerability issue
-    :type verify:
-        boolean
-
     :param retries:
         number of retries if request fails, if not given, settings.MAX_RETRIES_FOR_REQUEST is used
     :type retries:
         int
+
+    :param proxies:
+        Proxies used for sending request, uses REQUEST_PROXIES in settings.py
+    :type proxies:
+        dict
 
 
     **Returns**
@@ -163,16 +162,16 @@ def req(url, type='get', session=None, params=None, data=None, headers=settings.
             # try send request according to parameters
             if session:
                 if type == 'GET':
-                    res = session.get(url=url, headers=headers, params=params, timeout=timeout, verify=verify)
+                    res = session.get(url=url, headers=headers, params=params, timeout=timeout, proxies=proxies)
                 elif type == 'POST':
-                    res = session.post(url=url, headers=headers, params=params, timeout=timeout, verify=verify, data=data)
+                    res = session.post(url=url, headers=headers, params=params, timeout=timeout, data=data, proxies=proxies)
                 else:
                     raise ReqException('Request type error:', type)
             else:
                 if type == 'GET':
-                    res = requests.get(url=url, headers=headers, params=params, timeout=timeout, verify=verify)
+                    res = requests.get(url=url, headers=headers, params=params, timeout=timeout, proxies=proxies)
                 elif type == 'POST':
-                    res = requests.post(url=url, headers=headers, params=params, timeout=timeout, verify=verify, data=data)
+                    res = requests.post(url=url, headers=headers, params=params, timeout=timeout, data=data, proxies=proxies)
                 else:
                     raise ReqException('Request type error:', type)
 

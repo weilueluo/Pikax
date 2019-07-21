@@ -206,10 +206,11 @@ class download:
             os.mkdir(folder)
         pixiv_result.artworks = download._rearrange_into_optimal_chunks(pixiv_result.artworks)
         results_dict = Manager().dict()
-        results_dict['total_expected'] = len(pixiv_result.artworks)
+        results_dict['total expected'] = len(pixiv_result.artworks)
         results_dict['success'] = 0
         results_dict['failed'] = 0
         results_dict['skipped'] = 0
+        results_dict['total pages'] = 0
         results_dict['folder'] = folder
         return results_dict
 
@@ -219,7 +220,7 @@ class download:
         for key, value in results_dict.items():
             util.log(key.title(), ':', value, inform=True, save=True)
         util.log('Time Taken:', str(end_time - start_time) + 's', inform=True, save=True)
-        util.log('Done', str(results_dict['success'] + results_dict['skipped'])  + '/' + str(results_dict['total_expected']), end='\r\n', inform=True, save=True)
+        util.log('Done', str(results_dict['success'] + results_dict['skipped'])  + '/' + str(results_dict['total expected']), end='\n\n', inform=True, save=True)
 
     def download(pixiv_result, folder):
         results_dict = download._download_initilizer(pixiv_result, folder)

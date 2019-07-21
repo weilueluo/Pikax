@@ -85,7 +85,7 @@ class Artwork():
 
         **Description**
         Download this artwork given folder or default folder as in settings.py,
-        results_dict is from multiprocessing.Manager used to store download statistic if given
+        results_dict is from multiprocessing.Manager used to store download statistics if given
         this will download all pages of the artwork
 
         **Parameters**
@@ -140,6 +140,7 @@ class Artwork():
 
             curr_page += 1
 
+        # log result
         if results_dict:
             if skipped:
                 results_dict['skipped'] += 1
@@ -148,6 +149,7 @@ class Artwork():
             else:
                 results_dict['failed'] += 1
 
+            results_dict['total pages'] += self.page_count
 
 class PixivResult:
     """Encapsulate results of actions; interface for download

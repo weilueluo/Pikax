@@ -23,6 +23,19 @@ MAX_RETRIES_FOR_REQUEST = 3
 
 
 """
+Proxies used for sending requests,
+uses requests, map protocol to scheme,
+# https://2.python-requests.org/en/master/user/advanced/
+e.g.
+proxies = {
+  'http': 'http://10.10.1.10:3128',
+  'https': 'http://10.10.1.10:1080',
+}
+"""
+REQUEST_PROXIES = {}
+
+
+"""
 LOG_TYPE
 'inform': print successive stage and error only
 'std': allow print
