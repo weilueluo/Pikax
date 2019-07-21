@@ -67,7 +67,7 @@ class LoginPage:
             }
             util.log('Sending request to attempt login ...')
             respond = util.req(type='post', session=self._session, url=self._login_url, data=data)
-            util.log('Login successfully into Pixiv as [{username}]'.format(username=username), inform=True)
+            util.log('Login request successfully sent to Pixiv as [{username}]'.format(username=username), inform=True)
             return self._session
         except ReqException as e:
             util.log(str(e), error=True, save=True)

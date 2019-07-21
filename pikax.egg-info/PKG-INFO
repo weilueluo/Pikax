@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pikax
-Version: 1.1
+Version: 1.1.1
 Summary: A Pixiv Mass Downloading Tool
 Home-page: https://github.com/Redcxx/Pikax
 Author: Redcxx
@@ -30,9 +30,12 @@ Description: # Pikax:unicorn:
         - 搜索画师
         - 作品/画师 过滤
         - 。。。
+        - 有人再做吧，我自己够用了owo
         ---
-        > ### 如果没有登录[Pixiv](https://www.pixiv.net/)有可能只返回部分结果
+        ### 个性化设置请前往[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
+        ---
         ### 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
+        > ### 如果没有登录[Pixiv](https://www.pixiv.net/)有可能只返回部分结果
         #### 下载当日排行榜前20的插画
         ````
           from pikax.pikax import Pikax
