@@ -22,6 +22,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 - 搜索画师
 - 作品/画师 过滤
 - 。。。
+- 有人再做吧，我自己够用了owo
 ---
 ### 个性化设置请前往[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
 ---
