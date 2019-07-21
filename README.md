@@ -23,8 +23,10 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 - 作品/画师 过滤
 - 。。。
 ---
-> ### 如果没有登录[Pixiv](https://www.pixiv.net/)有可能只返回部分结果
+### 个性化设置请前往[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
+---
 ### 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
+> ### 如果没有登录[Pixiv](https://www.pixiv.net/)有可能只返回部分结果
 #### 下载当日排行榜前20的插画
 ````
   from pikax.pikax import Pikax

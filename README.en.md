@@ -24,8 +24,10 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 - Filter Artworks/Artists
 - ...
 ---
-> ### Pixiv will generate incomplete data if you do not login
+### For customization visits [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
+---
 ### Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
+> ### Pixiv will generate incomplete data if you do not login
 #### Download today's top 20 illustration
 ```
   from pikax.pikax import Pikax
