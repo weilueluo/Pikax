@@ -27,11 +27,12 @@ class Artwork():
 
     **Instance Variables**
     - self.id # int
-    - self.original_url # str
     - self.views # int
     - self.bookmarks # int
     - self.likes # int
-    - self.comments # str
+    - self.comments # int
+
+    - self.original_url # str
     - self.title # str
     - self.author # str
 
@@ -162,24 +163,93 @@ class PixivResult:
     - self.artworks # list
     - self.folder # str
 
+    # Instances below are meant to used with filter
+    # currently == != <= >= < > are supported, returns a new PixivResult
+    - self.id # int
+    - self.views # int
+    - self.bookmarks # int
+    - self.likes # int
+    - self.comments # int
+
+    **Functions**
+    :func __add__: `a + b` returns a new PixivResult contains unique artworks from `a` and `b`
+    :func __sub__: `a - b` returns a new PixivResult contains artworks from `a` but not `b`
+
     """
+    
     def __init__(self, artworks, folder=""):
         self.artworks = list(artworks)
-        count = 0
+        # generate unique folder if not given
         if folder:
             self.folder = folder
         else:
+            count = 0
             while True:
                 self.folder = '#PixivResult[' + str(count) + ']'
                 count += 1
                 if not os.path.exists(self.folder):
                     break
 
+        # they are meant to compare with a number and return a new PixivResult object
+        self.likes = self._ComparaleItem(self, 'likes')
+        self.comments = self._ComparaleItem(self, 'comments')
+        self.views = self._ComparaleItem(self, 'views')
+        self.id = self._ComparaleItem(self, 'id')
+        self.bookmarks = self._ComparaleItem(self, 'bookmarks')
+
     def __getitem__(self, index):
         return self.artworks[index]
 
     def __len__(self):
         return len(self.artworks)
+
+    def __add__(self, other):
+        artworks = list(set(self.artworks + other.artworks))
+        folder = util.clean_filename(str(self.folder) + '+' + str(other.folder))
+        return PixivResult(artworks, folder)
+
+    def __sub__(self, other):
+        artworks = list(item for item in self.artworks if item not in other.artworks)
+        folder = util.clean_filename(str(self.folder) + '-' + str(other.folder))
+        return PixivResult(artworks, folder)
+
+    class _ComparaleItem:
+
+        def __init__(self, outer_instance, name):
+            self.name = name
+            self.outer_instance = outer_instance
+
+        def __eq__(self, value):
+            artworks = list(filter(lambda item: getattr(item, self.name) == value, self.outer_instance.artworks))
+            folder = util.clean_filename(str(self.outer_instance.folder) + '==' + str(value))
+            return PixivResult(artworks, folder)
+
+        def __ne__(self, value):
+            artworks = list(filter(lambda item: getattr(item, self.name) != value, self.outer_instance.artworks))
+            folder = util.clean_filename(str(self.outer_instance.folder) + '!=' + str(value))
+            return PixivResult(artworks, folder)
+
+        def __lt__(self, value):
+            artworks = list(filter(lambda item: getattr(item, self.name) < value, self.outer_instance.artworks))
+            folder = util.clean_filename(str(self.outer_instance.folder) + '<' + str(value))
+            return PixivResult(artworks, folder)
+
+        def __le__(self, value):
+            artworks = list(filter(lambda item: getattr(item, self.name) <= value, self.outer_instance.artworks))
+            folder = util.clean_filename(str(self.outer_instance.folder) + '<=' + str(value))
+            return PixivResult(artworks, folder)
+
+        def __gt__(self, value):
+            artworks = list(filter(lambda item: getattr(item, self.name) > value, self.outer_instance.artworks))
+            folder = util.clean_filename(str(self.outer_instance.folder) + '>' + str(value))
+            return PixivResult(artworks, folder)
+
+        def __ge__(self, value):
+            artworks = list(filter(lambda item: getattr(item, self.name) >= value, self.outer_instance.artworks))
+            folder = util.clean_filename(str(self.outer_instance.folder) + '>=' + str(value))
+            return PixivResult(artworks, folder)
+
+
 
 
 # https://github.com/oz123/oz123.github.com/blob/master/media/uploads/readonly_properties.py

@@ -249,7 +249,7 @@ class SearchPage:
             util.log('Searching id for params:', params, 'at page:', curr_page)
             try:
                 err_msg = 'Failed getting ids from params ' + str(params) + ' page: ' + str(curr_page)
-                results = util.req(type='get', session=self._session, url=self._search_url, params=params, err_msg=err_msg)
+                results = util.req(type='get', session=self._session, url=self._search_url, params=params, err_msg=err_msg, log_req=False)
             except ReqException as e:
                 util.log(str(e), error=True, save=True)
                 if curr_page == 1:

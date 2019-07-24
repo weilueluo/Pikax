@@ -76,6 +76,22 @@ def download_r18_search_example():
     res = pixiv.search(keyword='miku', type='illust', limit=50, mode='r18')
     pixiv.download(res)
 
+def download_with_filter_example():
+    pixiv = Pikax()
+    pixiv.login(settings.username, settings.password) # login
+    results = pixiv.rank(limit=50) # top 50 daily ranking
+
+    new_results = results.likes > 1000 # filters likes > 1000
+    pixiv.download(new_results) # download
+
+def download_with_filter_example2():
+    pixiv = Pikax()
+    pixiv.login(settings.username, settings.password) # login
+    results = pixiv.search(keyword='初音', limit=200, mode='r18', popularity=1000) # search
+    
+    new_results = (results.likes > 1000) - (results.views < 50000) # get likes > 1000 and remove views < 50000
+    pixiv.download(new_results) # download
+
 def main():
     download_daily_rankings_example()
     download_search_example()

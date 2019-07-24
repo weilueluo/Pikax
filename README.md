@@ -5,7 +5,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   pip install Pikax # 当前的预发布
 ````
 ---
-### 需要
+## 需要
 - [Python3](https://www.python.org/downloads/)
 - [Requests](https://2.python-requests.org/en/master/)
 - 可以访问[Pixiv](https://www.pixiv.net/)的网络
@@ -29,7 +29,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 ---
 ### 个性化设置请前往[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
 ---
-### 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
+## 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 > ### 如果没有登录[Pixiv](https://www.pixiv.net/)有可能只返回部分结果
 #### 下载当日排行榜前20的插画
 ````
@@ -84,3 +84,30 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   pixiv.download(artwork_id=75608670)
 ````
 #### 更多例子和详情请参考[demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
+
+## 更多操作
+#### 下载排行榜前50且赞数高于1000的作品
+````
+  from pikax.pikax import Pikax
+
+  pixiv = Pikax()
+  pixiv.login(settings.username, settings.password) # 登录
+  results = pixiv.rank(limit=50) # 今日排行榜前50
+
+  new_results = results.likes > 1000 # 过滤赞数大于1000
+  pixiv.download(new_results) # 下载
+````
+
+#### 搜索'初音'相关的200个收藏约1000的r18作品
+#### 并筛选出其中赞大于1000且浏览量大于50000的作品
+````
+  from pikax.pikax import Pikax
+
+  pixiv = Pikax()
+  pixiv.login(settings.username, settings.password) # 登录
+  results = pixiv.search(keyword='初音', limit=200, mode='r18', popularity=1000) # 搜索
+  
+  new_results = (results.likes > 1000) - (results.views < 50000) # 过滤
+  pixiv.download(new_results) # 下载
+````
+#### 更多操作请参考[items.PixivResult](https://github.com/Redcxx/Pikax/blob/master/pikax/items.py)

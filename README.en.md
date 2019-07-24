@@ -5,7 +5,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   pip install Pikax # current pre-release
 ````
 ---
-### Requirements
+## Requirements
 - [Python3](https://www.python.org/downloads/)
 - [Requests](https://2.python-requests.org/en/master/)
 - A network that can reach [Pixiv](https://www.pixiv.net/)
@@ -29,7 +29,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ---
 ### For customization visits [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
 ---
-### Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
+## Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 > ### Pixiv will generate incomplete data if you do not login
 #### Download today's top 20 illustration
 ```
@@ -82,3 +82,30 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   pixiv.download(artwork_id=75608670)
 ````
 #### Visit [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py) for more examples and details
+
+## More operations
+#### download top 50 of daily ranking and remove artworks with likes <= 1000
+````
+  from pikax.pikax import Pikax
+
+  pixiv = Pikax()
+  pixiv.login(settings.username, settings.password) # login
+  results = pixiv.rank(limit=50) # top 50 daily ranking
+
+  new_results = results.likes > 1000 # filters likes > 1000
+  pixiv.download(new_results) # download
+````
+
+#### download 200 '初音' related, around 1000 bookmarks r18 artworks
+#### remove artworks with likes >= 1000 and views < 50000
+````
+  from pikax.pikax import Pikax
+
+  pixiv = Pikax()
+  pixiv.login(settings.username, settings.password) # login
+  results = pixiv.search(keyword='初音', limit=200, mode='r18', popularity=1000) # search
+  
+  new_results = (results.likes > 1000) - (results.views < 50000) # filters
+  pixiv.download(new_results) # download
+````
+#### visits[items.PixivResult](https://github.com/Redcxx/Pikax/blob/master/pikax/items.py) for more operations
