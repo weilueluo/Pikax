@@ -26,6 +26,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 - Search Artists
 - Filter Artworks/Artists
 - ...
+- Tell me!
 ---
 ### For customization visits [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
 ---
