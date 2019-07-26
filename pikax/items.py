@@ -176,7 +176,7 @@ class PixivResult:
     :func __sub__: `a - b` returns a new PixivResult contains artworks from `a` but not `b`
 
     """
-    
+
     def __init__(self, artworks, folder=""):
         self.artworks = list(artworks)
         # generate unique folder if not given
@@ -204,14 +204,32 @@ class PixivResult:
         return len(self.artworks)
 
     def __add__(self, other):
+
+        self_len = len(self.artworks)
+        other_len = len(other.artworks)
         artworks = list(set(self.artworks + other.artworks))
+        new_len = len(artworks)
+
         folder = util.clean_filename(str(self.folder) + '+' + str(other.folder))
-        return PixivResult(artworks, folder)
+        result = PixivResult(artworks, folder)
+
+        util.log('Added {self_len} + {other_len} => {sum}'.format(self_len=self_len, other_len=other_len, sum=new_len), start='\r\n', inform=True)
+
+        return result
 
     def __sub__(self, other):
+
+        self_len = len(self.artworks)
+        other_len = len(other.artworks)
         artworks = list(item for item in self.artworks if item not in other.artworks)
+        new_len = len(artworks)
+
         folder = util.clean_filename(str(self.folder) + '-' + str(other.folder))
-        return PixivResult(artworks, folder)
+        result = PixivResult(artworks, folder)
+
+        util.log('Subbed {self_len} - {other_len} => {sum}'.format(self_len=self_len, other_len=other_len, sum=new_len), start='\r\n', inform=True)
+
+        return result
 
     class _ComparaleItem:
 
@@ -220,34 +238,89 @@ class PixivResult:
             self.outer_instance = outer_instance
 
         def __eq__(self, value):
+            util.log('Filtering {name} == {value}'.format(name=self.name, value=value), start='\r\n', inform=True)
+
+            old_len = len(self.outer_instance.artworks)
             artworks = list(filter(lambda item: getattr(item, self.name) == value, self.outer_instance.artworks))
-            folder = util.clean_filename(str(self.outer_instance.folder) + '==' + str(value))
-            return PixivResult(artworks, folder)
+            new_len = len(artworks)
+
+            folder = util.clean_filename(str(self.outer_instance.folder) + 'eq' + str(value))
+            result = PixivResult(artworks, folder)
+
+            util.log('done {} => {}'.format(old_len, new_len), inform=True)
+
+            return result
 
         def __ne__(self, value):
+            util.log('Filtering {name} != {value}'.format(name=self.name, value=value), start='\r\n', inform=True)
+
+            old_len = len(self.outer_instance.artworks)
             artworks = list(filter(lambda item: getattr(item, self.name) != value, self.outer_instance.artworks))
-            folder = util.clean_filename(str(self.outer_instance.folder) + '!=' + str(value))
-            return PixivResult(artworks, folder)
+            new_len = len(artworks)
+
+            folder = util.clean_filename(str(self.outer_instance.folder) + 'ne' + str(value))
+            result = PixivResult(artworks, folder)
+
+            util.log('done {} => {}'.format(old_len, new_len), inform=True)
+
+            return result
 
         def __lt__(self, value):
+            util.log('Filtering {name} < {value}'.format(name=self.name, value=value), start='\r\n', inform=True)
+
+            old_len = len(self.outer_instance.artworks)
             artworks = list(filter(lambda item: getattr(item, self.name) < value, self.outer_instance.artworks))
-            folder = util.clean_filename(str(self.outer_instance.folder) + '<' + str(value))
-            return PixivResult(artworks, folder)
+            new_len = len(artworks)
+
+            folder = util.clean_filename(str(self.outer_instance.folder) + 'lt' + str(value))
+            result = PixivResult(artworks, folder)
+
+            util.log('done {} => {}'.format(old_len, new_len), inform=True)
+
+            return result
 
         def __le__(self, value):
+            util.log('Filtering {name} <= {value}'.format(name=self.name, value=value), start='\r\n', inform=True)
+
+            old_len = len(self.outer_instance.artworks)
             artworks = list(filter(lambda item: getattr(item, self.name) <= value, self.outer_instance.artworks))
-            folder = util.clean_filename(str(self.outer_instance.folder) + '<=' + str(value))
-            return PixivResult(artworks, folder)
+            new_len = len(artworks)
+
+            folder = util.clean_filename(str(self.outer_instance.folder) + 'le' + str(value))
+            result = PixivResult(artworks, folder)
+
+            util.log('done {} => {}'.format(old_len, new_len), inform=True)
+
+            return result
 
         def __gt__(self, value):
+            util.log('Filtering {name} > {value}'.format(name=self.name, value=value), start='\r\n', inform=True)
+
+            old_len = len(self.outer_instance.artworks)
             artworks = list(filter(lambda item: getattr(item, self.name) > value, self.outer_instance.artworks))
-            folder = util.clean_filename(str(self.outer_instance.folder) + '>' + str(value))
-            return PixivResult(artworks, folder)
+            new_len = len(artworks)
+
+            folder = util.clean_filename(str(self.outer_instance.folder) + 'gt' + str(value))
+            result = PixivResult(artworks, folder)
+
+            util.log('done {} => {}'.format(old_len, new_len), inform=True)
+
+            return result
+
 
         def __ge__(self, value):
+            util.log('Filtering {name} >= {value}'.format(name=self.name, value=value), start='\r\n', inform=True)
+
+            old_len = len(self.outer_instance.artworks)
             artworks = list(filter(lambda item: getattr(item, self.name) >= value, self.outer_instance.artworks))
-            folder = util.clean_filename(str(self.outer_instance.folder) + '>=' + str(value))
-            return PixivResult(artworks, folder)
+            new_len = len(artworks)
+
+            folder = util.clean_filename(str(self.outer_instance.folder) + 'ge' + str(value))
+            result = PixivResult(artworks, folder)
+
+            util.log('done {} => {}'.format(old_len, new_len), inform=True)
+
+            return result
 
 
 

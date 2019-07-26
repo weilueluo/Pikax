@@ -148,7 +148,7 @@ def pixiv_collection():
     pixiv = Pikax()
     user = pixiv.login(settings.username, settings.password)
     # last: 2018 11 28
-    curr_date = datetime(year=2019, month=5, day=1)
+    curr_date = datetime(year=2019, month=2, day=1)
     offset_date = timedelta(days=1)
     days_crawled = 0
     start_time = time.time()
@@ -163,7 +163,7 @@ def pixiv_collection():
         try:
             res = pixiv.rank(limit=50, date=curr_date, mode='daily', content='illust')
             download_res = pixiv.download(pixiv_result=res, folder='#Pixiv_1395days_top50rank')
-            result['total expected'] += download_res['total_expected']
+            result['total expected'] += download_res['total expected']
             result['success'] += download_res['success']
             result['failed'] += download_res['failed']
             result['skipped'] += download_res['skipped']
@@ -180,10 +180,10 @@ def pixiv_collection():
 def main():
     # test_search_normal_inputs()
     # test_search_random(10)
-    test_rank_random(10)
+    # test_rank_random(10)
     # test_user()
     # test2()
-    # pixiv_collection()
+    pixiv_collection()
 
 if __name__ == '__main__':
     main()
