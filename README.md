@@ -110,4 +110,4 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   new_results = (results.likes > 1000) - (results.views < 50000) # 过滤
   pixiv.download(new_results) # 下载
 ````
-#### 更多操作请参考[items.PixivResult](https://github.com/Redcxx/Pikax/blob/master/pikax/items.py)
+#### 更多操作请参考[items.PixivResult](https://github.com/Redcxx/Pikax/blob/master/pikax/items.py#L155)

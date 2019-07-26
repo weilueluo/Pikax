@@ -109,4 +109,4 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   new_results = (results.likes > 1000) - (results.views < 50000) # filters
   pixiv.download(new_results) # download
 ````
-#### visits[items.PixivResult](https://github.com/Redcxx/Pikax/blob/master/pikax/items.py) for more operations
+#### visits[items.PixivResult](https://github.com/Redcxx/Pikax/blob/master/pikax/items.py#L155) for more operations
