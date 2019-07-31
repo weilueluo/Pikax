@@ -4,7 +4,6 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ````
   pip install Pikax # current pre-release
 ````
-> # Login currently not avaliable QAQ
 ---
 ## Requirements
 - [Python3](https://www.python.org/downloads/)
