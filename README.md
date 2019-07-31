@@ -4,7 +4,6 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 ````
   pip install Pikax # 当前的预发布
 ````
-> # 登录暂不可用。。。嘤嘤嘤
 ---
 ## 需要
 - [Python3](https://www.python.org/downloads/)
