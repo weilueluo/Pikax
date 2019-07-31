@@ -3,6 +3,7 @@
 *.jpg
 *.html
 *.txt
+*.gif
 
 *__pycache__*
 
