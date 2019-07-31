@@ -13,7 +13,6 @@ from . import settings, util
 from .pages import LoginPage
 from .exceptions import ReqException, ArtworkError, UserError
 
-
 __all__ = ['Artwork', 'PixivResult', 'User']
 
 
@@ -45,6 +44,7 @@ class Artwork():
     _headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
     }
+
     # https://www.pixiv.net/touch/ajax/illust/details?illust_id=75637165
 
     def __init__(self, id):
@@ -62,7 +62,7 @@ class Artwork():
             self.title = image_data['illustTitle']
             self.author = image_data['userName']
             self.page_count = image_data['pageCount']
-            self.original_url = re.sub(r'(?<=_p)\d', '{page_num}' ,self.original_url)
+            self.original_url = re.sub(r'(?<=_p)\d', '{page_num}', self.original_url)
         except ReqException as e:
             util.log(str(e), error=True, save=True)
             raise ArtworkError('Artwork id:', str(self.id), 'has been deleted or does not exists')
@@ -110,7 +110,7 @@ class Artwork():
         curr_page = 0
         success = True
         skipped = False
-        while curr_page < self.page_count: # start from 0 to page_count - 1
+        while curr_page < self.page_count:  # start from 0 to page_count - 1
             if settings.MAX_PAGES_PER_ARTWORK:
                 if curr_page >= settings.MAX_PAGES_PER_ARTWORK:
                     break
@@ -119,7 +119,7 @@ class Artwork():
             file_name_search = re.search(r'(\d{8}_p\d.*)', url)
             file_name = file_name_search.group(1) if file_name_search else url
             file_name = util.clean_filename(self.author) + '_' + util.clean_filename(file_name)
-            if folder != None:
+            if folder is not None:
                 file_name = util.clean_filename(folder) + '/' + file_name
 
             if os.path.isfile(file_name):
@@ -130,7 +130,8 @@ class Artwork():
 
             try:
                 err_msg = pic_detail + ' Failed'
-                original_pic_respond = util.req(type='get', url=url, headers=self._headers, err_msg=err_msg, log_req=False)
+                original_pic_respond = util.req(type='get', url=url, headers=self._headers, err_msg=err_msg,
+                                                log_req=False)
                 with open(file_name, 'wb') as file:
                     file.write(original_pic_respond.content)
                     util.log(pic_detail + ' OK', inform=True, start=settings.CLEAR_LINE, end='\r')
@@ -151,6 +152,7 @@ class Artwork():
                 results_dict['failed'] += 1
 
             results_dict['total pages'] += self.page_count
+
 
 class PixivResult:
     """Encapsulate results of actions; interface for download
@@ -213,7 +215,8 @@ class PixivResult:
         folder = util.clean_filename(str(self.folder) + '+' + str(other.folder))
         result = PixivResult(artworks, folder)
 
-        util.log('Added {self_len} + {other_len} => {sum}'.format(self_len=self_len, other_len=other_len, sum=new_len), start='\r\n', inform=True)
+        util.log('Added {self_len} + {other_len} => {sum}'.format(self_len=self_len, other_len=other_len, sum=new_len),
+                 start='\r\n', inform=True)
 
         return result
 
@@ -227,7 +230,8 @@ class PixivResult:
         folder = util.clean_filename(str(self.folder) + '-' + str(other.folder))
         result = PixivResult(artworks, folder)
 
-        util.log('Subbed {self_len} - {other_len} => {sum}'.format(self_len=self_len, other_len=other_len, sum=new_len), start='\r\n', inform=True)
+        util.log('Subbed {self_len} - {other_len} => {sum}'.format(self_len=self_len, other_len=other_len, sum=new_len),
+                 start='\r\n', inform=True)
 
         return result
 
@@ -307,7 +311,6 @@ class PixivResult:
 
             return result
 
-
         def __ge__(self, value):
             util.log('Filtering {name} >= {value}'.format(name=self.name, value=value), start='\r\n', inform=True)
 
@@ -323,8 +326,6 @@ class PixivResult:
             return result
 
 
-
-
 # https://github.com/oz123/oz123.github.com/blob/master/media/uploads/readonly_properties.py
 def read_only_attrs(*attrs):
     def class_changer(cls):
@@ -338,12 +339,15 @@ def read_only_attrs(*attrs):
                     raise AttributeError('This attribute is read only:', name)
 
                 return super().__setattr__(name, new_value)
+
         return User
+
     return class_changer
 
 
 # raise LoginError if failed to login
-@read_only_attrs('login', 'id', 'account', 'name', 'follows', 'background_url', 'title', 'description', 'pixiv_url', 'has_bookmarks', 'has_illusts', 'has_mangas')
+@read_only_attrs('login', 'id', 'account', 'name', 'follows', 'background_url', 'title', 'description', 'pixiv_url',
+                 'has_bookmarks', 'has_illusts', 'has_mangas')
 class User:
     """This class represent a user and contains actions which needs login in pixiv.net
 
@@ -386,8 +390,8 @@ class User:
     """
 
     # for retrieving details
-    _user_details_url = 'https://www.pixiv.net/touch/ajax/user/details?' # param id
-    _self_details_url = 'https://www.pixiv.net/touch/ajax/user/self/status' # need login session
+    _user_details_url = 'https://www.pixiv.net/touch/ajax/user/details?'  # param id
+    _self_details_url = 'https://www.pixiv.net/touch/ajax/user/self/status'  # need login session
 
     # for retrieving contents
     _content_url = 'https://www.pixiv.net/touch/ajax/user/illusts?'
@@ -399,23 +403,23 @@ class User:
     # user language for settings
     _user_lang_dict = {
         'zh': u'保存',
-        'zh_tw' : u'保存',
-        'ja' : u'変更',
-        'en' : u'Update',
-        'ko' : u'변경'
+        'zh_tw': u'保存',
+        'ja': u'変更',
+        'en': u'Update',
+        'ko': u'변경'
     }
-
 
     def __init__(self, username=None, password=None, user_id=None, session=None):
 
         # check input
-        # must provide either username and password or atleast user_id
+        # must provide either username and password or at least user_id
         if not ((username and password) or user_id):
             raise UserError('Please supply username and password or user id (and session)')
 
         # if only user id is provided, give incomplete data warning
         if not (username and password or session) and user_id:
-            util.log('User initialized without username and password or session may results in incomplete data', warn=True, save=True)
+            util.log('User initialized without username and password or session may results in incomplete data',
+                     warn=True, save=True)
 
         # login session
         self.session = session
@@ -442,8 +446,8 @@ class User:
             # save user's settings for r18 and r18g
             try:
                 res = util.req(url=self._settings_url, session=self.session)
-                self._r18 = re.search(r'name="r18" value="show" checked>', res.text) != None
-                self._r18g = re.search(r'name="r18g" value="2" checked>', res.text) != None
+                self._r18 = re.search(r'name="r18" value="show" checked>', res.text) is not None
+                self._r18g = re.search(r'name="r18g" value="2" checked>', res.text) is not None
                 lang_search_res = re.search(r'option value="(\w\w)" selected>', res.text)
                 if lang_search_res:
                     self._lang = lang_search_res.group(1)
@@ -456,8 +460,6 @@ class User:
             self._token = self._get_token()
             # if username and password is provided, this is a logined user
             self._login = True
-
-
 
         # if user id is not given and failed to retrieve user id
         if not user_id:
@@ -472,7 +474,6 @@ class User:
         except (ReqException, json.JSONDecodeError) as e:
             util.log(str(e), error=True, save=True)
             raise UserError('Failed to load user information')
-
 
         # save user information, not used yet, for filter in the future
         data_json = data_json['user_details']
@@ -494,8 +495,6 @@ class User:
         # self.has_novels = data_json['has_novels']
         self.has_bookmarks = data_json['has_bookmarks'] or False
 
-
-
     def _get_token(self):
         try:
             res = util.req(url=self._settings_url, session=self.session)
@@ -509,7 +508,6 @@ class User:
         except ReqException as e:
             raise UserError('Failed to retrieve user token')
 
-
     @property
     def login(self):
         return self._login
@@ -520,7 +518,6 @@ class User:
             raise UserError('Please login before viewing user language')
 
         return self._lang
-
 
     @property
     def r18(self):
@@ -555,7 +552,7 @@ class User:
     def _property_setter(self, r18=None, r18g=None):
         # raise ReqException if fails
         # this will change pixiv account's language to english
-        #raise user error if not login
+        # raise user error if not login
         if not self._login:
             raise UserError('Please login before setting r18 & r18 content')
 
@@ -565,12 +562,12 @@ class User:
         form['submit'] = self._user_lang_dict[self._lang]
         form['tt'] = self._token if self._token else self._get_token()
 
-        if r18g != None: # if want to change r18g
+        if r18g is not None:  # if want to change r18g
             form['r18g'] = '2' if r18 else '1'
         else:
             form['r18g'] = '2' if self._r18g else '1'
 
-        if r18 != None: # if want to change r18
+        if r18 is not None:  # if want to change r18
             form['r18'] = 'show' if r18 else 'hide'
         else:
             form['r18'] = 'show' if self._r18 else 'hide'
@@ -578,12 +575,11 @@ class User:
         # submit change request
         util.req(type='post', url=self._settings_url, session=self.session, data=form)
 
-
     def _get_bookmark_artworks(self, limit=None):
         params = dict()
         params['id'] = self.id
         curr_page = 0
-        last_page = 1 # a number more than curr_page, change later in loop
+        last_page = 1  # a number more than curr_page, change later in loop
         bookmark_ids = []
         try:
             while curr_page < last_page:
@@ -592,7 +588,7 @@ class User:
                 res = util.req(session=self.session, url=self._bookmarks_url, params=params)
                 res_json = util.json_loads(res.content)
                 bookmark_ids += [illust['id'] for illust in res_json['bookmarks']]
-                if limit != None:
+                if limit is not None:
                     if len(bookmark_ids) > limit:
                         bookmark_ids = util.trim_to_limit(items=bookmark_ids, limit=limit)
                         break
@@ -610,7 +606,7 @@ class User:
         params['id'] = self.id
         params['type'] = type
         curr_page = 0
-        last_page = 1 # a number more than curr_page
+        last_page = 1  # a number more than curr_page
         items_ids = []
 
         try:
@@ -621,7 +617,7 @@ class User:
                 res = util.req(session=self.session, url=self._content_url, params=params)
                 res_json = util.json_loads(res.content)
                 items_ids += [illust['id'] for illust in res_json['illusts']]
-                if limit != None:
+                if limit is not None:
                     if len(items_ids) > limit:
                         items_ids = util.trim_to_limit(items=items_ids, limit=limit)
                         break
@@ -636,7 +632,7 @@ class User:
     def _get_illust_artworks(self, limit=None):
         try:
             res = util.req(session=self.session, url=self._illusts_url.format(user_id=self.id))
-            illust_ids = eval(res.text) # string to list
+            illust_ids = eval(res.text)  # string to list
             artworks = util.generate_artworks_from_ids(illust_ids, limit=limit)
             return artworks
         except ReqException as e:
@@ -708,7 +704,7 @@ class User:
 
         """
         util.log('Getting bookmarks from id:', self.id)
-        if self.has_bookmarks :
+        if self.has_bookmarks:
             self.bookmark_artworks = self._get_bookmark_artworks(limit=limit)
         else:
             util.log('User with id:', self.id, 'has no bookmarks')

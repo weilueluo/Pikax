@@ -7,7 +7,7 @@ with open("README.md", "r", encoding='utf-8') as fh:
 
 setuptools.setup(
     name="pikax",
-    version="1.1.1",
+    version="1.2.1",
     author="Redcxx",
     author_email="weilue.luo@student.manchester.ac.uk",
     description="A Pixiv Mass Downloading Tool",

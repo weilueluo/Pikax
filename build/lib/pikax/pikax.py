@@ -8,14 +8,16 @@
 import time, re, sys, os, json, datetime, math
 from multiprocessing import Manager
 
+from pikax.exceptions import ArtworkError
+
 from . import util, settings
 from .pages import SearchPage, RankingPage
 from .items import Artwork, PixivResult, User
-from .exceptions import LoginError, ReqException
 
 sys.stdout.reconfigure(encoding='utf-8')
 
 __all__ = ['Pikax']
+
 
 class Pikax:
     """Representing Pixiv.net
@@ -32,13 +34,15 @@ class Pikax:
     :func access: returns a User Object given user_id and this pikax Object's session
 
     """
+
     def __init__(self, user=None):
         self.user = user
         self.search_page = SearchPage(user=user)
         self.ranking_page = RankingPage(user=user)
         self.logged = user != None
 
-    def search(self, keyword, limit=None, type=None, dimension=None, match=None, popularity=None, order=None, mode=None):
+    def search(self, keyword, limit=None, type=None, dimension=None, match=None, popularity=None, order=None,
+               mode=None):
         """Search Pixiv and returns PixivResult Object
 
         **Description**
@@ -50,9 +54,11 @@ class Pikax:
         """
         util.log('Searching:', keyword)
 
-        artworks = self.search_page.search(keyword=keyword, type=type, dimension=dimension, match=match, popularity=popularity, limit=limit, order=order, mode=mode)
+        artworks = self.search_page.search(keyword=keyword, type=type, dimension=dimension, match=match,
+                                           popularity=popularity, limit=limit, order=order, mode=mode)
 
-        folder = settings.SEARCH_RESULTS_FOLDER.format(keyword=keyword, type=type, dimension=dimension, mode=mode, popularity=popularity, limit=limit)
+        folder = settings.SEARCH_RESULTS_FOLDER.format(keyword=keyword, type=type, dimension=dimension, mode=mode,
+                                                       popularity=popularity, limit=limit)
 
         results = PixivResult(artworks, folder)
 
@@ -107,12 +113,12 @@ class Pikax:
         """
 
         util.log('Downloading ... ', start='\r\n', inform=True)
-        if pixiv_result != None:
+        if pixiv_result is not None:
             return download.download(pixiv_result, folder)
         elif artwork_id:
             try:
                 Artwork(artwork_id).download(folder=folder)
-                util.log('', inform=True) # move to next line
+                util.log('', inform=True)  # move to next line
             except ArtworkError as e:
                 util.log(str(e), error=True, save=True)
 
@@ -144,25 +150,25 @@ class Pikax:
         return User(user_id=user_id, session=self.user.session if self.user else None)
 
 
-
-
 #
 # for download stuff below
 #
 
 class download:
 
+    @staticmethod
     def _download_list_of_items(items, results_dict):
         for item in items:
             item.download(folder=results_dict['folder'], results_dict=results_dict)
 
+    @staticmethod
     def _sort_by_pages_count(item):
         if settings.MAX_PAGES_PER_ARTWORK:
             if item.page_count > settings.MAX_PAGES_PER_ARTWORK:
                 return settings.MAX_PAGES_PER_ARTWORK
         return item.page_count
 
-
+    @staticmethod
     def _rearrange_into_optimal_chunks(items, next=True):
 
         num_of_items = len(items)
@@ -197,34 +203,41 @@ class download:
 
         return final_list
 
+    @staticmethod
     def _download_initilizer(pixiv_result, folder):
-        if folder == None:
+        if folder is None:
             folder = pixiv_result.folder
         folder = str(folder)
-        folder = util.clean_filename(folder) # remove not allowed chracters as file name in windows
+        folder = util.clean_filename(folder)  # remove not allowed chracters as file name in windows
         if not os.path.exists(folder):
             os.mkdir(folder)
         pixiv_result.artworks = download._rearrange_into_optimal_chunks(pixiv_result.artworks)
         results_dict = Manager().dict()
-        results_dict['total_expected'] = len(pixiv_result.artworks)
+        results_dict['total expected'] = len(pixiv_result.artworks)
         results_dict['success'] = 0
         results_dict['failed'] = 0
         results_dict['skipped'] = 0
+        results_dict['total pages'] = 0
         results_dict['folder'] = folder
         return results_dict
 
+    @staticmethod
     def _log_download_results(pixiv_result, start_time, end_time, results_dict=dict()):
-        util.log('', end=settings.CLEAR_LINE, inform=True) # remove last printed saved ok line
-        util.log('', inform=True) # move to next line
+        util.log('', end=settings.CLEAR_LINE, inform=True)  # remove last printed saved ok line
+        util.log('', inform=True)  # move to next line
         for key, value in results_dict.items():
             util.log(key.title(), ':', value, inform=True, save=True)
         util.log('Time Taken:', str(end_time - start_time) + 's', inform=True, save=True)
-        util.log('Done', str(results_dict['success'] + results_dict['skipped'])  + '/' + str(results_dict['total_expected']), end='\r\n', inform=True, save=True)
+        util.log('Done',
+                 str(results_dict['success'] + results_dict['skipped']) + '/' + str(results_dict['total expected']),
+                 end='\n\n', inform=True, save=True)
 
+    @staticmethod
     def download(pixiv_result, folder):
         results_dict = download._download_initilizer(pixiv_result, folder)
         start_time = time.time()
-        util.multiprocessing_(items=pixiv_result.artworks, small_list_executor=download._download_list_of_items, results_saver=results_dict)
+        util.multiprocessing_(items=pixiv_result.artworks, small_list_executor=download._download_list_of_items,
+                              results_saver=results_dict)
         end_time = time.time()
         download._log_download_results(pixiv_result, start_time, end_time, results_dict)
         return results_dict

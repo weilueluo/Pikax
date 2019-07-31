@@ -10,12 +10,16 @@ Each page encapsulate their capabilities
 :class: RankingPage
 """
 
-import re, time, requests, json
+import json
+import re
+import requests
+import time
 
 from . import settings, util
 from .exceptions import LoginError, ReqException, PostKeyError, SearchError, RankError
 
 __all__ = ['LoginPage', 'SearchPage', 'RankingPage']
+
 
 # raise LoginError if failed to login
 class LoginPage:
@@ -42,10 +46,11 @@ class LoginPage:
             util.log(str(e), error=True, save=True)
             raise PostKeyError('Failed to find post key')
 
-    def login(self, username, password):
+    def login(self, username, password, post_key=None):
         """Used to attempt log into pixiv.net
 
         **Parameters**
+        :param post_key:
         :param str username: username of your pixiv account
         :param str password: password of your pixiv account
 
@@ -60,10 +65,13 @@ class LoginPage:
         """
 
         try:
+            if post_key is None:
+                post_key = self._get_post_key_from_pixiv()
+
             data = {
                 'pixiv_id': username,
                 'password': password,
-                'post_key': self._get_post_key_from_pixiv()
+                'post_key': post_key
             }
             util.log('Sending request to attempt login ...')
             respond = util.req(type='post', session=self._session, url=self._login_url, data=data)
@@ -71,7 +79,14 @@ class LoginPage:
             return self._session
         except ReqException as e:
             util.log(str(e), error=True, save=True)
-            raise LoginError('Login failed. Please check your internet or username and password in settings.py', type='inform save')
+            util.log('login failed, please enter cookies manually', inform=True)
+            cookies = input('Paste your cookies:')
+            for old_cookie in self._session.cookies.keys():
+                self._session.cookies.__delitem__(old_cookie)
+            for new_cookie in cookies.split(';'):
+                name, value = new_cookie.split('=', 1)
+                self._session.cookies[name] = value
+            return self.login(username, password, post_key=post_key)
 
 
 class SearchPage:
@@ -92,10 +107,10 @@ class SearchPage:
 
     def _set_general_params(self, type, dimension, match, order, mode):
         params = dict()
-        if type: # default match all type
+        if type:  # default match all type
             params['type'] = type
 
-        if dimension: # default match all ratios
+        if dimension:  # default match all ratios
             if dimension == 'horizontal':
                 params['ratio'] = '0.5'
             elif dimension == 'vertical':
@@ -105,8 +120,8 @@ class SearchPage:
             else:
                 raise SearchError('Invalid dimension given:', dimension)
 
-        if match: # default match if contain tags
-            if match == 'strict_tag': # specified tags only
+        if match:  # default match if contain tags
+            if match == 'strict_tag':  # specified tags only
                 params['s_mode'] = 's_tag_full'
             elif match == 'loose':
                 params['s_mode'] = 's_tc'
@@ -146,7 +161,8 @@ class SearchPage:
                     limit = total_limit - num_of_ids_sofar
         return ids
 
-    def search(self, keyword, limit=None, type=None, dimension=None, match=None, popularity=None, order='date_desc', mode=None):
+    def search(self, keyword, limit=None, type=None, dimension=None, match=None, popularity=None, order='date_desc',
+               mode=None):
         """Used to search in pixiv.net
 
         **Parameters**
@@ -249,7 +265,8 @@ class SearchPage:
             util.log('Searching id for params:', params, 'at page:', curr_page)
             try:
                 err_msg = 'Failed getting ids from params ' + str(params) + ' page: ' + str(curr_page)
-                results = util.req(type='get', session=self._session, url=self._search_url, params=params, err_msg=err_msg, log_req=False)
+                results = util.req(type='get', session=self._session, url=self._search_url, params=params,
+                                   err_msg=err_msg, log_req=False)
             except ReqException as e:
                 util.log(str(e), error=True, save=True)
                 if curr_page == 1:
@@ -276,9 +293,10 @@ class SearchPage:
                 # limit has not reached
 
             # now check if any new items is added
-            if old_len == new_len: # if no new item added, end of search pages
-                if limit != None: # if limit is specified, it means search ended without meeting user's limit
-                    util.log('Search did not return enough items for limit:', new_len, '<', limit, inform=True, save=True)
+            if old_len == new_len:  # if no new item added, end of search pages
+                if limit != None:  # if limit is specified, it means search ended without meeting user's limit
+                    util.log('Search did not return enough items for limit:', new_len, '<', limit, inform=True,
+                             save=True)
                 return ids_sofar
 
             # search next page
@@ -322,7 +340,7 @@ class RankingPage:
             params['content'] = content
 
         if date:
-            if not isinstance(date, str): # then it has to be datetime.datetime
+            if not isinstance(date, str):  # then it has to be datetime.datetime
                 date = format(date, '%Y%m%d')
             params['date'] = date
 
@@ -343,7 +361,7 @@ class RankingPage:
                 res = util.json_loads(res.content)
             except (ReqException, json.JSONDecodeError) as e:
                 util.log(str(e), error=True, save=True)
-                util.log('End of rank at page:', page_num , inform=True, save=True)
+                util.log('End of rank at page:', page_num, inform=True, save=True)
                 break
             if 'error' in res:
                 util.log('End of page while searching', str(params) + '. Finished')
@@ -405,11 +423,6 @@ class RankingPage:
         :rtype: list
 
         """
-        if not self._logged:
-            util.log('Rank without login may results in incomplete data', warn=True, save=True)
-
-        # for recoding
-        start = time.time()
 
         # some combinations are not allowed
         self._check_inputs(mode=mode, content=content, type=type)

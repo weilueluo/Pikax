@@ -147,8 +147,8 @@ import time
 def pixiv_collection():
     pixiv = Pikax()
     user = pixiv.login(settings.username, settings.password)
-    # last: 2018 11 28
-    curr_date = datetime(year=2019, month=2, day=1)
+    # last: 2017 10 22
+    curr_date = datetime(year=2018, month=4, day=15)
     offset_date = timedelta(days=1)
     days_crawled = 0
     start_time = time.time()

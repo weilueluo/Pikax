@@ -7,7 +7,7 @@ not all requests uses this headers
 """
 DEFAULT_HEADERS = {
     'referer': 'https://www.pixiv.net/',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36'
 }
 
 
@@ -20,6 +20,19 @@ TIMEOUT = 10
 Number of retries for requesting
 """
 MAX_RETRIES_FOR_REQUEST = 3
+
+
+"""
+Proxies used for sending requests,
+uses requests, map protocol to scheme,
+# https://2.python-requests.org/en/master/user/advanced/
+e.g.
+proxies = {
+  'http': 'http://10.10.1.10:3128',
+  'https': 'http://10.10.1.10:1080',
+}
+"""
+REQUEST_PROXIES = {}
 
 
 """
@@ -88,7 +101,7 @@ A artwork id may have multiple pages,
 sometimes is not desire to download all of them,
 None means download all pages
 """
-MAX_PAGES_PER_ARTWORK = None
+MAX_PAGES_PER_ARTWORK = 3
 
 
 """

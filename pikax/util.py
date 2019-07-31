@@ -31,7 +31,7 @@ _warn_enabled = _log_type.find('warn') != -1
 __all__ = ['log', 'req', 'json_loads', 'generate_artworks_from_ids', 'trim_to_limit', 'multiprocessing_', 'clean_filename', 'print_json', 'read_only_attrs']
 
 
-def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', type='', inform=False, save=False, error=False, warn=False):
+def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False, warn=False):
     """Print according to params and settings.py
 
     **Description**
