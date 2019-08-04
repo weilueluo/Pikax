@@ -36,7 +36,6 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   from pikax.pikax import Pikax
 
   pixiv = Pikax()
-  pixiv.login(settings.username, settings.password) # 不必要但强烈推荐
   results = pixiv.rank(limit=20, content='illust', type='daily', mode='safe')
   pixiv.download(results, folder='#Pixiv_daily_ranking')
 ````

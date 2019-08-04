@@ -3,6 +3,7 @@
 *.jpg
 *.html
 *.txt
+*.gif
 
 *__pycache__*
 
@@ -10,3 +11,5 @@
 
 pikax/test*
 pikax/try*
+function_test*
+test*

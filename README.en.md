@@ -37,7 +37,6 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   from pikax.pikax import Pikax
 
   pixiv = Pikax()
-  pixiv.login(settings.username, settings.password) # not necessary but strongly suggested
   results = pixiv.rank(limit=20, content='illust', type='daily', mode='safe')
   pixiv.download(results, folder='#Pixiv_daily_ranking')
 ```
