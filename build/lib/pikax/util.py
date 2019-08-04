@@ -197,7 +197,7 @@ def req(url, type='get', session=None, params=None, data=None, headers=settings.
             log('Reason:', str(e), 'Retries:', curr_retries, save=True)
 
         curr_retries += 1
-        time.sleep(0.5) # dont request again too fast
+        time.sleep(0.5)  # dont request again too fast
 
     # if still fails after all retries
     exception_msg = str(type) + ' failed: ' + str(url) + ' params: ' + str(params)

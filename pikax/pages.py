@@ -32,7 +32,22 @@ class LoginPage:
     _login_url = 'https://accounts.pixiv.net/api/login?lang=en'
 
     def __init__(self):
+        self.password = None
+        self.username = None
+        self.post_key = None
         self._session = requests.Session()
+
+    def relogin_with_cookies(self):
+        cookies = input('Paste your cookies:')
+        for old_cookie in self._session.cookies.keys():
+            self._session.cookies.__delitem__(old_cookie)
+        try:
+            for new_cookie in cookies.split(';'):
+                name, value = new_cookie.split('=', 1)
+                self._session.cookies[name] = value
+        except ValueError as e:
+            util.log('Cookies given is invalid, please try again | {}'.format(e), error=True)
+        return self.login(self.username, self.password, post_key=self.post_key)
 
     def _get_post_key_from_pixiv(self):
         util.log('Sending request to retrieve post key ...')
@@ -63,10 +78,16 @@ class LoginPage:
         :raises LoginError: if login fails
 
         """
+        self.password = password
+        self.username = username
 
+        retry = False
         try:
             if post_key is None:
+                retry = True
                 post_key = self._get_post_key_from_pixiv()
+
+            self.post_key = post_key
 
             data = {
                 'pixiv_id': username,
@@ -79,14 +100,10 @@ class LoginPage:
             return self._session
         except ReqException as e:
             util.log(str(e), error=True, save=True)
+            if retry:
+                raise ValueError('Failed login with cookies, please try again')
             util.log('login failed, please enter cookies manually', inform=True)
-            cookies = input('Paste your cookies:')
-            for old_cookie in self._session.cookies.keys():
-                self._session.cookies.__delitem__(old_cookie)
-            for new_cookie in cookies.split(';'):
-                name, value = new_cookie.split('=', 1)
-                self._session.cookies[name] = value
-            return self.login(username, password, post_key=post_key)
+            self.relogin_with_cookies()
 
 
 class SearchPage:

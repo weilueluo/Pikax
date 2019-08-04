@@ -25,14 +25,13 @@ from pikax.pikax import Pikax, settings
 
 def download_daily_rankings_example():
     pixiv = Pikax()
-    pixiv.login(settings.username, settings.password)  # optional, but strongly suggested
     results = pixiv.rank(limit=100, content='illust', type='daily', date=None)
     pixiv.download(results, folder='#Pikax_daily_ranking')
 
 
 def download_search_example():
     pixiv = Pikax()
-    pixiv.login(settings.username, settings.password)  # optional, but strongly suggested
+    # pixiv.login(settings.username, settings.password)  # optional, but strongly suggested
     results = pixiv.search(keyword='オリジナル', type='illust', dimension='horizontal', popularity=10000, limit=20,
                            match=None, mode='safe')
     pixiv.download(results)
@@ -79,14 +78,13 @@ def download_r18_ranking_example():
 
 def download_r18_search_example():
     pixiv = Pikax()
-    pixiv.login(settings.username, settings.password)
+    # pixiv.login(settings.username, settings.password)
     res = pixiv.search(keyword='miku', type='illust', limit=50, mode='r18')
     pixiv.download(res)
 
 
 def download_with_filter_example():
     pixiv = Pikax()
-    pixiv.login(settings.username, settings.password)  # login
     results = pixiv.rank(limit=50)  # top 50 daily ranking
 
     new_results = results.likes > 1000  # filters likes > 1000
