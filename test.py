@@ -22,5 +22,6 @@ def main():
     # print(res.text)
     user = User(settings.username, settings.password)
 
+
 if __name__ == '__main__':
     main()

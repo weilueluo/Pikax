@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pikax
-Version: 1.2.3
+Version: 1.2.4
 Summary: A Pixiv Mass Downloading Tool
 Home-page: https://github.com/Redcxx/Pikax
 Author: Redcxx
@@ -44,7 +44,6 @@ Description: # Pikax:unicorn:
           from pikax.pikax import Pikax
         
           pixiv = Pikax()
-          pixiv.login(settings.username, settings.password) # 不必要但强烈推荐
           results = pixiv.rank(limit=20, content='illust', type='daily', mode='safe')
           pixiv.download(results, folder='#Pixiv_daily_ranking')
         ````

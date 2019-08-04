@@ -35,7 +35,13 @@ class LoginPage:
         self.password = None
         self.username = None
         self.post_key = None
+        self.retry = False
         self._session = requests.Session()
+
+    def visit_login_page(self):
+        url = "https://www.pixiv.net/"
+        res = util.req(url=url, session=self._session)
+        print('visit login page: {}'.format(res))
 
     def relogin_with_cookies(self):
         cookies = input('Paste your cookies:')
@@ -47,6 +53,7 @@ class LoginPage:
                 self._session.cookies[name] = value
         except ValueError as e:
             util.log('Cookies given is invalid, please try again | {}'.format(e), error=True)
+        self.retry = True
         return self.login(self.username, self.password, post_key=self.post_key)
 
     def _get_post_key_from_pixiv(self):
@@ -81,10 +88,11 @@ class LoginPage:
         self.password = password
         self.username = username
 
-        retry = False
         try:
+
+            self.visit_login_page()
+
             if post_key is None:
-                retry = True
                 post_key = self._get_post_key_from_pixiv()
 
             self.post_key = post_key
@@ -100,7 +108,7 @@ class LoginPage:
             return self._session
         except ReqException as e:
             util.log(str(e), error=True, save=True)
-            if retry:
+            if self.retry:
                 raise ValueError('Failed login with cookies, please try again')
             util.log('login failed, please enter cookies manually', inform=True)
             self.relogin_with_cookies()

@@ -98,7 +98,7 @@ class Pikax:
         :param artwork_id:
             the artwork id of the artwork to download
         :type artwork_id:
-            str or None
+            int or None
 
         :param folder:
             the folder used to save the download result, default folder in settings.py
