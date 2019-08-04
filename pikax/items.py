@@ -437,13 +437,6 @@ class User:
                 self.session = login_page.login(username=username, password=password)
                 status_data = util.req(session=self.session, url=self._self_details_url)
                 status_data_json = util.json_loads(status_data.text)
-                if not status_data_json['body']['user_status']['is_logged_in']:
-                    util.log('login is not successful, please manually enter cookies', inform=True)
-                    login_page.relogin_with_cookies()
-                    status_data = util.req(session=self.session, url=self._self_details_url)
-                    status_data_json = util.json_loads(status_data.text)
-                    if not status_data_json['body']['user_status']['is_logged_in']:
-                        raise ValueError('Cookies entered is invalid, please try again')
                 user_id = status_data_json['body']['user_status']['user_id']
             except ReqException as e:
                 util.log(str(e), error=True, save=True)

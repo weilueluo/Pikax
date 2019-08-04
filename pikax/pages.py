@@ -11,6 +11,8 @@ Each page encapsulate their capabilities
 """
 
 import json
+import os
+import pickle
 import re
 import requests
 import time
@@ -29,32 +31,63 @@ class LoginPage:
     """
     _post_key_url = 'https://accounts.pixiv.net/login?'
     _post_key_req_type = 'get'
-    _login_url = 'https://accounts.pixiv.net/api/login?lang=en'
+    _login_url = 'https://accounts.pixiv.net/api/login?'
+    _login_check_url = 'https://www.pixiv.net/touch/ajax/user/self/status'
 
     def __init__(self):
         self.password = None
         self.username = None
         self.post_key = None
-        self.retry = False
+        self.retried_with_input_cookies = False
         self._session = requests.Session()
 
-    def visit_login_page(self):
-        url = "https://www.pixiv.net/"
-        res = util.req(url=url, session=self._session)
-        print('visit login page: {}'.format(res))
+    def _check_is_logged(self):
+        res = util.req(url=self._login_check_url, session=self._session)
+        status_json = util.json_loads(res.content)
+        return status_json['body']['user_status']['is_logged_in']
 
-    def relogin_with_cookies(self):
-        cookies = input('Paste your cookies:')
+    @staticmethod
+    def _get_cookies_from_user():
+        return input('[=] Paste your cookies here:')
+
+    def login_with_cookies(self, cookies):
+        # remove old cookies
         for old_cookie in self._session.cookies.keys():
             self._session.cookies.__delitem__(old_cookie)
+
+        # add new cookies
         try:
             for new_cookie in cookies.split(';'):
                 name, value = new_cookie.split('=', 1)
                 self._session.cookies[name] = value
         except ValueError as e:
-            util.log('Cookies given is invalid, please try again | {}'.format(e), error=True)
-        self.retry = True
-        return self.login(self.username, self.password, post_key=self.post_key)
+            raise LoginError('Cookies given is invalid, please try again | {}'.format(e))
+
+        # check if cookies given works
+        if self._check_is_logged():
+            return self._handle_success_login()
+        else:
+            raise LoginError('Login with cookies failed')
+
+    def _handle_success_login(self):
+        util.log('Login successfully into Pixiv', inform=True)
+
+        cookies_file = settings.COOKIES_FILE
+        if os.path.isfile(cookies_file):
+            util.log('Rewriting local cookies: {}'.format(cookies_file))
+        else:
+            util.log('Saving cookies to file: {}'.format(cookies_file))
+
+        with open(cookies_file, 'wb') as file:
+            # request cookies is pickle-able
+            pickle.dump(self._session.cookies, file)
+
+        return self._session
+
+    def _handle_failed_login(self):
+        util.log('Login with local cookies and username and password failed, please enter cookies manually', error=True)
+        cookies = self._get_cookies_from_user()
+        return self.login_with_cookies(cookies)
 
     def _get_post_key_from_pixiv(self):
         util.log('Sending request to retrieve post key ...')
@@ -85,13 +118,30 @@ class LoginPage:
         :raises LoginError: if login fails
 
         """
+
+        cookie_file = settings.COOKIES_FILE
+
+        # login with local cookie if exists
+        if os.path.isfile(cookie_file):
+            util.log('Cookie file found: {}, attempt login with local cookie'.format(cookie_file))
+            try:
+                with open(cookie_file, 'rb') as f:
+                        self._session.cookies = pickle.load(f)
+                        if self._check_is_logged():
+                            util.log('Logged in successfully with local cookies', inform=True)
+                            return self._session
+                        else:
+                            os.remove(cookie_file)
+                            util.log('Removed outdated cookies', inform=True)
+            except pickle.UnpicklingError as e:
+                os.remove(cookie_file)
+                util.log('Removed corrupted cookies file, message: {}'.format(e))
+
+
+        # local cookies does not exists or outdated
         self.password = password
         self.username = username
-
         try:
-
-            self.visit_login_page()
-
             if post_key is None:
                 post_key = self._get_post_key_from_pixiv()
 
@@ -100,18 +150,21 @@ class LoginPage:
             data = {
                 'pixiv_id': username,
                 'password': password,
-                'post_key': post_key
+                'post_key': post_key,
             }
-            util.log('Sending request to attempt login ...')
-            respond = util.req(type='post', session=self._session, url=self._login_url, data=data)
-            util.log('Login request successfully sent to Pixiv as [{username}]'.format(username=username), inform=True)
-            return self._session
+            params = {
+                'lang': 'en'
+            }
+            util.log('Sending requests to attempt login ...')
+            util.req(type='post', session=self._session, url=self._login_url, data=data, params=params)
+            util.log('Login request sent to Pixiv'.format(username=username))
+            if self._check_is_logged():
+                return self._handle_success_login()
+            else:
+                return self._handle_failed_login()
         except ReqException as e:
             util.log(str(e), error=True, save=True)
-            if self.retry:
-                raise ValueError('Failed login with cookies, please try again')
-            util.log('login failed, please enter cookies manually', inform=True)
-            self.relogin_with_cookies()
+            return self._handle_failed_login()
 
 
 class SearchPage:

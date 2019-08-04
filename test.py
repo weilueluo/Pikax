@@ -1,4 +1,6 @@
 import json
+import requests
+from pikax import util
 
 from pikax.items import User
 
@@ -21,7 +23,15 @@ def main():
     # res = session.post('https://www.google.com/recaptcha/api2/reload?k=6LfJ0Z0UAAAAANqP-8mvUln2z6mHJwuv5YGtC8xp', headers=headers)
     # print(res.text)
     user = User(settings.username, settings.password)
-
+    # cookies = input('paste cookies:')
+    # s = requests.session()
+    # for cookie in cookies.split(';'):
+    #     name, value = cookie.split('=', 1)
+    #     s.cookies[name] = value
+    # login_url = 'https://accounts.pixiv.net/api/login?'
+    # res = s.get(url='https://www.pixiv.net/touch/ajax/user/self/status')
+    # status_json = util.json_loads(res.content)
+    # print('login:', status_json['body']['user_status']['is_logged_in'])
 
 if __name__ == '__main__':
     main()
