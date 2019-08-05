@@ -155,8 +155,10 @@ class LoginPage:
             params = {
                 'lang': 'en'
             }
+            print(self._session.cookies)
             util.log('Sending requests to attempt login ...')
-            util.req(type='post', session=self._session, url=self._login_url, data=data, params=params)
+            res = util.req(type='post', session=self._session, url=self._login_url, data=data, params=params)
+            print(res.headers)
             util.log('Login request sent to Pixiv'.format(username=username))
             if self._check_is_logged():
                 return self._handle_success_login()
