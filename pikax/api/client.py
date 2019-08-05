@@ -1,6 +1,6 @@
 
 #
-# This api is built smoothly thanks to @dazuling/@dazzler https://github.com/dazuling
+# This api is built smoothly thanks to @dazuling https://github.com/dazuling
 #
 
 #
@@ -17,7 +17,10 @@ from .. import util
 from ..exceptions import ReqException, ClientException
 from .. import params
 
+
 class Client:
+    # This class provide logged session and headers to use for making requests
+    # Provide auto refreshing token functionality
     _auth_url = 'https://oauth.secure.pixiv.net/auth/token'
     _host = 'https://app-api.pixiv.net'
     _headers = {
@@ -127,6 +130,7 @@ class Client:
 
 
 class _PikaxClient(Client):
+    # This class provide utilities for the real job, e.g. search/accessing user ...
 
     _search_url = Client._host + '/v1/search/illust?'
 
@@ -152,6 +156,7 @@ class _PikaxClient(Client):
 
 
 class PikaxClient(_PikaxClient):
+    # This class will be used by Pikax as api
 
     def __init__(self, username, password):
         super().__init__(username, password)
@@ -167,6 +172,7 @@ class PikaxClient(_PikaxClient):
         if limit:
             ids_collected = util.trim_to_limit(ids_collected, limit)
         return ids_collected
+
 
 # for testing
 def main():
