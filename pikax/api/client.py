@@ -1,6 +1,6 @@
 
 #
-# This api is built smoothly thanks to @dazuling https://github.com/dazuling
+# This api is built smoothly thanks to @dazuling @dazzler https://github.com/dazuling
 #
 
 #
