@@ -1,4 +1,5 @@
 # Pikax:unicorn:
+>## theres a login issue and I am working on it
 Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) mass download tool
 #### [Chinese ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.md)
 ````
