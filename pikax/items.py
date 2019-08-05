@@ -562,7 +562,7 @@ class User:
         form['tt'] = self._token if self._token else self._get_token()
 
         if r18g is not None:  # if want to change r18g
-            form['r18g'] = '2' if r18 else '1'
+            form['r18g'] = '2' if r18g else '1'
         else:
             form['r18g'] = '2' if self._r18g else '1'
 
