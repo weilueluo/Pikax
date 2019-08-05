@@ -1,6 +1,8 @@
 # Pikax:unicorn:
+>## 已注意到登陆出现问题，正在修复
 Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]批量下载工具。
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
+
 ````
   pip install Pikax # 当前的预发布
 ````
