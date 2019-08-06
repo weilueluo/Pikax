@@ -1,6 +1,6 @@
-
 #
-# This api is built smoothly thanks to @dazuling https://github.com/dazuling
+# special thanks @dazuling https://github.com/dazuling
+# for explaining https://oauth.secure.pixiv.net/auth/token
 #
 
 #
@@ -14,22 +14,23 @@ import urllib.parse
 
 import requests
 from .. import util
-from ..exceptions import ReqException, ClientException
+from ..exceptions import ReqException, ClientException, PikaxClientException
 from .. import params
 
 
 class Client:
     # This class provide logged session and headers to use for making requests
     # Provide auto refreshing token functionality
+
     _auth_url = 'https://oauth.secure.pixiv.net/auth/token'
     _host = 'https://app-api.pixiv.net'
     _headers = {
-            'User-Agent': 'PixivAndroidApp/5.0.151 (Android 5.1.1; SM-N950N)',
-            'App-OS': 'android',
-            'App-OS-Version': '5.1.1',
-            'App-Version': '5.0.151',
-            'Host': 'app-api.pixiv.net',
-        }
+        'User-Agent': 'PixivAndroidApp/5.0.151 (Android 5.1.1; SM-N950N)',
+        'App-OS': 'android',
+        'App-OS-Version': '5.1.1',
+        'App-Version': '5.0.151',
+        'Host': 'app-api.pixiv.net',
+    }
 
     def __init__(self, username, password):
         self._client_id = 'MOBrBDS8blbauoSck0ZfDbtuzpyT'
@@ -44,16 +45,18 @@ class Client:
         self._access_token_start_time = None
         self._refresh_token = None
         self._token_type = None
-        # not used
-        self._device_token = None
 
         self.user_id = None
+
+        # not used
+        self._device_token = None
         self.name = None
         self.account = None
         self.mail = None
         self.is_auth_mail = None
 
         self._login()
+
 
     def _update_access_token(self):
         data = {
@@ -132,27 +135,81 @@ class Client:
 class _PikaxClient(Client):
     # This class provide utilities for the real job, e.g. search/accessing user ...
 
-    _search_url = Client._host + '/v1/search/illust?'
+    _search_url = Client._host + '/v1/search/{type}?'
+    _following_url = Client._host + '/v1/user/following?'
+    _collection_url = Client._host + '/v1/user/bookmarks/{collection_type}?'
+    _tagged_collection_url = Client._host + '/v1/user/bookmark-tags/{collection_type}?'
 
     def __init__(self, username, password):
         super().__init__(username, password)
 
-    def _req(self, url):
-        return util.req(url=url, session=self.session, headers=self.headers)
+    def _req(self, url, params=None):
+        return util.req(url=url, session=self.session, headers=self.headers, params=params)
 
-    def _get_search_start_url(self, keyword, match, sort, range):
-        params = {
-            'word': keyword,
-            'search_target': match,
-            'sort': sort
+    def _get_search_start_url(self, keyword, type, match, sort, range):
+        param = {
+            'word': keyword
         }
-        if range:
-            today = datetime.date.today()
-            params['start_date'] = str(today)
-            params['end_date'] = str(today - range)
+
+        if type is not params.USER:
+            param['search_target'] = match
+            param['sort'] = sort
+
+            if range:
+                today = datetime.date.today()
+                param['start_date'] = str(today)
+                param['end_date'] = str(today - range)
+
+        encoded_params = urllib.parse.urlencode(param)
+        return _PikaxClient._search_url.format(type=type.value) + encoded_params
+
+    def _get_ids(self, next_url, limit, type):
+        data_container_name = params.Search.Type.get_response_container_name(type)
+        ids_collected = []
+        while next_url is not None and (not limit or len(ids_collected) < limit):
+            res_data = self._req(next_url).json()
+            if type is params.Search.Type.USER:
+                ids_collected += [item['user']['id'] for item in res_data[data_container_name]]
+            else:
+                ids_collected += [item['id'] for item in res_data[data_container_name]]
+            next_url = res_data['next_url']
+            ids_collected = list(set(ids_collected))
+        if limit:
+            ids_collected = util.trim_to_limit(ids_collected, limit)
+        return ids_collected
+
+    def _check_params(self, type=None, match=None, sort=None, range=None, limit=None, restrict=None):
+        if (type is not None) and (not params.Search.Type.is_valid(type)):
+            raise PikaxClientException(f'search type {type} must be an enum for {params.Search.Type}')
+        if (match is not None) and (not params.Search.Match.is_valid(match)):
+            raise PikaxClientException(f'search type {match} must be an enum for {params.Search.Match}')
+        if (sort is not None) and (not params.Search.Sort.is_valid(sort)):
+            raise PikaxClientException(f'search type {sort} must be an enum for {params.Search.Sort}')
+        if (range is not None) and (not isinstance(range, datetime.timedelta)):
+            raise PikaxClientException(f'search type {range} must be None or instance of datetime.timedelta')
+        if (limit is not None) and (not isinstance(limit, int)):
+            raise PikaxClientException(f'search type {limit} must be None or instance of int')
+        if (restrict is not None) and (not params.Collections.Restrict.is_valid(restrict)):
+            raise PikaxClientException(
+                f'collections restrict {restrict} must be an enum for {params.Collections.Restrict}')
+
+    def _get_bookmarks_start_url(self, type, params, tagged):
+        if tagged:
+            collection_url = _PikaxClient._tagged_collection_url.format(collection_type=type.value)
+        else:
+            collection_url = _PikaxClient._collection_url.format(collection_type=type.value)
 
         encoded_params = urllib.parse.urlencode(params)
-        return self._search_url + encoded_params
+        return collection_url + encoded_params
+
+    def _get_bookmarks(self, type, limit, restrict, tagged):
+        self._check_params(type=type, limit=limit, restrict=restrict)
+        params = {
+            'user_id': self.user_id,
+            'restrict': restrict.value
+        }
+        start_url = self._get_bookmarks_start_url(type, params, tagged=tagged)
+        return self._get_ids(start_url, limit=limit, type=type)
 
 
 class PikaxClient(_PikaxClient):
@@ -161,17 +218,32 @@ class PikaxClient(_PikaxClient):
     def __init__(self, username, password):
         super().__init__(username, password)
 
-    def search(self, keyword=None, match=params.EXACT, sort=params.DATE_DESC, range=None, limit=None):
-        next_url = self._get_search_start_url(keyword=keyword, match=match, sort=sort, range=range)
-        ids_collected = []
-        while next_url is not None and (not limit or len(ids_collected) < limit):
-            res_data = self._req(next_url).json()
-            ids_collected += [illust['id'] for illust in res_data['illusts']]
-            next_url = res_data['next_url']
-            time.sleep(1)
-        if limit:
-            ids_collected = util.trim_to_limit(ids_collected, limit)
-        return ids_collected
+    def search(self, keyword='', type=params.ILLUST, match=params.EXACT, sort=params.DATE_DESC, range=None, limit=None):
+        # if user is passed in as type,
+        # only keyword is considered
+
+        self._check_params(type, match, sort, range, limit)
+
+        start_url = self._get_search_start_url(keyword=keyword, type=type, match=match, sort=sort, range=range)
+        ids = self._get_ids(start_url, limit=limit, type=type)
+
+        # XXX attempt to fix user input keyword if no search result returned?
+        # if not ids:
+        #     auto_complete_keyword = self._get_keyword_match(word=keyword)
+        #     if auto_complete_keyword:
+        #         return self.search(keyword=auto_complete_keyword, type=type, match=match, sort=sort, range=range, limit=limit, r18=r18, r18g=r18g)
+
+        return ids
+
+    def bookmarks(self, type=params.ILLUST, limit=None, restrict=params.PUBLIC, tagged=False):
+        if type is not params.ILLUST and type is not params.NOVEL:
+            raise PikaxClientException(f'invalid type {type} must be {params.ILLUST} or {params.NOVEL}')
+
+        ids = self._get_bookmarks(type=type, limit=limit, restrict=restrict, tagged=tagged)
+        return ids
+
+    def following(self, limit=None, restrict=params.PUBLIC):
+        ...
 
 
 # for testing
@@ -181,7 +253,7 @@ def main():
     client = PikaxClient(username, password)
     # time.sleep(10)
     # client._update_access_token()
-    ids = client.search(keyword='arknights', limit=100)
+    ids = client.bookmarks(restrict=params.PUBLIC)
     print(ids)
     print(len(ids))
 
@@ -199,8 +271,18 @@ def main():
     #     print('=' * 10)
     #     time.sleep(10)
 
-
-
+    # url = 'https://accounts.pixiv.net/api/login?lang=en'
+    # s = requests.Session()
+    #
+    # headers = {
+    #     'Host': 'accounts.pixiv.net',
+    #     'accept': 'application/json',
+    #     'Origin': 'https://accounts.pixiv.net',
+    #     'User-Agent': 'Mozilla/5.0 (Linux; Android 5.1.1; SM-N950N Build/NMF26X; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/74.0.3729.136 Mobile Safari/537.36',
+    #     'content-type': 'application/x-www-form-urlencoded',
+    #     'Referer': 'https://accounts.pixiv.net/login?return_to=https%3A%2F%2Fwww.pixiv.net%2Fsetting_user.php%3Fref%3Dios-app&lang=en&source=touch&view_type=page',
+    #     'Accept-Language': 'en-CN,en-US;q=0.9,en;q=0.8',
+    # }
 
 
 if __name__ == '__main__':

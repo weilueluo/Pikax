@@ -17,7 +17,7 @@ __all__ = ['Artwork', 'PixivResult', 'User']
 
 
 # raise ArtworkError if failed to init
-class Artwork():
+class Artwork:
     """Representing a artwork in Pixiv.next
 
     **Functions**

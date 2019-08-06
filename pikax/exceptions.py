@@ -69,5 +69,10 @@ class SearchError(PikaxException):
 class RankError(PikaxException):
     pass
 
+
 class ClientException(PikaxException):
+    pass
+
+
+class PikaxClientException(ClientException):
     pass

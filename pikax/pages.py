@@ -42,13 +42,12 @@ class LoginPage:
         self._session = requests.Session()
 
     def _check_is_logged(self):
-        res = util.req(url=self._login_check_url, session=self._session)
-        status_json = util.json_loads(res.content)
+        status_json = util.req(url=self._login_check_url, session=self._session).json()
         return status_json['body']['user_status']['is_logged_in']
 
     @staticmethod
     def _get_cookies_from_user():
-        return input('[=] Paste your cookies here:')
+        return input(' [=] Paste your cookies here:')
 
     def login_with_cookies(self, cookies):
         # remove old cookies
@@ -61,7 +60,7 @@ class LoginPage:
                 name, value = new_cookie.split('=', 1)
                 self._session.cookies[name] = value
         except ValueError as e:
-            raise LoginError('Cookies given is invalid, please try again | {}'.format(e))
+            raise LoginError(f'Cookies given is invalid, please try again | {e}') from e
 
         # check if cookies given works
         if self._check_is_logged():
@@ -101,11 +100,10 @@ class LoginPage:
             util.log(str(e), error=True, save=True)
             raise PostKeyError('Failed to find post key')
 
-    def login(self, username, password, post_key=None):
+    def login(self, username, password):
         """Used to attempt log into pixiv.net
 
         **Parameters**
-        :param post_key:
         :param str username: username of your pixiv account
         :param str password: password of your pixiv account
 
@@ -123,7 +121,7 @@ class LoginPage:
 
         # login with local cookie if exists
         if os.path.isfile(cookie_file):
-            util.log('Cookie file found: {}, attempt login with local cookie'.format(cookie_file))
+            util.log(f'Cookie file found: {cookie_file}, attempt login with local cookie')
             try:
                 with open(cookie_file, 'rb') as f:
                         self._session.cookies = pickle.load(f)
@@ -137,13 +135,11 @@ class LoginPage:
                 os.remove(cookie_file)
                 util.log('Removed corrupted cookies file, message: {}'.format(e))
 
-
         # local cookies does not exists or outdated
         self.password = password
         self.username = username
         try:
-            if post_key is None:
-                post_key = self._get_post_key_from_pixiv()
+            post_key = self._get_post_key_from_pixiv()
 
             self.post_key = post_key
 
@@ -158,7 +154,6 @@ class LoginPage:
             print(self._session.cookies)
             util.log('Sending requests to attempt login ...')
             res = util.req(type='post', session=self._session, url=self._login_url, data=data, params=params)
-            print(res.headers)
             util.log('Login request sent to Pixiv'.format(username=username))
             if self._check_is_logged():
                 return self._handle_success_login()
@@ -182,8 +177,8 @@ class SearchPage:
 
     def __init__(self, user=None):
         self._user = user
-        self._session = user.session if user != None else None
-        self._logged = user != None
+        self._session = user.session if user else None
+        self._logged = user is not None
 
     def _set_general_params(self, type, dimension, match, order, mode):
         params = dict()
