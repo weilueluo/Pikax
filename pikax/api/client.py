@@ -14,13 +14,14 @@ import urllib.parse
 
 import requests
 from .. import util
-from ..exceptions import ReqException, ClientException, PikaxClientException
+from ..exceptions import ReqException, BaseClientException, ClientException
 from .. import params
+
+from .models import ClientInterface, PagesInterface
 
 
 class BaseClient:
-    # This class provide logged session and headers to use for making requests
-    # Provide auto refreshing token functionalit
+    # This class provide auto-refreshing headers to use for making requests
     _auth_url = 'https://oauth.secure.pixiv.net/auth/token'
     _headers = {
         'User-Agent': 'PixivAndroidApp/5.0.151 (Android 5.1.1; SM-N950N)',
@@ -63,7 +64,7 @@ class BaseClient:
         try:
             self._auth_with_update(data)
         except ReqException as e:
-            raise ClientException('Failed update access token') from e
+            raise BaseClientException('Failed update access token') from e
 
     def _login(self):
 
@@ -76,7 +77,7 @@ class BaseClient:
         try:
             res_data = self._auth_with_update(data)
         except ReqException as e:
-            raise ClientException('Failed login with username and password') from e
+            raise BaseClientException('Failed login with username and password') from e
 
         self.user_id = res_data['response']['user']['id']
         self.name = res_data['response']['user']['name']
@@ -119,11 +120,6 @@ class BaseClient:
             self._update_access_token()
 
     @property
-    def session(self):
-        self._update_token_if_outdated()
-        return self._session
-
-    @property
     def headers(self):
         self._update_token_if_outdated()
         return self._headers
@@ -133,6 +129,7 @@ class FunctionalBaseClient(BaseClient):
     # This class provide utilities for the real job, e.g. search/accessing user ...
     _host = 'https://app-api.pixiv.net'
     _search_url = _host + '/v1/search/{type}?'
+    _creation_url = _host + '/v1/user/illusts?'
     _following_url = _host + '/v1/user/following?'
     _collection_url = _host + '/v1/user/bookmarks/{collection_type}?'
     _tagged_collection_url = _host + '/v1/user/bookmark-tags/{collection_type}?'
@@ -140,64 +137,68 @@ class FunctionalBaseClient(BaseClient):
     def __init__(self, username, password):
         super().__init__(username, password)
 
-    @staticmethod
-    def _get_search_start_url(keyword, type, match, sort, range):
+    @classmethod
+    def _get_search_start_url(cls, keyword, search_type, match, sort, search_range):
+        cls._check_params(match=match, sort=sort, search_range=search_range)
+        if search_type not in [params.ILLUST, params.NOVEL, params.USER]:
+            raise ClientException(f'search type must be either {params.ILLUST}, {params.NOVEL} or {params.USER}')
         param = {
             'word': keyword
         }
 
-        if type is not params.USER:
-            param['search_target'] = match
-            param['sort'] = sort
+        if search_type is not params.USER:
+            param['search_target'] = match.value
+            param['sort'] = sort.value
 
-            if range:
+            if search_range:
                 today = datetime.date.today()
                 param['start_date'] = str(today)
-                param['end_date'] = str(today - range)
+                param['end_date'] = str(today - search_range)
 
         encoded_params = urllib.parse.urlencode(param)
-        return FunctionalBaseClient._search_url.format(type=type.value) + encoded_params
+        return cls._search_url.format(type=search_type.value) + encoded_params
 
-    @staticmethod
-    def _get_bookmarks_start_url(type, params, tagged):
+    @classmethod
+    def _get_bookmarks_start_url(cls, bookmark_type, req_params, tagged):
+        if bookmark_type not in [params.ILLUST, params.NOVEL]:
+            raise ClientException(f'Invalid type: {bookmark_type}, accepts {params.ILLUST} and {params.NOVEL} only')
+
         if tagged:
-            collection_url = FunctionalBaseClient._tagged_collection_url.format(collection_type=type.value)
+            collection_url = cls._tagged_collection_url.format(collection_type=bookmark_type.value)
         else:
-            collection_url = FunctionalBaseClient._collection_url.format(collection_type=type.value)
+            collection_url = cls._collection_url.format(collection_type=bookmark_type.value)
 
-        encoded_params = urllib.parse.urlencode(params)
+        encoded_params = urllib.parse.urlencode(req_params)
         return collection_url + encoded_params
 
+    @classmethod
+    def _get_creations_start_url(cls, req_params):
+        encoded_params = urllib.parse.urlencode(req_params)
+        return cls._creation_url + encoded_params
+
     @staticmethod
-    def _check_params(type=None, match=None, sort=None, range=None, limit=None, restrict=None):
-        if (type is not None) and (not params.Search.Type.is_valid(type)):
-            raise PikaxClientException(f'search type {type} must be an enum for {params.Search.Type}')
-        if (match is not None) and (not params.Search.Match.is_valid(match)):
-            raise PikaxClientException(f'search type {match} must be an enum for {params.Search.Match}')
-        if (sort is not None) and (not params.Search.Sort.is_valid(sort)):
-            raise PikaxClientException(f'search type {sort} must be an enum for {params.Search.Sort}')
-        if (range is not None) and (not isinstance(range, datetime.timedelta)):
-            raise PikaxClientException(f'search type {range} must be None or instance of datetime.timedelta')
-        if (limit is not None) and (not isinstance(limit, int)):
-            raise PikaxClientException(f'search type {limit} must be None or instance of int')
+    def _check_params(match=None, sort=None, search_range=None, restrict=None):
+        if (match is not None) and (not params.Match.is_valid(match)):
+            raise ClientException(f'search type: {match} is not in {params.Match}')
+        if (sort is not None) and (not params.Sort.is_valid(sort)):
+            raise ClientException(f'search type: {sort} is not in {params.Sort}')
+        if (search_range is not None) and (not isinstance(search_range, datetime.timedelta)):
+            raise ClientException(f'search type: {search_range} is not None or instance of datetime.timedelta')
         if (restrict is not None) and (not params.Collections.Restrict.is_valid(restrict)):
-            raise PikaxClientException(
-                f'collections restrict {restrict} must be an enum for {params.Collections.Restrict}')
+            raise ClientException(
+                f'collections restrict {restrict} is not in {params.Collections.Restrict}')
 
-    @staticmethod
-    def _check_bookmark_params(type):
-        if type is not params.ILLUST and type is not params.NOVEL:
-            raise PikaxClientException(f'invalid type {type} must be {params.ILLUST} or {params.NOVEL}')
+    def _req(self, url, req_params=None):
+        return util.req(url=url, headers=self.headers, params=req_params)
 
-    def _req(self, url, params=None):
-        return util.req(url=url, session=self.session, headers=self.headers, params=params)
-
-    def _get_ids(self, next_url, limit, type):
-        data_container_name = params.Search.Type.get_response_container_name(type)
+    def _get_ids(self, next_url, limit, id_type):
+        if limit:
+            limit = int(limit)
+        data_container_name = params.Type.get_response_container_name(id_type)
         ids_collected = []
         while next_url is not None and (not limit or len(ids_collected) < limit):
             res_data = self._req(next_url).json()
-            if type is params.Search.Type.USER:
+            if id_type is params.Type.USER:
                 ids_collected += [item['user']['id'] for item in res_data[data_container_name]]
             else:
                 ids_collected += [item['id'] for item in res_data[data_container_name]]
@@ -207,40 +208,65 @@ class FunctionalBaseClient(BaseClient):
             ids_collected = util.trim_to_limit(ids_collected, limit)
         return ids_collected
 
-    def _get_bookmarks(self, type, limit, restrict, tagged, user_id):
-        self._check_params(type=type, limit=limit, restrict=restrict)
-        params = {
-            'user_id': user_id,
+    def _get_bookmarks(self, bookmark_type, limit, restrict, tagged, user_id):
+        self._check_params(restrict=restrict)
+
+        req_params = {
+            'user_id': int(user_id),
             'restrict': restrict.value
         }
-        start_url = self._get_bookmarks_start_url(type, params, tagged=tagged)
-        return self._get_ids(start_url, limit=limit, type=type)
+        start_url = self._get_bookmarks_start_url(bookmark_type, req_params, tagged=tagged)
+        return self._get_ids(start_url, limit=limit, id_type=bookmark_type)
+
+    def _get_creations(self, creation_type, limit, user_id):
+        if creation_type not in [params.ILLUST, params.MANGA]:
+            raise ClientException(f'creation type must be either {params.ILLUST} or {params.MANGA}')
+
+        req_params = {
+            'user_id': int(user_id),
+            'type': creation_type.value
+        }
+
+        start_url = self._get_creations_start_url(req_params=req_params)
+        return self._get_ids(start_url, limit=limit, id_type=creation_type)
 
 
-class Client(FunctionalBaseClient):
+class Client(FunctionalBaseClient, ClientInterface, PagesInterface):
     # This class will be used by Pikax as api
 
-    class User:
+    class User(ClientInterface):
+        # This class represent other user
         def __init__(self, client, user_id):
             self._client = client
             self.user_id = user_id
 
-        def bookmarks(self, type=params.ILLUST, limit=None, restrict=params.PUBLIC, tagged=False):
-            ids = self._client._get_bookmarks(type=type, limit=limit, restrict=restrict, tagged=tagged,
-                                              user_id=self.user_id)
-            return ids
+        def bookmarks(self, type=params.ILLUST, limit=None, tagged=False) -> list:
+            return self._client._get_bookmarks(bookmark_type=type, limit=limit, restrict=params.PUBLIC, tagged=tagged,
+                                               user_id=self.user_id)
+
+        def illusts(self, limit=None) -> list:
+            return self._client._get_creations(creation_type=params.ILLUST, limit=limit, user_id=self.user_id)
+
+        def novels(self, limit=None):
+            pass
+
+        def mangas(self, limit=None):
+            pass
 
     def __init__(self, username, password):
-        super().__init__(username, password)
+        FunctionalBaseClient.__init__(self, username, password)
 
     def search(self, keyword='', type=params.ILLUST, match=params.EXACT, sort=params.DATE_DESC, range=None, limit=None):
         # if user is passed in as type,
         # only keyword is considered
 
-        self._check_params(type, match, sort, range, limit)
+        self._check_params(match=match, sort=sort, search_range=range)
+        if type is params.MANGA:  # extra check
+            raise ClientException(f'search type cannot be {params.MANGA}')
 
-        start_url = self._get_search_start_url(keyword=keyword, type=type, match=match, sort=sort, range=range)
-        ids = self._get_ids(start_url, limit=limit, type=type)
+        start_url = self._get_search_start_url(keyword=keyword, search_type=type, match=match, sort=sort,
+                                               search_range=range)
+        ids = self._get_ids(start_url, limit=limit, id_type=type)
 
         # XXX attempt to fix user input keyword if no search result returned?
         # if not ids:
@@ -251,11 +277,22 @@ class Client(FunctionalBaseClient):
         return ids
 
     def bookmarks(self, type=params.ILLUST, limit=None, restrict=params.PUBLIC, tagged=False):
-        self._check_bookmark_params(type)
-        ids = self._get_bookmarks(type=type, limit=limit, restrict=restrict, tagged=tagged, user_id=self.user_id)
-        return ids
+        return self._get_bookmarks(bookmark_type=type, limit=limit, restrict=restrict, tagged=tagged,
+                                   user_id=self.user_id)
 
-    def visit(self, user_id):
+    def novels(self, limit):
+        pass
+
+    def illusts(self, limit):
+        return self._get_creations(creation_type=params.ILLUST, limit=limit, user_id=self.user_id)
+
+    def mangas(self, limit):
+        return self._get_creations(creation_type=params.MANGA, limit=limit, user_id=self.user_id)
+
+    def rank(self, limit):
+        pass
+
+    def visits(self, user_id):
         return Client.User(self, user_id)
 
 
@@ -263,11 +300,14 @@ class Client(FunctionalBaseClient):
 def main():
     from .. import settings
     client = Client(settings.username, settings.password)
-    # time.sleep(10)
-    # client._update_access_token()
-    ids = client.bookmarks(restrict=params.PUBLIC)
+    ids = client.search(keyword='arknights', limit=242, sort=params.DATE_DESC, match=params.ANY, range=params.A_YEAR)
     print(ids)
     print(len(ids))
+
+    # user = client.visits(user_id=6662895)
+    # ids = user.bookmarks()
+    # print(ids)
+    # print(len(ids))
 
     # while True:
     #     try:

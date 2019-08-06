@@ -70,9 +70,9 @@ class RankError(PikaxException):
     pass
 
 
-class ClientException(PikaxException):
+class BaseClientException(PikaxException):
     pass
 
 
-class PikaxClientException(ClientException):
+class ClientException(BaseClientException):
     pass

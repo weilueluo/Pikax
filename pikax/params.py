@@ -13,59 +13,61 @@ class PikaxEnum(Enum):
 # search
 ##
 
-class Search:
-    class Type(PikaxEnum):
-        ILLUST = 'illust'
-        NOVEL = 'novel'
-        USER = 'user'
+class Type(PikaxEnum):
+    ILLUST = 'illust'
+    NOVEL = 'novel'
+    USER = 'user'
+    MANGA = 'manga'
 
-        _member_to_container_map = {
-            'illust': 'illusts',
-            'novel': 'novels',
-            'user': 'user_previews'
-        }
+    _member_to_container_map = {
+        'illust': 'illusts',
+        'novel': 'novels',
+        'user': 'user_previews',
+        'manga': 'illusts'  # intended
+    }
 
-        @classmethod
-        def get_response_container_name(cls, item):
-            if cls.is_valid(item):
-                return cls._member_to_container_map.value[item.value]
-            else:
-                raise KeyError(f'Value {item} does not exists in {cls}')
+    @classmethod
+    def get_response_container_name(cls, item):
+        if cls.is_valid(item):
+            return cls._member_to_container_map.value[item.value]
+        else:
+            raise KeyError(f'Value {item} does not exists in {cls}')
 
-    class Match(PikaxEnum):
-        # illusts and novel match
-        EXACT = 'exact_match_for_tags'
-        PARTIAL = 'partial_match_for_tags'
-        # illusts only
-        ANY = 'title_and_caption'
-        # novel only
-        TEXT = 'text'
-        KEYWORD = 'keyword'
+class Match(PikaxEnum):
+    # illusts and novel match
+    EXACT = 'exact_match_for_tags'
+    PARTIAL = 'partial_match_for_tags'
+    # illusts only
+    ANY = 'title_and_caption'
+    # novel only
+    TEXT = 'text'
+    KEYWORD = 'keyword'
 
-    class Sort(PikaxEnum):
-        DATE_DESC = 'date_desc'
-        DATE_ASC = 'date_asc'
+class Sort(PikaxEnum):
+    DATE_DESC = 'date_desc'
+    DATE_ASC = 'date_asc'
 
 
 # type
-ILLUST = Search.Type.ILLUST
-NOVEL = Search.Type.NOVEL
-USER = Search.Type.USER
+ILLUST = Type.ILLUST
+NOVEL = Type.NOVEL
+USER = Type.USER
+MANGA = Type.MANGA
 
 # illusts and novel match
-EXACT = Search.Match.EXACT
-PARTIAL = Search.Match.PARTIAL
+EXACT = Match.EXACT
+PARTIAL = Match.PARTIAL
 
 # illusts only
-ANY = Search.Match.ANY
+ANY = Match.ANY
 
 # novel match
-TEXT = Search.Match.TEXT
-KEYWORD = Search.Match.KEYWORD
+TEXT = Match.TEXT
+KEYWORD = Match.KEYWORD
 
 # search sort
-DATE_DESC = Search.Sort.DATE_DESC
-DATE_ASC = Search.Sort.DATE_ASC
+DATE_DESC = Sort.DATE_DESC
+DATE_ASC = Sort.DATE_ASC
 
 
 def get_a_month_timedelta():
