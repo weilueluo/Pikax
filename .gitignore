@@ -6,7 +6,8 @@
 *.gif
 
 *__pycache__*
-
+pikax/*__pycache__*
+pikax/api/*__pycache__*
 #*
 
 pikax/test*
@@ -15,3 +16,5 @@ function_test*
 test*
 _*demo
 .*
+.idea*
+
