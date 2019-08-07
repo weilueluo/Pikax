@@ -18,12 +18,14 @@ class Type(PikaxEnum):
     NOVEL = 'novel'
     USER = 'user'
     MANGA = 'manga'
+    NOVELS = 'novels'  # used internally by client class
 
     _member_to_container_map = {
         'illust': 'illusts',
         'novel': 'novels',
         'user': 'user_previews',
-        'manga': 'illusts'  # intended
+        'manga': 'illusts',  # intended
+        'novels': 'novels',
     }
 
     @classmethod

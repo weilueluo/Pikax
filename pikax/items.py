@@ -18,7 +18,7 @@ __all__ = ['Artwork', 'PixivResult', 'User']
 
 # raise ArtworkError if failed to init
 class Artwork:
-    """Representing a artwork in Pixiv.next
+    """Representing a artwork in Pixiv.net
 
     **Functions**
     :func factory: used for multiprocessing, return None if failed to create
@@ -193,11 +193,11 @@ class PixivResult:
                     break
 
         # they are meant to compare with a number and return a new PixivResult object
-        self.likes = self._ComparaleItem(self, 'likes')
-        self.comments = self._ComparaleItem(self, 'comments')
-        self.views = self._ComparaleItem(self, 'views')
-        self.id = self._ComparaleItem(self, 'id')
-        self.bookmarks = self._ComparaleItem(self, 'bookmarks')
+        self.likes = self._ComparableItem(self, 'likes')
+        self.comments = self._ComparableItem(self, 'comments')
+        self.views = self._ComparableItem(self, 'views')
+        self.id = self._ComparableItem(self, 'id')
+        self.bookmarks = self._ComparableItem(self, 'bookmarks')
 
     def __getitem__(self, index):
         return self.artworks[index]
@@ -235,7 +235,7 @@ class PixivResult:
 
         return result
 
-    class _ComparaleItem:
+    class _ComparableItem:
 
         def __init__(self, outer_instance, name):
             self.name = name

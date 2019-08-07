@@ -252,7 +252,11 @@ def trim_to_limit(items, limit):
     if items:
         if limit:
             num_of_items = len(items)
-            if limit < num_of_items:
+
+            if num_of_items == limit:
+                return items
+
+            if num_of_items > limit:
                 items = items[:limit]
                 log('Trimmed', num_of_items, 'items =>', limit, 'items')
             else:

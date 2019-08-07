@@ -17,7 +17,9 @@ from .. import util
 from ..exceptions import ReqException, BaseClientException, ClientException
 from .. import params
 
-from .models import ClientInterface, PagesInterface
+from .models import UserInterface, PagesInterface
+
+__all__ = ['Client']
 
 
 class BaseClient:
@@ -55,16 +57,6 @@ class BaseClient:
         self.is_auth_mail = None
 
         self._login()
-
-    def _update_access_token(self):
-        data = {
-            'grant_type': 'refresh_token',
-            'refresh_token': self._refresh_token
-        }
-        try:
-            self._auth_with_update(data)
-        except ReqException as e:
-            raise BaseClientException('Failed update access token') from e
 
     def _login(self):
 
@@ -111,13 +103,23 @@ class BaseClient:
 
         return res
 
+    def _update_token_if_outdated(self):
+        if self._is_access_token_outdated():
+            self._update_access_token()
+
     def _is_access_token_outdated(self):
         time_ahead = 30  # return True if need refresh within 30s
         return (time.time() - self._access_token_start_time + time_ahead) > self._access_token_time_out
 
-    def _update_token_if_outdated(self):
-        if self._is_access_token_outdated():
-            self._update_access_token()
+    def _update_access_token(self):
+        data = {
+            'grant_type': 'refresh_token',
+            'refresh_token': self._refresh_token
+        }
+        try:
+            self._auth_with_update(data)
+        except ReqException as e:
+            raise BaseClientException('Failed update access token') from e
 
     @property
     def headers(self):
@@ -129,7 +131,8 @@ class FunctionalBaseClient(BaseClient):
     # This class provide utilities for the real job, e.g. search/accessing user ...
     _host = 'https://app-api.pixiv.net'
     _search_url = _host + '/v1/search/{type}?'
-    _creation_url = _host + '/v1/user/illusts?'
+    _illust_creation_url = _host + '/v1/user/illusts?'
+    _novel_creation_url = _host + '/v1/user/novels?'
     _following_url = _host + '/v1/user/following?'
     _collection_url = _host + '/v1/user/bookmarks/{collection_type}?'
     _tagged_collection_url = _host + '/v1/user/bookmark-tags/{collection_type}?'
@@ -172,9 +175,12 @@ class FunctionalBaseClient(BaseClient):
         return collection_url + encoded_params
 
     @classmethod
-    def _get_creations_start_url(cls, req_params):
+    def _get_creations_start_url(cls, req_params, creation_type):
         encoded_params = urllib.parse.urlencode(req_params)
-        return cls._creation_url + encoded_params
+        if creation_type is params.Type.NOVELS:
+            return cls._novel_creation_url + encoded_params
+        else:
+            return cls._illust_creation_url + encoded_params
 
     @staticmethod
     def _check_params(match=None, sort=None, search_range=None, restrict=None):
@@ -208,7 +214,7 @@ class FunctionalBaseClient(BaseClient):
             ids_collected = util.trim_to_limit(ids_collected, limit)
         return ids_collected
 
-    def _get_bookmarks(self, bookmark_type, limit, restrict, tagged, user_id):
+    def get_bookmarks(self, bookmark_type, limit, restrict, tagged, user_id):
         self._check_params(restrict=restrict)
 
         req_params = {
@@ -218,46 +224,50 @@ class FunctionalBaseClient(BaseClient):
         start_url = self._get_bookmarks_start_url(bookmark_type, req_params, tagged=tagged)
         return self._get_ids(start_url, limit=limit, id_type=bookmark_type)
 
-    def _get_creations(self, creation_type, limit, user_id):
-        if creation_type not in [params.ILLUST, params.MANGA]:
+    def get_creations(self, creation_type, limit, user_id):
+        if creation_type not in [params.ILLUST, params.MANGA, params.NOVEL]:
             raise ClientException(f'creation type must be either {params.ILLUST} or {params.MANGA}')
 
         req_params = {
             'user_id': int(user_id),
-            'type': creation_type.value
         }
 
-        start_url = self._get_creations_start_url(req_params=req_params)
+        if creation_type is params.NOVEL:
+            creation_type = params.Type.NOVELS  # novel is novels in the android endpoint requests respond
+        else:
+            req_params['type'] = creation_type.value
+
+        start_url = self._get_creations_start_url(req_params=req_params, creation_type=creation_type)
         return self._get_ids(start_url, limit=limit, id_type=creation_type)
 
 
-class Client(FunctionalBaseClient, ClientInterface, PagesInterface):
+class Client(FunctionalBaseClient, UserInterface, PagesInterface):
     # This class will be used by Pikax as api
 
-    class User(ClientInterface):
+    class User(UserInterface):
         # This class represent other user
         def __init__(self, client, user_id):
-            self._client = client
+            self.client = client
             self.user_id = user_id
 
-        def bookmarks(self, type=params.ILLUST, limit=None, tagged=False) -> list:
-            return self._client._get_bookmarks(bookmark_type=type, limit=limit, restrict=params.PUBLIC, tagged=tagged,
-                                               user_id=self.user_id)
+        def bookmarks(self, type=params.ILLUST, limit=None, tagged=False):
+            return self.client.get_bookmarks(bookmark_type=type, limit=limit, restrict=params.PUBLIC, tagged=tagged,
+                                             user_id=self.user_id)
 
-        def illusts(self, limit=None) -> list:
-            return self._client._get_creations(creation_type=params.ILLUST, limit=limit, user_id=self.user_id)
+        def illusts(self, limit=None):
+            return self.client.get_creations(creation_type=params.ILLUST, limit=limit, user_id=self.user_id)
 
         def novels(self, limit=None):
-            pass
+            return self.client.get_creations(creation_type=params.NOVEL, limit=limit, user_id=self.user_id)
 
         def mangas(self, limit=None):
-            pass
+            return self.client.get_creations(creation_type=params.MANGA, limit=limit, user_id=self.user_id)
 
     def __init__(self, username, password):
         FunctionalBaseClient.__init__(self, username, password)
 
     def search(self, keyword='', type=params.ILLUST, match=params.EXACT, sort=params.DATE_DESC, range=None, limit=None):
-        # if user is passed in as type,
+        # if params.user is passed in as type,
         # only keyword is considered
 
         self._check_params(match=match, sort=sort, search_range=range)
@@ -276,21 +286,21 @@ class Client(FunctionalBaseClient, ClientInterface, PagesInterface):
 
         return ids
 
+    def rank(self, limit=None):
+        raise NotImplementedError('Pikax.pikax.rank should be used instead')
+
     def bookmarks(self, type=params.ILLUST, limit=None, restrict=params.PUBLIC, tagged=False):
-        return self._get_bookmarks(bookmark_type=type, limit=limit, restrict=restrict, tagged=tagged,
-                                   user_id=self.user_id)
+        return self.get_bookmarks(bookmark_type=type, limit=limit, restrict=restrict, tagged=tagged,
+                                  user_id=self.user_id)
 
-    def novels(self, limit):
-        pass
+    def novels(self, limit=None):
+        return self.get_creations(creation_type=params.NOVEL, limit=limit, user_id=self.user_id)
 
-    def illusts(self, limit):
-        return self._get_creations(creation_type=params.ILLUST, limit=limit, user_id=self.user_id)
+    def illusts(self, limit=None):
+        return self.get_creations(creation_type=params.ILLUST, limit=limit, user_id=self.user_id)
 
-    def mangas(self, limit):
-        return self._get_creations(creation_type=params.MANGA, limit=limit, user_id=self.user_id)
-
-    def rank(self, limit):
-        pass
+    def mangas(self, limit=None):
+        return self.get_creations(creation_type=params.MANGA, limit=limit, user_id=self.user_id)
 
     def visits(self, user_id):
         return Client.User(self, user_id)
@@ -298,16 +308,39 @@ class Client(FunctionalBaseClient, ClientInterface, PagesInterface):
 
 # for testing
 def main():
-    from .. import settings
-    client = Client(settings.username, settings.password)
-    ids = client.search(keyword='arknights', limit=242, sort=params.DATE_DESC, match=params.ANY, range=params.A_YEAR)
-    print(ids)
-    print(len(ids))
 
-    # user = client.visits(user_id=6662895)
-    # ids = user.bookmarks()
-    # print(ids)
-    # print(len(ids))
+    from .. import settings
+
+    print('Testing Client')
+    print('This test is subject to change in real world')
+
+    client = Client(settings.username, settings.password)
+
+    ids = client.search(keyword='arknights', limit=242, sort=params.DATE_DESC, match=params.ANY, range=params.A_YEAR)
+    assert len(ids) == 242, len(ids)
+
+    ids = client.bookmarks(limit=30)
+    assert len(ids) == 30, len(ids)
+
+    ids = client.mangas()
+    assert len(ids) == 0, len(ids)
+
+    ids = client.novels()
+    assert len(ids) == 0, len(ids)
+
+    novel_writer = client.visits(user_id=24118759)
+
+    ids = novel_writer.bookmarks(limit=100)
+    assert len(ids) == 100, len(ids)
+
+    ids = novel_writer.bookmarks(type=params.NOVEL)
+    assert len(ids) == 17, len(ids)
+
+    ids = novel_writer.novels()
+    assert len(ids) == 3, len(ids)
+
+    ids = novel_writer.illusts()
+    assert len(ids) == 0, len(ids)
 
     # while True:
     #     try:
@@ -322,19 +355,6 @@ def main():
     #     print(time.time() - client._access_token_start_time)
     #     print('=' * 10)
     #     time.sleep(10)
-
-    # url = 'https://accounts.pixiv.net/api/login?lang=en'
-    # s = requests.Session()
-    #
-    # headers = {
-    #     'Host': 'accounts.pixiv.net',
-    #     'accept': 'application/json',
-    #     'Origin': 'https://accounts.pixiv.net',
-    #     'User-Agent': 'Mozilla/5.0 (Linux; Android 5.1.1; SM-N950N Build/NMF26X; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/74.0.3729.136 Mobile Safari/537.36',
-    #     'content-type': 'application/x-www-form-urlencoded',
-    #     'Referer': 'https://accounts.pixiv.net/login?return_to=https%3A%2F%2Fwww.pixiv.net%2Fsetting_user.php%3Fref%3Dios-app&lang=en&source=touch&view_type=page',
-    #     'Accept-Language': 'en-CN,en-US;q=0.9,en;q=0.8',
-    # }
 
 
 if __name__ == '__main__':

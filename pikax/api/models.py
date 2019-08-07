@@ -1,19 +1,45 @@
 from .. import util
 
 
-class ClientInterface:
+class PikaxResultInterface:
+    ...
 
-    def bookmarks(self, limit) -> list: raise NotImplementedError
 
-    def illusts(self, limit) -> list: raise NotImplementedError
+class PikaxResult(PikaxResultInterface):
+    ...
 
-    def novels(self, limit) -> list: raise NotImplementedError
 
-    def mangas(self, limit) -> list: raise NotImplementedError
+class PikaxUserInterface:
+
+    def bookmarks(self, limit: int) -> PikaxResult: raise NotImplementedError
+
+    def illusts(self, limit: int) -> PikaxResult: raise NotImplementedError
+
+    def novels(self, limit: int) -> PikaxResult: raise NotImplementedError
+
+    def mangas(self, limit: int) -> PikaxResult: raise NotImplementedError
+
+
+class PikaxPagesInterface:
+
+    def search(self, limit: int) -> PikaxResult: raise NotImplementedError
+
+    def rank(self, limit: int) -> PikaxResult: raise NotImplementedError
+
+
+class UserInterface:
+
+    def bookmarks(self, limit: int) -> list: raise NotImplementedError
+
+    def illusts(self, limit: int) -> list: raise NotImplementedError
+
+    def novels(self, limit: int) -> list: raise NotImplementedError
+
+    def mangas(self, limit: int) -> list: raise NotImplementedError
 
 
 class PagesInterface:
 
-    def search(self, limit) -> list: raise NotImplementedError
+    def search(self, limit: int) -> list: raise NotImplementedError
 
-    def rank(self, limit) -> list: raise NotImplementedError
+    def rank(self, limit: int) -> list: raise NotImplementedError
