@@ -76,3 +76,7 @@ class BaseClientException(PikaxException):
 
 class ClientException(BaseClientException):
     pass
+
+
+class ProcessError(PikaxException):
+    pass

@@ -17,7 +17,7 @@ from .. import util
 from ..exceptions import ReqException, BaseClientException, ClientException
 from .. import params
 
-from .models import UserInterface, PagesInterface
+from .interface import UserInterface, PagesInterface, IDProcessorInterface
 
 __all__ = ['Client']
 
@@ -263,6 +263,10 @@ class Client(FunctionalBaseClient, UserInterface, PagesInterface):
         def mangas(self, limit=None):
             return self.client.get_creations(creation_type=params.MANGA, limit=limit, user_id=self.user_id)
 
+    # class Processor(ProcessorInterface):
+
+
+
     def __init__(self, username, password):
         FunctionalBaseClient.__init__(self, username, password)
 
@@ -307,8 +311,8 @@ class Client(FunctionalBaseClient, UserInterface, PagesInterface):
 
 
 # for testing
-def main():
 
+def test():
     from .. import settings
 
     print('Testing Client')
@@ -341,6 +345,15 @@ def main():
 
     ids = novel_writer.illusts()
     assert len(ids) == 0, len(ids)
+
+
+def main():
+    from .. import settings
+    client = Client(settings.username, settings.password)
+    user = client.visits(user_id=24118759)
+
+    print(type(user.novels()[0]))
+
 
     # while True:
     #     try:

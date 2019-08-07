@@ -18,6 +18,8 @@ class Type(PikaxEnum):
     NOVEL = 'novel'
     USER = 'user'
     MANGA = 'manga'
+    GIF = 'NOTSET'
+
     NOVELS = 'novels'  # used internally by client class
 
     _member_to_container_map = {
@@ -35,6 +37,7 @@ class Type(PikaxEnum):
         else:
             raise KeyError(f'Value {item} does not exists in {cls}')
 
+
 class Match(PikaxEnum):
     # illusts and novel match
     EXACT = 'exact_match_for_tags'
@@ -44,6 +47,7 @@ class Match(PikaxEnum):
     # novel only
     TEXT = 'text'
     KEYWORD = 'keyword'
+
 
 class Sort(PikaxEnum):
     DATE_DESC = 'date_desc'
@@ -55,6 +59,7 @@ ILLUST = Type.ILLUST
 NOVEL = Type.NOVEL
 USER = Type.USER
 MANGA = Type.MANGA
+GIF = Type.GIF
 
 # illusts and novel match
 EXACT = Match.EXACT

@@ -195,7 +195,7 @@ def req(url,
             if res:
                 if res.status_code < 400:
                     if settings.DELAY_PER_REQUEST:
-                        time.sleep(settings.DELAY_PER_REQUEST)
+                        time.sleep(int(settings.DELAY_PER_REQUEST))
                     return res
                 else:
                     log('Status code error:', res.status_code, 'retries:', curr_retries, save=True)
