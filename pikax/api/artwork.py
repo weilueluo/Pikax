@@ -1,16 +1,22 @@
 import os
 
-from .interface import Artwork
+from .models import Artwork
 from .. import util, settings
 from ..exceptions import ReqException, ArtworkError
 import re
 
 
 class Illust(Artwork):
+    """
+
+    extra properties
+
+    """
     _referer_url = 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='
     _details_url = 'https://www.pixiv.net/ajax/illust/'
     _headers = {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/75.0.3770.100 Safari/537.36'
     }
 
     def __init__(self, illust_id):
@@ -18,51 +24,45 @@ class Illust(Artwork):
 
         # properties, set after generate details is called
         self._views = None
-        self._likes = None
+        self._bookmarks = None
         self._title = None
         self._author = None
+        self._likes = None
 
         # iterator use, set after generate download data is called
-        self.download_urls = None
+        self.__download_urls = None
 
         # not used, set after generate details is called
-        self.original_url = None
-        self.bookmarks = None
-        self.comments = None
-        self.original_url = None
+        self.__original_url_template = None
+        self.__comments = None
 
         # internal uses
-        self.page_count = None
+        self.__page_count = None
         self._details_url = Illust._details_url + str(self.id)
         self._headers = Illust._headers.copy()
         self._headers['referer'] = Illust._referer_url + str(self.id)
 
-        try:
-            self._generate_details()
-        except ReqException as e:
-            raise ArtworkError(f'Failed to init artwork of id: {self.id}') from e
+    def config(self):
 
-        # uses details: self.page_count
-        self._generate_download_data()
-
-    def _generate_details(self):
         illust_data = util.req(type='get', url=self._details_url, log_req=True).json()
         illust_data = illust_data['body']
 
         # properties
         self._views = illust_data['viewCount']
+        self._bookmarks = illust_data['bookmarkCount']
         self._likes = illust_data['likeCount']
         self._title = illust_data['illustTitle']
         self._author = illust_data['userName']
 
-        self.original_url = illust_data['urls']['original']
-        self.bookmarks = illust_data['bookmarkCount']
-        self.comments = illust_data['commentCount']
-        self.page_count = illust_data['pageCount']
-        self.original_url = re.sub(r'(?<=_p)\d', '{page_num}', self.original_url)
+        self.__original_url_template = illust_data['urls']['original']
+        self.__original_url_template = re.sub(r'(?<=_p)\d', '{page_num}', self.__original_url_template)
+        self.__comments = illust_data['commentCount']
+        self.__page_count = illust_data['pageCount']
+
+        self.__generate_download_data()
 
     def _get_download_url(self, page_num):
-        return self.original_url.format(page_num=page_num)
+        return self.__original_url_template.format(page_num=page_num)
 
     def _get_download_filename(self, download_url, folder=None):
         id_search = re.search(r'(\d{8}_p\d.*)', download_url)
@@ -72,35 +72,38 @@ class Illust(Artwork):
             filename = os.path.join(util.clean_filename(folder), filename)
         return util.clean_filename(filename)
 
-    def _generate_download_data(self):
-        self.download_urls = []
+    def __generate_download_data(self):
+        self.__download_urls = []
         curr_page = 0
 
-        while curr_page < self.page_count:
+        while curr_page < self.__page_count:
             if self._reached_limit_in_settings(curr_page):
                 break
-            self.download_urls.append(self._get_download_url(curr_page))
+            self.__download_urls.append(self._get_download_url(curr_page))
             curr_page += 1
 
     def __getitem__(self, index):
-        download_url = self.download_urls[index]
+        download_url = self.__download_urls[index]
         filename = self._get_download_filename(download_url)
 
         if os.path.exists(filename):
             return Artwork.DownloadStatus.SKIPPED, None, filename
 
         try:
-            return Artwork.DownloadStatus.OK, util.req(url=download_url, headers=self._headers,
-                                                       log_req=False).content, filename
-        except ReqException as e:
+
+            return Artwork.DownloadStatus.OK, \
+                   util.req(url=download_url, headers=self._headers, log_req=False).content, \
+                   filename
+
+        except ReqException:
             return Artwork.DownloadStatus.FAILED, download_url, filename
 
     def __len__(self):
-        return len(self.download_urls)
+        return len(self.__download_urls)
 
     @property
-    def likes(self):
-        return self._likes
+    def bookmarks(self):
+        return self._bookmarks
 
     @property
     def views(self):
@@ -114,11 +117,12 @@ class Illust(Artwork):
     def title(self):
         return self._title
 
-    @staticmethod
-    def factory(illust_id):
-        return Illust(illust_id)
+    @property
+    def likes(self):
+        return self._likes
 
-    def _reached_limit_in_settings(self, current):
+    @staticmethod
+    def _reached_limit_in_settings(current):
         if settings.MAX_PAGES_PER_ARTWORK:
             if current >= settings.MAX_PAGES_PER_ARTWORK:
                 return True
@@ -126,30 +130,27 @@ class Illust(Artwork):
 
 
 class Novel(Artwork):
-
     _content_url = 'https://www.pixiv.net/novel/show.php?'
     _novel_details_url = 'https://www.pixiv.net/ajax/user/{author_id}/profile/novels?'
 
     def __init__(self, novel_id):
         self.id = novel_id
+
+        # interface
         self._views = None
         self._author = None
         self._title = None
-        self._likes = None
+        self._bookmarks = None
 
-        self._filename = None
-        self._content = None
-        self._status = None
+        # private
+        self.__filename = None
+        self.__content = None
+        self.__status = None
 
-        # internal use
-        self._author_id = None
+        # internal
+        self.__author_id = None
 
-        try:
-            self._generate_details()
-        except ReqException as e:
-            raise ArtworkError(f'Failed to init Novel of id: {self.id}')
-
-    def _generate_details(self):
+    def __generate_details_from_content_url(self):
         params = {
             'id': self.id
         }
@@ -162,13 +163,17 @@ class Novel(Artwork):
         else:
             novel_text = 'Please Login before viewing R18 content'  # mostly due to it is a R18 novel and without login
 
-        self._content = novel_text
-        self._author_id = re.search(r'pixiv.context.userId = "(\d*?)"', res.text).group(1)
-        self._views = re.search(r'<span class="views">(.*?)</span>', res.text).group(1)
+        self.__content = novel_text
+        self.__author_id = re.search(r'pixiv.context.userId = "(\d*?)"', res.text).group(1)
+        search = re.findall(r'<span class="views">(.*?)</span>', res.text)
+        self._views = search[0]
+        self._likes = search[1]
+
+    def __generate_details_from_ajax_url(self):
         novel_details_params = {
             'ids[]': self.id
         }
-        novel_details_url = Novel._novel_details_url.format(author_id=self._author_id)
+        novel_details_url = Novel._novel_details_url.format(author_id=self.__author_id)
         novel_data = util.req(url=novel_details_url, params=novel_details_params).json()
         novel_data = novel_data['body']['works']
 
@@ -176,15 +181,18 @@ class Novel(Artwork):
             novel_data = novel_data[str(self.id)]
             self._title = novel_data['title']
             self._author = novel_data['userName']
-            self._likes = novel_data['bookmarkCount']
+            self._bookmarks = novel_data['bookmarkCount']
 
-            self._status = Artwork.DownloadStatus.OK
-            self._filename = self._get_filename()
+            self.__status = Artwork.DownloadStatus.OK
+            self.__filename = self._get_filename()
 
         else:  # mostly due to it is a R18 novel and without login
-            self._status = Artwork.DownloadStatus.FAILED
-            self._filename = f'Login is required to view R18 novel of id: {self.id}'
+            self.__status = Artwork.DownloadStatus.FAILED
+            self.__filename = f'Login is required to view R18 novel of id: {self.id}'
 
+    def config(self):
+        self.__generate_details_from_content_url()
+        self.__generate_details_from_ajax_url()
 
     def _get_filename(self):
         filename = str(self._author) + '_' + str(self.title) + '_' + str(self.id) + '.txt'
@@ -203,12 +211,16 @@ class Novel(Artwork):
         return self._title
 
     @property
+    def bookmarks(self):
+        return self._bookmarks
+
+    @property
     def likes(self):
         return self._likes
 
     def __getitem__(self, index):
         if index == 0:
-            return self._status, self._content, self._filename
+            return self.__status, self.__content, self.__filename
         else:
             raise StopIteration
 
@@ -217,9 +229,11 @@ class Novel(Artwork):
 
 
 def main():
-    from .client import Client
+    from .androidclient import AndroidClient
     from .. import settings
-    client = Client(settings.username, settings.password)
+    import sys
+    sys.stdout.reconfigure(encoding='utf-8')
+    client = AndroidClient(settings.username, settings.password)
     # print('Testing Illust Artwork')
     # user = client.visits(user_id=2957827)
     # illust_ids = user.illusts()
@@ -228,14 +242,23 @@ def main():
     #     for status, content, filename in artwork:
     #         print(status, filename)
 
-    print('Testing Novel Artwork')
-    novel_user = client.visits(13450211)
-    novel_ids = novel_user.novels()
-    novels = [Novel(novel_id) for novel_id in novel_ids]
-    for novel in novels:
-        for status, text, filename in novel:
-            print(status, filename)
+    # print('Testing Novel Artwork')
+    # novel_user = client.visits(22369836)
+    # novel_ids = novel_user.novels()
+    # novels = [Novel(novel_id) for novel_id in novel_ids]
+    # for novel in novels:
+    #     for status, text, filename in novel:
+    #         print(status, filename)
 
+    novel = Novel(11379546)
+    print('bookmarks', novel.bookmarks)
+    print('views', novel.views)
+    print('likes', novel.likes)
+    print(novel.author)
+
+    # illust = Illust(76098647)
+    # print(illust.bookmarks)
+    # print(illust._likes)
 
 
 if __name__ == '__main__':

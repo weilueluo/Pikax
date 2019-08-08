@@ -1,10 +1,10 @@
+import datetime
 import enum
-from enum import Enum
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Union
 from .. import params
 
 
-class UserInterface:
+class APIUserInterface:
 
     def bookmarks(self, limit: int) -> List[int]: raise NotImplementedError
 
@@ -15,11 +15,20 @@ class UserInterface:
     def mangas(self, limit: int) -> List[int]: raise NotImplementedError
 
 
-class PagesInterface:
+class APIPagesInterface:
 
-    def search(self, limit: int) -> List[int]: raise NotImplementedError
+    def search(self, keyword: str = '',
+               type: params.Type = params.Type.ILLUST,
+               match: params.Match = params.Match.EXACT,
+               sort: params.Sort = params.Sort.DATE_DESC,
+               range: datetime.timedelta = None,
+               limit: int = None) -> List[int]: raise NotImplementedError
 
-    def rank(self, limit: int) -> List[int]: raise NotImplementedError
+    def rank(self,
+             limit: int = None,
+             date: Union[str, datetime.datetime] = format(datetime.datetime.today(), '%Y%m%d'),
+             type: params.Type = params.Type.ILLUST,
+             rank_type: params.Rank = params.Rank.DAILY) -> List[int]: raise NotImplementedError
 
 
 class Artwork:
@@ -50,11 +59,11 @@ class Artwork:
     # return num of pages
     def __len__(self): raise NotImplementedError
 
-    # set variables, raises ReqException
+    # set variables, raises ReqException if fails
     def config(self): raise NotImplementedError
 
 
-class IDProcessorInterface:
+class BaseIDProcessor:
 
     def __init__(self):
         self.type_to_function = {

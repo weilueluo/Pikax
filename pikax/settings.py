@@ -105,7 +105,7 @@ SEARCH_POPULARITY_LIST = [20000, 10000, 5000, 1000, 500]
 """
 
 """
-COOKIES_FILE = 'cookies.txt'
+COOKIES_FILE = 'cookies.data'
 
 """
 user name and password used to login

@@ -87,7 +87,7 @@ def download_with_filter_example():
     pixiv = Pikax()
     results = pixiv.rank(limit=50)  # top 50 daily ranking
 
-    new_results = results.likes > 1000  # filters likes > 1000
+    new_results = results.bookmarks > 1000  # filters likes > 1000
     pixiv.download(new_results)  # download
 
 
@@ -96,7 +96,7 @@ def download_with_filter_example2():
     pixiv.login(settings.username, settings.password)  # login
     results = pixiv.search(keyword='初音', limit=200, mode='r18', popularity=1000)  # search
 
-    new_results = (results.likes > 1000) - (results.views < 50000)  # get likes > 1000 and remove views < 50000
+    new_results = (results.bookmarks > 1000) - (results.views < 50000)  # get likes > 1000 and remove views < 50000
     pixiv.download(new_results)  # download
 
 

@@ -54,6 +54,19 @@ class Sort(PikaxEnum):
     DATE_ASC = 'date_asc'
 
 
+class Rank(PikaxEnum):
+    DAILY = 'daily'
+    WEEK = 'weekly'
+    MONTH = 'monthly'
+
+
+class Dimension(PikaxEnum):
+    HORIZONTAL = '0.5'
+    VERTICAL = '-0.5'
+    SQUARE = '0'
+
+
+
 # type
 ILLUST = Type.ILLUST
 NOVEL = Type.NOVEL

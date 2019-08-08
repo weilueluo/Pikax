@@ -29,8 +29,8 @@ class LoginPage:
 
     :func login: used to attempt login
     """
-    _post_key_url = 'https://accounts.pixiv.net/login?'
     _post_key_req_type = 'get'
+    _post_key_url = 'https://accounts.pixiv.net/login?'
     _login_url = 'https://accounts.pixiv.net/api/login?'
     _login_check_url = 'https://www.pixiv.net/touch/ajax/user/self/status'
 

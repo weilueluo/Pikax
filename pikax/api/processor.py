@@ -1,9 +1,9 @@
-from .interface import IDProcessorInterface
+from .models import BaseIDProcessor
 from .artwork import Illust
 from ..exceptions import ArtworkError
 
 
-class BaseIDProcessor(IDProcessorInterface):
+class BaseBaseIDProcessor(BaseIDProcessor):
 
     def __init__(self):
         super().__init__()
@@ -12,7 +12,7 @@ class BaseIDProcessor(IDProcessorInterface):
         raise NotImplementedError
 
     def process_mangas(self, ids):
-        # they are the same, just illust with more pages generally
+        # they are essentially the same, just illust with more pages
         return self.process_illusts(ids)
 
     def process_illusts(self, ids):

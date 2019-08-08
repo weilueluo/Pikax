@@ -27,11 +27,11 @@ _save_enabled = _log_type.find('save') != -1
 _warn_enabled = _log_type.find('warn') != -1
 
 __all__ = ['log', 'req', 'json_loads', 'generate_artworks_from_ids', 'trim_to_limit', 'multiprocessing_',
-           'clean_filename', 'print_json', 'read_only_attrs']
+           'clean_filename', 'print_json']
 
 
 def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,
-        warn=False):
+        warn=False, normal=False):
     """Print according to params and settings.py
 
     **Description**
@@ -65,11 +65,16 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', info
 
 
     """
+
+    if normal:
+        print(start, *objects, sep=sep, end=end, file=file, flush=flush)
+        return
+
     global _std_enabled, _inform_enabled, _save_enabled, _warn_enabled
     if _inform_enabled and inform:
         print(start, '>>>', *objects, sep=sep, end=end, file=file, flush=flush)
     if _save_enabled and save:
-        print(start, *objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a'), flush=False)
+        print(start, *objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a', encoding='utf-8'), flush=False)
     if _inform_enabled and error:
         print(start, '!!!', *objects, sep=sep, end=end, file=file, flush=flush)
     if _warn_enabled and warn:
@@ -79,16 +84,8 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', info
 
 
 # send request using requests, raise ReqException if fails all retries
-def req(url,
-        type='get',
-        session=None,
-        params=None,
-        data=None,
-        headers=settings.DEFAULT_HEADERS,
-        timeout=settings.TIMEOUT,
-        err_msg=None,
-        log_req=True,
-        retries=settings.MAX_RETRIES_FOR_REQUEST,
+def req(url, type='get', session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS,
+        timeout=settings.TIMEOUT, err_msg=None, log_req=True, retries=settings.MAX_RETRIES_FOR_REQUEST,
         proxies=settings.REQUEST_PROXIES):
     """Send requests according to given paramters using requests library
 
@@ -272,6 +269,10 @@ def clean_filename(string):
 # used for tesing
 def print_json(json_obj):
     print(json.dumps(json_obj, indent=4, ensure_ascii=False))
+
+
+def new_session():
+    return requests.Session()
 
 
 def _multithreading_(items, small_list_executor, results_saver=None):
