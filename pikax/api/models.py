@@ -4,32 +4,6 @@ from typing import List, Dict, Tuple
 from .. import params
 
 
-class PikaxResultInterface:
-    ...
-
-
-class PikaxResult(PikaxResultInterface):
-    ...
-
-
-class PikaxUserInterface:
-
-    def bookmarks(self, limit: int) -> PikaxResult: raise NotImplementedError
-
-    def illusts(self, limit: int) -> PikaxResult: raise NotImplementedError
-
-    def novels(self, limit: int) -> PikaxResult: raise NotImplementedError
-
-    def mangas(self, limit: int) -> PikaxResult: raise NotImplementedError
-
-
-class PikaxPagesInterface:
-
-    def search(self, limit: int) -> PikaxResult: raise NotImplementedError
-
-    def rank(self, limit: int) -> PikaxResult: raise NotImplementedError
-
-
 class UserInterface:
 
     def bookmarks(self, limit: int) -> List[int]: raise NotImplementedError
@@ -51,7 +25,7 @@ class PagesInterface:
 class Artwork:
 
     @property
-    def likes(self): raise NotImplementedError
+    def bookmarks(self): raise NotImplementedError
 
     @property
     def views(self): raise NotImplementedError
@@ -61,6 +35,9 @@ class Artwork:
 
     @property
     def title(self): raise NotImplementedError
+
+    @property
+    def likes(self): raise NotImplementedError
 
     class DownloadStatus(enum.Enum):
         OK = 'OK'
@@ -72,6 +49,9 @@ class Artwork:
 
     # return num of pages
     def __len__(self): raise NotImplementedError
+
+    # set variables, raises ReqException
+    def config(self): raise NotImplementedError
 
 
 class IDProcessorInterface:

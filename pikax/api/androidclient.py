@@ -14,12 +14,12 @@ import urllib.parse
 
 import requests
 from .. import util
-from ..exceptions import ReqException, BaseClientException, ClientException
+from ..exceptions import ReqException, BaseClientException, ClientException, LoginError
 from .. import params
 
-from .interface import UserInterface, PagesInterface, IDProcessorInterface
+from .models import APIUserInterface, APIPagesInterface
 
-__all__ = ['Client']
+__all__ = ['AndroidClient']
 
 
 class BaseClient:
@@ -56,7 +56,10 @@ class BaseClient:
         self.mail = None
         self.is_auth_mail = None
 
-        self._login()
+        try:
+            self._login()
+        except ReqException as e:
+            raise LoginError(str(e)) from e
 
     def _login(self):
 
@@ -66,10 +69,7 @@ class BaseClient:
             'password': self._password,
         }
 
-        try:
-            res_data = self._auth_with_update(data)
-        except ReqException as e:
-            raise BaseClientException('Failed login with username and password') from e
+        res_data = self._auth_with_update(data)
 
         self.user_id = res_data['response']['user']['id']
         self.name = res_data['response']['user']['name']
@@ -241,10 +241,10 @@ class FunctionalBaseClient(BaseClient):
         return self._get_ids(start_url, limit=limit, id_type=creation_type)
 
 
-class Client(FunctionalBaseClient, UserInterface, PagesInterface):
+class AndroidClient(FunctionalBaseClient, APIUserInterface, APIPagesInterface):
     # This class will be used by Pikax as api
 
-    class User(UserInterface):
+    class User(APIUserInterface):
         # This class represent other user
         def __init__(self, client, user_id):
             self.client = client
@@ -262,10 +262,6 @@ class Client(FunctionalBaseClient, UserInterface, PagesInterface):
 
         def mangas(self, limit=None):
             return self.client.get_creations(creation_type=params.MANGA, limit=limit, user_id=self.user_id)
-
-    # class Processor(ProcessorInterface):
-
-
 
     def __init__(self, username, password):
         FunctionalBaseClient.__init__(self, username, password)
@@ -290,7 +286,8 @@ class Client(FunctionalBaseClient, UserInterface, PagesInterface):
 
         return ids
 
-    def rank(self, limit=None):
+    def rank(self, limit=None, date=format(datetime.datetime.today(), '%Y%m%d'), type=params.Type.ILLUST,
+             rank_type=params.Rank.DAILY):
         raise NotImplementedError('Pikax.pikax.rank should be used instead')
 
     def bookmarks(self, type=params.ILLUST, limit=None, restrict=params.PUBLIC, tagged=False):
@@ -307,18 +304,18 @@ class Client(FunctionalBaseClient, UserInterface, PagesInterface):
         return self.get_creations(creation_type=params.MANGA, limit=limit, user_id=self.user_id)
 
     def visits(self, user_id):
-        return Client.User(self, user_id)
+        return AndroidClient.User(self, user_id)
 
 
+#
 # for testing
-
+#
 def test():
     from .. import settings
 
-    print('Testing Client')
-    print('This test is subject to change in real world')
+    print('Testing AndroidClient')
 
-    client = Client(settings.username, settings.password)
+    client = AndroidClient(settings.username, settings.password)
 
     ids = client.search(keyword='arknights', limit=242, sort=params.DATE_DESC, match=params.ANY, range=params.A_YEAR)
     assert len(ids) == 242, len(ids)
@@ -326,10 +323,10 @@ def test():
     ids = client.bookmarks(limit=30)
     assert len(ids) == 30, len(ids)
 
-    ids = client.mangas()
+    ids = client.mangas(limit=0)
     assert len(ids) == 0, len(ids)
 
-    ids = client.novels()
+    ids = client.novels(limit=0)
     assert len(ids) == 0, len(ids)
 
     novel_writer = client.visits(user_id=24118759)
@@ -337,23 +334,23 @@ def test():
     ids = novel_writer.bookmarks(limit=100)
     assert len(ids) == 100, len(ids)
 
-    ids = novel_writer.bookmarks(type=params.NOVEL)
+    ids = novel_writer.bookmarks(type=params.NOVEL, limit=17)
     assert len(ids) == 17, len(ids)
 
-    ids = novel_writer.novels()
+    ids = novel_writer.novels(limit=3)
     assert len(ids) == 3, len(ids)
 
-    ids = novel_writer.illusts()
+    ids = novel_writer.illusts(limit=0)
     assert len(ids) == 0, len(ids)
 
 
 def main():
-    from .. import settings
-    client = Client(settings.username, settings.password)
-    user = client.visits(user_id=24118759)
-
-    print(type(user.novels()[0]))
-
+    test()
+    # from .. import settings
+    # client = AndroidClient(settings.username, settings.password)
+    # user = client.visits(user_id=24118759)
+    #
+    # print(type(user.novels()[0]))
 
     # while True:
     #     try:
