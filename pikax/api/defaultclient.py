@@ -1,12 +1,13 @@
 import datetime
 import re
 import time
+import urllib.parse
 from typing import List, Union
 
 from .. import params, settings
 from .models import APIPagesInterface, APIUserInterface
 from .. import util
-from ..exceptions import ReqException, SearchError
+from ..exceptions import ReqException, SearchError, RankError
 
 
 class DefaultSearch:
@@ -57,6 +58,8 @@ class DefaultSearch:
                 raise SearchError(f'Invalid sort type: {sort}')
 
         if range:
+            if range in [params.Range.A_DAY, params.Range.A_MONTH, params.Range.A_YEAR, params.Range.A_WEEK]:
+                range = range.value
             if isinstance(range, datetime.timedelta):
                 today = datetime.date.today()
                 search_params['ecd'] = str(today)
@@ -218,6 +221,147 @@ class DefaultSearch:
             curr_page += 1
 
 
+class DefaultRank:
+    """Representing ranking page in pixiv.net
+
+        **Functions**
+        :func rank: used to get artworks in rank page in pixiv.net
+
+        """
+
+    url = 'https://www.pixiv.net/ranking.php?'
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def _check_inputs(cls, content, type):
+        if content is params.Content.ILLUST:
+            allowed = [params.Rank.DAILY, params.Rank.MONTHLY, params.Rank.WEEKLY, params.Rank.ROOKIE]
+            if type not in allowed:
+                raise RankError('Illust content is only available for type in', allowed)
+
+    @classmethod
+    def _set_params(cls, content, date, type):
+        rank_params = dict()
+
+        rank_params['format'] = 'json'
+
+        if type:
+            if type in [params.Rank.DAILY, params.Rank.MONTHLY, params.Rank.WEEKLY, params.Rank.ROOKIE]:
+                rank_params['mode'] = type.value
+            else:
+                raise RankError(f'Invalid type: {type}')
+
+        if content:
+            if content in [params.Content.ILLUST, params.Content.MANGA]:
+                rank_params['content'] = content.value
+            else:
+                raise RankError(f'Invalid content: {content}')
+
+        if date:
+            if isinstance(date, str):
+                rank_params['date'] = date
+            elif isinstance(date, datetime.date):
+                rank_params['date'] = format(date, '%Y%m%d')
+            elif isinstance(date, params.Date):
+                rank_params['date'] = date.value
+            else:
+                raise RankError(f'Invalid date: {date}')
+
+        if rank_params['date'] == format(datetime.date.today(), '%Y%m%d'):
+            del rank_params['date']  # pixiv always shows previous day rank for today
+
+        return rank_params
+
+    @classmethod
+    def _rank(cls, rank_params, limit):
+        ids = []
+        page_num = 0
+        while page_num < 10:
+            page_num += 1
+            rank_params['p'] = page_num
+            try:
+                res = util.req(url=cls.url, params=rank_params).json()
+            except ReqException as e:
+                util.log(str(e), error=True, save=True)
+                util.log('End of rank at page:', page_num, inform=True, save=True)
+                break
+            if 'error' in res:
+                util.log('End of page while searching', str(rank_params) + '. Finished')
+                break
+            else:
+                ids += [content['illust_id'] for content in res['contents']]
+
+            # check if number of ids reached requirement
+            if limit:
+                num_of_ids_found = len(ids)
+                if limit == num_of_ids_found:
+                    break
+                elif limit < num_of_ids_found:
+                    ids = util.trim_to_limit(ids, limit)
+                    break
+
+        return ids
+
+    @classmethod
+    def rank(cls, type, content, limit=None, date=None):
+        """Used to get artworks from pixiv ranking page
+
+        **Parameters**
+        :param type:
+            type of ranking as in pixiv.net,
+            'daily' | 'weekly' | 'monthly' | 'rookie' | 'original' | 'male' | 'female', default daily
+        :type type:
+            params.Rank
+
+        :param limit:
+            number of artworks to return, may not be enough, default all
+        :type limit:
+            int or None
+
+        :param date:
+            the date when ranking occur,
+            if string given it must be in 'yyyymmdd' format
+            eg. given '20190423' and mode daily will return the daily ranking of pixiv on 2019 April 23
+            eg. given '20190312' and mode monthly will return the monthly ranking from 2019 Feb 12 to 2019 March 12
+            default today
+        :type date:
+            Datetime or str or None
+
+        :param content:
+            type of artwork to return,
+            'illust' | 'manga', default 'illust'
+        :type content:
+            params.Content
+
+        **Returns**
+        :return: a list of artworks
+        :rtype: list
+
+        """
+
+        # some combinations are not allowed
+        cls._check_inputs(content=content, type=type)
+
+        # set paramters
+        rank_params = cls._set_params(content=content, date=date, type=type)
+
+        # rank starts
+        ids = cls._rank(rank_params=rank_params, limit=limit)
+
+        # if limit is specified, check if met
+        if limit:
+            num_of_ids_found = len(ids)
+            if num_of_ids_found < limit:
+                util.log('Items found in ranking is less than requirement:', num_of_ids_found, '<', limit, inform=True)
+
+        # log results
+        util.log('Done. Total ids found:', len(ids), inform=True)
+
+        return ids
+
+
 class DefaultAPIClient(APIPagesInterface, APIUserInterface):
 
     def __init__(self):
@@ -225,30 +369,34 @@ class DefaultAPIClient(APIPagesInterface, APIUserInterface):
 
     def search(self, keyword: str = '', type: params.Type = params.Type.ILLUST,
                match: params.Match = params.Match.EXACT, sort: params.Sort = params.Sort.DATE_DESC,
-               range: datetime.timedelta = None, limit: int = None) -> List[int]:
+               range: Union[datetime.timedelta, params.Range] = None, limit: int = None) -> List[int]:
         return DefaultSearch.search(keyword=keyword, type=type, match=match, sort=sort, range=range, limit=limit)
 
-    def rank(self, limit: int = None, date: Union[str, datetime.datetime] = format(datetime.datetime.today(), '%Y%m%d'),
-             type: params.Type = params.Type.ILLUST, rank_type: params.Rank = params.Rank.DAILY) -> List[int]:
-        pass
+    def rank(self, limit: int = None, date: Union[str, datetime.date] = format(datetime.date.today(), '%Y%m%d'),
+             content: params.Content = params.Content.ILLUST, type: params.Rank = params.Rank.DAILY) -> List[int]:
+        return DefaultRank.rank(limit=limit, date=date, content=content, type=type)
 
     def bookmarks(self, limit: int) -> List[int]:
-        raise NotImplementedError('Default API Client does not implement APIUserInterface')
+        raise NotImplementedError('Default API Client does not implement APIUserInterface.bookmarks')
 
     def illusts(self, limit: int) -> List[int]:
-        raise NotImplementedError('Default API Client does not implement APIUserInterface')
+        raise NotImplementedError('Default API Client does not implement APIUserInterface.illusts')
 
     def novels(self, limit: int) -> List[int]:
-        raise NotImplementedError('Default API Client does not implement APIUserInterface')
+        raise NotImplementedError('Default API Client does not implement APIUserInterface.novels')
 
     def mangas(self, limit: int) -> List[int]:
-        raise NotImplementedError('Default API Client does not implement APIUserInterface')
+        raise NotImplementedError('Default API Client does not implement APIUserInterface.mangas')
 
 
 def main():
     client = DefaultAPIClient()
     ids = client.search(keyword='arknights', limit=234, sort=params.DATE_DESC, type=params.ILLUST, match=params.EXACT,
-                        range=params.A_MONTH)
+                        range=params.Range.A_MONTH)
+    print(ids)
+    print(len(ids))
+
+    ids = client.rank(type=params.Rank.DAILY, limit=None, date=datetime.date.today(), content=params.Content.ILLUST)
     print(ids)
     print(len(ids))
 

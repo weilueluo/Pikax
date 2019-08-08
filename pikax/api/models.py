@@ -21,14 +21,14 @@ class APIPagesInterface:
                type: params.Type = params.Type.ILLUST,
                match: params.Match = params.Match.EXACT,
                sort: params.Sort = params.Sort.DATE_DESC,
-               range: datetime.timedelta = None,
+               range: Union[datetime.timedelta, params.Range] = None,
                limit: int = None) -> List[int]: raise NotImplementedError
 
     def rank(self,
              limit: int = None,
-             date: Union[str, datetime.datetime] = format(datetime.datetime.today(), '%Y%m%d'),
-             type: params.Type = params.Type.ILLUST,
-             rank_type: params.Rank = params.Rank.DAILY) -> List[int]: raise NotImplementedError
+             date: Union[str, datetime.date] = format(datetime.date.today(), '%Y%m%d'),
+             content: params.Content = params.Content.ILLUST,
+             type: params.Rank = params.Rank.DAILY) -> List[int]: raise NotImplementedError
 
 
 class Artwork:

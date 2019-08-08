@@ -56,8 +56,9 @@ class Sort(PikaxEnum):
 
 class Rank(PikaxEnum):
     DAILY = 'daily'
-    WEEK = 'weekly'
-    MONTH = 'monthly'
+    WEEKLY = 'weekly'
+    MONTHLY = 'monthly'
+    ROOKIE = 'rookie'
 
 
 class Dimension(PikaxEnum):
@@ -65,6 +66,10 @@ class Dimension(PikaxEnum):
     VERTICAL = '-0.5'
     SQUARE = '0'
 
+
+class Content(PikaxEnum):
+    ILLUST = 'illust'
+    MANGA = 'manga'
 
 
 # type
@@ -90,23 +95,23 @@ DATE_DESC = Sort.DATE_DESC
 DATE_ASC = Sort.DATE_ASC
 
 
-def get_a_month_timedelta():
-    today = datetime.date.today()
-    a_month_in_days = calendar.monthrange(year=today.year, month=today.month)[1]
-    return datetime.timedelta(days=a_month_in_days)
-
-
-def get_a_year_timedelta():
-    today = datetime.date.today()
-    a_year_in_days = 365 + calendar.isleap(today.year)
-    return datetime.timedelta(days=a_year_in_days)
+class Range(PikaxEnum):
+    A_DAY = datetime.timedelta(days=1)
+    A_WEEK = datetime.timedelta(days=7)
+    A_MONTH = datetime.timedelta(
+        days=calendar.monthrange(year=datetime.date.today().year, month=datetime.date.today().month)[1])
+    A_YEAR = datetime.timedelta(days=365 + calendar.isleap(datetime.date.today().year))
 
 
 # search range
-A_DAY = datetime.timedelta(days=1)
-A_WEEK = datetime.timedelta(days=7)
-A_MONTH = get_a_month_timedelta()
-A_YEAR = get_a_year_timedelta()
+A_DAY = Range.A_DAY
+A_WEEK = Range.A_WEEK
+A_MONTH = Range.A_MONTH
+A_YEAR = Range.A_YEAR
+
+
+class Date(PikaxEnum):
+    TODAY = format(datetime.date.today(), '%Y%m%d')
 
 
 # collections params, e.g. illusts, novels
@@ -119,18 +124,19 @@ class Collections:
 PUBLIC = Collections.Restrict.PUBLIC
 PRIVATE = Collections.Restrict.PRIVATE
 
+
 # for testing
 def main():
-    assert Search.Type.is_valid(DATE_DESC) is False
-    assert Search.Type.is_valid(DATE_ASC) is False
-    assert Search.Type.is_valid(ANY) is False
-    assert Search.Type.is_valid(EXACT) is False
-    assert Search.Type.is_valid(PARTIAL) is False
-    assert Search.Type.is_valid(TEXT) is False
-    assert Search.Type.is_valid(KEYWORD) is False
-    assert Search.Type.is_valid(ILLUST)
-    assert Search.Type.is_valid(NOVEL)
-    assert Search.Type.is_valid(USER)
+    assert Type.is_valid(DATE_DESC) is False
+    assert Type.is_valid(DATE_ASC) is False
+    assert Type.is_valid(ANY) is False
+    assert Type.is_valid(EXACT) is False
+    assert Type.is_valid(PARTIAL) is False
+    assert Type.is_valid(TEXT) is False
+    assert Type.is_valid(KEYWORD) is False
+    assert Type.is_valid(ILLUST)
+    assert Type.is_valid(NOVEL)
+    assert Type.is_valid(USER)
 
 
 if __name__ == '__main__':

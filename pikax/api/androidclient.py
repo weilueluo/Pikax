@@ -286,8 +286,8 @@ class AndroidClient(FunctionalBaseClient, APIUserInterface, APIPagesInterface):
 
         return ids
 
-    def rank(self, limit=None, date=format(datetime.datetime.today(), '%Y%m%d'), type=params.Type.ILLUST,
-             rank_type=params.Rank.DAILY):
+    def rank(self, limit=None, date=str(datetime.date.today()), content=params.Content.ILLUST,
+             type=params.Rank.DAILY):
         raise NotImplementedError('Pikax.pikax.rank should be used instead')
 
     def bookmarks(self, type=params.ILLUST, limit=None, restrict=params.PUBLIC, tagged=False):
