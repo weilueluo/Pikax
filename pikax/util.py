@@ -340,3 +340,76 @@ def multiprocessing_(items, small_list_executor, results_saver=None):
         process.start()
     for process in processes:
         process.join()
+
+
+class Printer(object):
+
+    def __init__(self):
+        self.is_first_print = True
+        self.last_percent = None
+        self.last_percent_time_left = None
+        self.last_percent_print_time = None
+        self.est_time_lefts = [0, 0, 0]
+        self.start_time = None
+
+    def print_progress(self, curr, total):
+        curr_percent = math.floor(curr / total * 100)
+        curr_time = time.time()
+        if self.is_first_print:
+            est_time_left = float("inf")
+            self.is_first_print = False
+            self.last_percent_time_left = est_time_left
+            self.last_percent_print_time = curr_time
+            self.start_time = time.time()
+        elif self.last_percent == curr_percent:
+            est_time_left = self.last_percent_time_left
+        else:
+            bad_est_time_left = (curr_time - self.last_percent_print_time) / (curr_percent - self.last_percent) * (
+                    100 - curr_percent)
+            self.est_time_lefts.append(bad_est_time_left)
+            self.est_time_lefts = self.est_time_lefts[1:]
+            percent_left = 100 - curr_percent
+            percent_diff = curr_percent - self.last_percent
+            chunk_left = round(percent_left / percent_diff)
+            if chunk_left < len(self.est_time_lefts):
+                est_time_left = sum(self.est_time_lefts[-chunk_left:]) / chunk_left if chunk_left != 0 else 0.00
+            else:
+                est_time_left = sum(self.est_time_lefts) / len(self.est_time_lefts)
+            self.last_percent_time_left = est_time_left
+            self.last_percent_print_time = curr_time
+
+        self.last_percent = curr_percent
+
+        if est_time_left != 0.0:
+            log('{0} / {1} => {2}% | Time Left est. {3:.2f}s'.format(curr, total, curr_percent, est_time_left),
+                end='', start='\r', inform=True)
+        else:
+            log('{0} / {1} => {2}% '.format(curr, total, curr_percent), end='', start='\r', inform=True)
+
+    def print_done(self, msg=None):
+        if msg:
+            log(f' [ done ] => {msg}', normal=True)
+        else:  # a float, time taken
+            if self.is_first_print:
+                log(' [ done ]', normal=True)
+            else:
+                log(' [ done ] => {0:.2f}s'.format(time.time() - self.start_time), normal=True)
+        self.is_first_print = True
+        self.start_time = None
+        self.last_percent = None
+        self.last_percent_print_time = None
+        self.last_percent_time_left = None
+        self.est_time_lefts = [0, 0, 0]
+
+
+printer = Printer()
+
+
+def print_progress(curr, total):
+    global printer
+    printer.print_progress(curr, total)
+
+
+def print_done(msg=None):
+    global printer
+    printer.print_done(msg)

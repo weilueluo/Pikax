@@ -1,13 +1,11 @@
 import enum
 import os
-import pickle
-import re
 
-from ..exceptions import LoginError, ReqException
-from ..api.androidclient import AndroidClient
-from ..api.webclient import WebClient
+from ..exceptions import LoginError
+from ..api.androidclient import AndroidAPIClient
+from ..api.webclient import WebAPIClient
 from ..api.defaultclient import DefaultAPIClient
-from .. import util, settings
+from .. import util
 
 
 class LoginHandler:
@@ -21,23 +19,29 @@ class LoginHandler:
         self.password = password
 
     def login(self):
+
         try:
             util.log('Attempting Web Login ...')
-            client = WebClient(self.username, self.password)
-            util.log(f'Login successfully: {self.LoginStatus.PC}, client: {client}')
-            return self.LoginStatus.PC, client
+
+            client = WebAPIClient(self.username, self.password)
+            login_status = self.LoginStatus.PC
+
         except LoginError as e:
             util.log(f'Web Login failed: {e}')
+            try:
+                util.log('Attempting Android Login ...')
 
-        try:
-            util.log('Attempting Android Login ...')
-            client = AndroidClient(self.username, self.password)
-            util.log(f'Login successfully: {self.LoginStatus.PC}, client: {client}')
-            return self.LoginStatus.ANDROID, client
-        except LoginError as e:
-            util.log(f'Android Login failed: {e}')
+                client = AndroidAPIClient(self.username, self.password)
+                login_status = self.LoginStatus.ANDROID
 
-        return self.LoginStatus.LOG_OUT, DefaultAPIClient()
+            except LoginError as e:
+                util.log(f'Android Login failed: {e}')
+
+                client = DefaultAPIClient()
+                login_status = self.LoginStatus.LOG_OUT
+
+        util.log(f'Login Status: {login_status}, API Client: {client}', start=os.linesep, inform=True)
+        return login_status, client
 
 
 def main():

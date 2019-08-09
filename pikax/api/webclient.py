@@ -4,11 +4,11 @@ import pickle
 import re
 from typing import Union, List
 
-from pikax import params
+from .. import params
+from ..api.defaultclient import DefaultAPIClient
 from ..exceptions import ReqException, LoginError
 
 from .. import util, settings
-from .models import APIUserInterface, APIPagesInterface
 
 
 class BaseClient:
@@ -51,14 +51,14 @@ class AccountClient(BaseClient):
             'pixiv_id': username,
             'post_key': postkey,
         }
-        params = {
+        login_params = {
             'lang': 'en'
         }
 
         util.log('Sending requests to attempt login ...')
 
         try:
-            util.req(type='post', session=self._session, url=self._login_url, data=data, params=params)
+            util.req(type='post', session=self._session, url=self._login_url, data=data, params=login_params)
         except ReqException as e:
             raise LoginError(f'Failed to send login request: {e}')
 
@@ -127,10 +127,11 @@ class CookiesClient(BaseClient):
             if answer in ['n', 'no']:
                 break
             if answer not in ['y', 'yes']:
-                print('Please enter your answer as case-insensitive \'y\', \'n\', \'yes\', \'no\'')
+                print('Please enter your answer as case-insensitive \'y\' or \'n\' or \'yes\' or \'no\'')
                 continue
 
-            cookies = input(' [=] Please enter your cookies here:')
+            cookies = input(' [=] Please enter your cookies here, just php session id will work,' + os.linesep +
+                            ' [=] e.g. PHPSESSIONID=1234567890:')
 
             try:
                 self._change_to_new_cookies(cookies)
@@ -160,7 +161,7 @@ class CookiesClient(BaseClient):
             raise LoginError(f'Cookies given is invalid, please try again | {e}') from e
 
 
-class WebClient(AccountClient, CookiesClient, APIUserInterface, APIPagesInterface):
+class WebAPIClient(AccountClient, CookiesClient, DefaultAPIClient):
 
     def __init__(self, username, password):
         super().__init__()
@@ -172,8 +173,11 @@ class WebClient(AccountClient, CookiesClient, APIUserInterface, APIPagesInterfac
             except LoginError:
                 raise LoginError('Web client login failed')
 
-    def bookmarks(self, limit: int = None) -> List[int]:
-        pass
+        DefaultAPIClient.__init__(self._session)
+
+    def bookmarks(self, limit: int = None, bookmark_type: params.Type = params.Type.ILLUST,
+                  restrict: params.Restrict = params.Restrict.PUBLIC) -> List[int]:
+        ...
 
     def illusts(self, limit: int = None) -> List[int]:
         pass
@@ -184,11 +188,48 @@ class WebClient(AccountClient, CookiesClient, APIUserInterface, APIPagesInterfac
     def mangas(self, limit: int = None) -> List[int]:
         pass
 
-    def search(self, keyword: str = '', type: params.Type = params.Type.ILLUST,
+    def search(self, keyword: str = '', search_type: params.SearchType = params.SearchType.ILLUST_OR_MANGA,
                match: params.Match = params.Match.EXACT, sort: params.Sort = params.Sort.DATE_DESC,
-               range: Union[datetime.timedelta, params.Range] = None, limit: int = None) -> List[int]:
-        pass
+               search_range: Union[datetime.timedelta, params.Range] = None, limit: int = None) -> List[int]:
+        return super().search(keyword=keyword, search_type=search_type, match=match, sort=sort,
+                              search_range=search_range, limit=limit)
 
     def rank(self, limit: int = None, date: Union[str, datetime.date] = format(datetime.date.today(), '%Y%m%d'),
-             content: params.Content = params.Content.ILLUST, type: params.Rank = params.Rank.DAILY) -> List[int]:
-        pass
+             content: params.Content = params.Content.ILLUST, rank_type: params.Rank = params.Rank.DAILY) -> List[int]:
+        return super().rank(rank_type=rank_type, date=date, content=content, limit=limit)
+
+    def visits(self, user_id: int):
+        return super().visits(user_id=user_id)
+
+
+def test():
+    print('Testing Web Client')
+    from .. import settings
+    client = WebAPIClient(settings.username, settings.password)
+    ids = client.search(keyword='arknights', limit=234, sort=params.Sort.DATE_DESC,
+                        search_type=params.SearchType.ILLUST_OR_MANGA,
+                        match=params.Match.EXACT,
+                        search_range=params.Range.A_MONTH)
+    print(f'num of ids from search: {len(ids)}')
+
+    ids = client.rank(rank_type=params.Rank.ROOKIE, date=datetime.date.today(), content=params.Content.MANGA)
+    print(f'num of ids from search: {len(ids)}')
+
+    user_id = 38088
+    user = client.visits(user_id=user_id)
+    user_illust_ids = user.illusts()
+    print(f'num of illust ids from {user_id}: {len(user_illust_ids)}')
+
+    user_novel_ids = user.novels()
+    print(f'num of novel ids from {user_id}: {len(user_novel_ids)}')
+
+    user_manga_ids = user.mangas()
+    print(f'num of manga ids from {user_id}: {len(user_manga_ids)}')
+
+
+def main():
+    test()
+
+
+if __name__ == '__main__':
+    main()

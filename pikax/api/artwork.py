@@ -20,7 +20,7 @@ class Illust(Artwork):
     }
 
     def __init__(self, illust_id):
-        self.id = illust_id
+        super().__init__(illust_id)
 
         # properties, set after generate details is called
         self._views = None
@@ -43,23 +43,25 @@ class Illust(Artwork):
         self._headers['referer'] = Illust._referer_url + str(self.id)
 
     def config(self):
+        try:
+            illust_data = util.req(type='get', url=self._details_url, log_req=True).json()
+            illust_data = illust_data['body']
 
-        illust_data = util.req(type='get', url=self._details_url, log_req=True).json()
-        illust_data = illust_data['body']
+            # properties
+            self._views = illust_data['viewCount']
+            self._bookmarks = illust_data['bookmarkCount']
+            self._likes = illust_data['likeCount']
+            self._title = illust_data['illustTitle']
+            self._author = illust_data['userName']
 
-        # properties
-        self._views = illust_data['viewCount']
-        self._bookmarks = illust_data['bookmarkCount']
-        self._likes = illust_data['likeCount']
-        self._title = illust_data['illustTitle']
-        self._author = illust_data['userName']
+            self.__original_url_template = illust_data['urls']['original']
+            self.__original_url_template = re.sub(r'(?<=_p)\d', '{page_num}', self.__original_url_template)
+            self.__comments = illust_data['commentCount']
+            self.__page_count = illust_data['pageCount']
 
-        self.__original_url_template = illust_data['urls']['original']
-        self.__original_url_template = re.sub(r'(?<=_p)\d', '{page_num}', self.__original_url_template)
-        self.__comments = illust_data['commentCount']
-        self.__page_count = illust_data['pageCount']
-
-        self.__generate_download_data()
+            self.__generate_download_data()
+        except (ReqException, KeyError) as e:
+            raise ArtworkError(f'Failed to configure artwork of id: {self.id}') from e
 
     def _get_download_url(self, page_num):
         return self.__original_url_template.format(page_num=page_num)
@@ -92,7 +94,7 @@ class Illust(Artwork):
         try:
 
             return Artwork.DownloadStatus.OK, \
-                   util.req(url=download_url, headers=self._headers, log_req=False).content, \
+                   util.req(url=download_url, headers=self._headers, log_req=False), \
                    filename
 
         except ReqException:
@@ -134,7 +136,7 @@ class Novel(Artwork):
     _novel_details_url = 'https://www.pixiv.net/ajax/user/{author_id}/profile/novels?'
 
     def __init__(self, novel_id):
-        self.id = novel_id
+        super().__init__(novel_id)
 
         # interface
         self._views = None
@@ -191,8 +193,11 @@ class Novel(Artwork):
             self.__filename = f'Login is required to view R18 novel of id: {self.id}'
 
     def config(self):
-        self.__generate_details_from_content_url()
-        self.__generate_details_from_ajax_url()
+        try:
+            self.__generate_details_from_content_url()
+            self.__generate_details_from_ajax_url()
+        except ReqException as e:
+            raise ArtworkError(f'Failed to configure artwork of id: {self.id}') from e
 
     def _get_filename(self):
         filename = str(self._author) + '_' + str(self.title) + '_' + str(self.id) + '.txt'
@@ -229,11 +234,11 @@ class Novel(Artwork):
 
 
 def main():
-    from .androidclient import AndroidClient
+    from .androidclient import AndroidAPIClient
     from .. import settings
     import sys
     sys.stdout.reconfigure(encoding='utf-8')
-    client = AndroidClient(settings.username, settings.password)
+    client = AndroidAPIClient(settings.username, settings.password)
     # print('Testing Illust Artwork')
     # user = client.visits(user_id=2957827)
     # illust_ids = user.illusts()

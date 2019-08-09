@@ -26,6 +26,7 @@ class Pikax(PikaxInterface):
                match: params.Match = params.Match.EXACT,
                sort: params.Sort = params.Sort.DATE_DESC,
                range: datetime.timedelta = None,
+               popularity: Union[int, str] = None,
                limit: int = None) \
             -> PikaxResult:
         pass

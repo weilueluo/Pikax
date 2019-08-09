@@ -1,9 +1,9 @@
 import calendar
-from enum import Enum
+import enum
 import datetime
 
 
-class PikaxEnum(Enum):
+class PikaxEnum(enum.Enum):
     @classmethod
     def is_valid(cls, value):
         return isinstance(value, cls)
@@ -31,11 +31,8 @@ class Type(PikaxEnum):
     }
 
     @classmethod
-    def get_response_container_name(cls, item):
-        if cls.is_valid(item):
-            return cls._member_to_container_map.value[item.value]
-        else:
-            raise KeyError(f'Value {item} does not exists in {cls}')
+    def get_response_container_name(cls, key):
+        return cls._member_to_container_map.value[key]
 
 
 class Match(PikaxEnum):
@@ -72,29 +69,6 @@ class Content(PikaxEnum):
     MANGA = 'manga'
 
 
-# type
-ILLUST = Type.ILLUST
-NOVEL = Type.NOVEL
-USER = Type.USER
-MANGA = Type.MANGA
-GIF = Type.GIF
-
-# illusts and novel match
-EXACT = Match.EXACT
-PARTIAL = Match.PARTIAL
-
-# illusts only
-ANY = Match.ANY
-
-# novel match
-TEXT = Match.TEXT
-KEYWORD = Match.KEYWORD
-
-# search sort
-DATE_DESC = Sort.DATE_DESC
-DATE_ASC = Sort.DATE_ASC
-
-
 class Range(PikaxEnum):
     A_DAY = datetime.timedelta(days=1)
     A_WEEK = datetime.timedelta(days=7)
@@ -103,40 +77,52 @@ class Range(PikaxEnum):
     A_YEAR = datetime.timedelta(days=365 + calendar.isleap(datetime.date.today().year))
 
 
-# search range
-A_DAY = Range.A_DAY
-A_WEEK = Range.A_WEEK
-A_MONTH = Range.A_MONTH
-A_YEAR = Range.A_YEAR
-
-
 class Date(PikaxEnum):
     TODAY = format(datetime.date.today(), '%Y%m%d')
 
 
 # collections params, e.g. illusts, novels
-class Collections:
-    class Restrict(PikaxEnum):
-        PUBLIC = 'public'
-        PRIVATE = 'private'
+class Restrict(PikaxEnum):
+    PUBLIC = 'public'
+    PRIVATE = 'private'
 
 
-PUBLIC = Collections.Restrict.PUBLIC
-PRIVATE = Collections.Restrict.PRIVATE
+class CreationType(PikaxEnum):
+    ILLUST = 'illust'
+    MANGA = 'manga'
+    NOVEL = 'novels'
+
+
+class BookmarkType(PikaxEnum):
+    ILLUST_OR_MANGA = 'illust'
+    NOVEL = 'novel'
+
+
+class SearchType(PikaxEnum):
+    ILLUST_OR_MANGA = 'illust'
+    NOVEL = 'novel'  # XXX: Need implementation
+    USER = 'user'  # XXX: Need implementation
+
+
+class ProcessType(PikaxEnum):
+    ILLUST = enum.auto()
+    MANGA = enum.auto()
+    NOVEL = enum.auto()
+    GIF = enum.auto()
 
 
 # for testing
 def main():
-    assert Type.is_valid(DATE_DESC) is False
-    assert Type.is_valid(DATE_ASC) is False
-    assert Type.is_valid(ANY) is False
-    assert Type.is_valid(EXACT) is False
-    assert Type.is_valid(PARTIAL) is False
-    assert Type.is_valid(TEXT) is False
-    assert Type.is_valid(KEYWORD) is False
-    assert Type.is_valid(ILLUST)
-    assert Type.is_valid(NOVEL)
-    assert Type.is_valid(USER)
+    assert Type.is_valid(Date.DATE_DESC) is False
+    assert Type.is_valid(Date.DATE_ASC) is False
+    assert Type.is_valid(Match.ANY) is False
+    assert Type.is_valid(Match.EXACT) is False
+    assert Type.is_valid(Match.PARTIAL) is False
+    assert Type.is_valid(Match.TEXT) is False
+    assert Type.is_valid(Match.KEYWORD) is False
+    assert Type.is_valid(Type.ILLUST)
+    assert Type.is_valid(Type.NOVEL)
+    assert Type.is_valid(Type.USER)
 
 
 if __name__ == '__main__':

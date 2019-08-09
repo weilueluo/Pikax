@@ -20,7 +20,7 @@ from .. import params
 from .models import APIUserInterface
 from .defaultclient import DefaultAPIClient
 
-__all__ = ['AndroidClient']
+__all__ = ['AndroidAPIClient']
 
 
 class BaseClient:
@@ -144,17 +144,21 @@ class FunctionalBaseClient(BaseClient):
     @classmethod
     def _get_search_start_url(cls, keyword, search_type, match, sort, search_range):
         cls._check_params(match=match, sort=sort, search_range=search_range)
-        if search_type not in [params.ILLUST, params.NOVEL, params.USER]:
-            raise ClientException(f'search type must be either {params.ILLUST}, {params.NOVEL} or {params.USER}')
+        if search_type not in [params.SearchType.ILLUST_OR_MANGA, params.SearchType.NOVEL, params.SearchType.USER]:
+            raise ClientException(
+                f'Invalid search type: {search_type}, must be in '
+                f'{[params.SearchType.ILLUST_OR_MANGA, params.SearchType.NOVEL, params.SearchType.USER]}')
         param = {
             'word': str(keyword)
         }
 
-        if search_type is not params.USER:
+        if search_type is not params.SearchType.USER:
             param['search_target'] = match.value
             param['sort'] = sort.value
 
             if search_range:
+                if params.Range.is_valid(search_range):
+                    search_range = search_range.value
                 today = datetime.date.today()
                 param['start_date'] = str(today)
                 param['end_date'] = str(today - search_range)
@@ -164,8 +168,10 @@ class FunctionalBaseClient(BaseClient):
 
     @classmethod
     def _get_bookmarks_start_url(cls, bookmark_type, req_params, tagged):
-        if bookmark_type not in [params.ILLUST, params.NOVEL]:
-            raise ClientException(f'Invalid type: {bookmark_type}, accepts {params.ILLUST} and {params.NOVEL} only')
+        if bookmark_type not in [params.BookmarkType.ILLUST_OR_MANGA, params.BookmarkType.NOVEL]:
+            raise ClientException(
+                f'Invalid bookmark type: {bookmark_type}, must be in '
+                f'{[params.BookmarkType.ILLUST_OR_MANGA, params.BookmarkType.NOVEL]}')
 
         if tagged:
             collection_url = cls._tagged_collection_url.format(collection_type=bookmark_type.value)
@@ -178,7 +184,7 @@ class FunctionalBaseClient(BaseClient):
     @classmethod
     def _get_creations_start_url(cls, req_params, creation_type):
         encoded_params = urllib.parse.urlencode(req_params)
-        if creation_type is params.Type.NOVELS:
+        if creation_type is params.CreationType.NOVEL:
             return cls._novel_creation_url + encoded_params
         else:
             return cls._illust_creation_url + encoded_params
@@ -189,11 +195,12 @@ class FunctionalBaseClient(BaseClient):
             raise ClientException(f'search type: {match} is not in {params.Match}')
         if (sort is not None) and (not params.Sort.is_valid(sort)):
             raise ClientException(f'search type: {sort} is not in {params.Sort}')
-        if (search_range is not None) and (not isinstance(search_range, datetime.timedelta)):
+        if (search_range is not None) and (not isinstance(search_range, datetime.timedelta)) and (
+                not params.Range.is_valid(search_range)):
             raise ClientException(f'search type: {search_range} is not None or instance of datetime.timedelta')
-        if (restrict is not None) and (not params.Collections.Restrict.is_valid(restrict)):
+        if (restrict is not None) and (not params.Restrict.is_valid(restrict)):
             raise ClientException(
-                f'collections restrict {restrict} is not in {params.Collections.Restrict}')
+                f'collections restrict {restrict} is not in {params.Restrict}')
 
     def _req(self, url, req_params=None):
         return util.req(url=url, headers=self.headers, params=req_params)
@@ -201,7 +208,7 @@ class FunctionalBaseClient(BaseClient):
     def _get_ids(self, next_url, limit, id_type):
         if limit:
             limit = int(limit)
-        data_container_name = params.Type.get_response_container_name(id_type)
+        data_container_name = params.Type.get_response_container_name(id_type.value)
         ids_collected = []
         while next_url is not None and (not limit or len(ids_collected) < limit):
             res_data = self._req(next_url).json()
@@ -226,23 +233,23 @@ class FunctionalBaseClient(BaseClient):
         return self._get_ids(start_url, limit=limit, id_type=bookmark_type)
 
     def get_creations(self, creation_type, limit, user_id):
-        if creation_type not in [params.ILLUST, params.MANGA, params.NOVEL]:
-            raise ClientException(f'creation type must be either {params.ILLUST} or {params.MANGA}')
+        if creation_type not in [params.CreationType.ILLUST, params.CreationType.MANGA, params.CreationType.NOVEL]:
+            raise ClientException(
+                f'creation type must be in '
+                f'{[params.CreationType.ILLUST, params.CreationType.MANGA, params.CreationType.NOVEL]}')
 
         req_params = {
             'user_id': int(user_id),
         }
 
-        if creation_type is params.NOVEL:
-            creation_type = params.Type.NOVELS  # novel is novels in the android endpoint requests respond
-        else:
+        if creation_type is not params.CreationType.NOVEL:
             req_params['type'] = creation_type.value
 
         start_url = self._get_creations_start_url(req_params=req_params, creation_type=creation_type)
         return self._get_ids(start_url, limit=limit, id_type=creation_type)
 
 
-class AndroidClient(FunctionalBaseClient, DefaultAPIClient):
+class AndroidAPIClient(FunctionalBaseClient, DefaultAPIClient):
     # This class will be used by Pikax as api
 
     class User(APIUserInterface):
@@ -251,70 +258,73 @@ class AndroidClient(FunctionalBaseClient, DefaultAPIClient):
             self.client = client
             self.user_id = user_id
 
-        def bookmarks(self, type=params.ILLUST, limit=None, tagged=False):
-            return self.client.get_bookmarks(bookmark_type=type, limit=limit, restrict=params.PUBLIC, tagged=tagged,
-                                             user_id=self.user_id)
+        def bookmarks(self, limit=None, bookmark_type=params.BookmarkType.ILLUST_OR_MANGA, tagged=None):
+            return self.client.get_bookmarks(bookmark_type=bookmark_type, limit=limit, restrict=params.Restrict.PUBLIC,
+                                             tagged=tagged, user_id=self.user_id)
 
         def illusts(self, limit=None):
-            return self.client.get_creations(creation_type=params.ILLUST, limit=limit, user_id=self.user_id)
+            return self.client.get_creations(creation_type=params.CreationType.ILLUST, limit=limit,
+                                             user_id=self.user_id)
 
         def novels(self, limit=None):
-            return self.client.get_creations(creation_type=params.NOVEL, limit=limit, user_id=self.user_id)
+            return self.client.get_creations(creation_type=params.CreationType.NOVEL, limit=limit, user_id=self.user_id)
 
         def mangas(self, limit=None):
-            return self.client.get_creations(creation_type=params.MANGA, limit=limit, user_id=self.user_id)
+            return self.client.get_creations(creation_type=params.CreationType.MANGA, limit=limit, user_id=self.user_id)
 
     def __init__(self, username, password):
         FunctionalBaseClient.__init__(self, username, password)
 
-    def search(self, keyword='', type=params.ILLUST, match=params.EXACT, sort=params.DATE_DESC, range=None, limit=None):
+    def search(self, keyword='', search_type=params.SearchType.ILLUST_OR_MANGA, match=params.Match.EXACT,
+               sort=params.Sort.DATE_DESC,
+               search_range=None, limit=None):
         # if params.user is passed in as type,
         # only keyword is considered
 
-        start_url = self._get_search_start_url(keyword=keyword, search_type=type, match=match, sort=sort,
-                                               search_range=range)
-        ids = self._get_ids(start_url, limit=limit, id_type=type)
+        start_url = self._get_search_start_url(keyword=keyword, search_type=search_type, match=match, sort=sort,
+                                               search_range=search_range)
+        ids = self._get_ids(start_url, limit=limit, id_type=search_type)
 
         # XXX attempt to fix user input keyword if no search result returned?
         # if not ids:
         #     auto_complete_keyword = self._get_keyword_match(word=keyword)
         #     if auto_complete_keyword:
-        #         return self.search(keyword=auto_complete_keyword, type=type, match=match, sort=sort, range=range, limit=limit, r18=r18, r18g=r18g)
+        #         return self.search(keyword=auto_complete_keyword, type=type, match=match, sort=sort,
+        #                            range=range, limit=limit, r18=r18, r18g=r18g)
 
         return ids
 
     def rank(self, limit=None, date=str(datetime.date.today()), content=params.Content.ILLUST,
-             type=params.Rank.DAILY):
-        return super().rank(limit=limit, date=date, content=content, type=type)
+             rank_type=params.Rank.DAILY):
+        return super().rank(limit=limit, date=date, content=content, rank_type=rank_type)
 
-    def bookmarks(self, type=params.ILLUST, limit=None, restrict=params.PUBLIC, tagged=False):
-        return self.get_bookmarks(bookmark_type=type, limit=limit, restrict=restrict, tagged=tagged,
+    def bookmarks(self, limit=None, bookmark_type: params.BookmarkType = params.BookmarkType.ILLUST_OR_MANGA,
+                  restrict: params.Restrict = params.Restrict.PUBLIC):
+        return self.get_bookmarks(bookmark_type=bookmark_type, limit=limit, restrict=restrict, tagged=False,  # XXX
                                   user_id=self.user_id)
 
     def novels(self, limit=None):
-        return self.get_creations(creation_type=params.NOVEL, limit=limit, user_id=self.user_id)
+        return self.get_creations(creation_type=params.CreationType.NOVEL, limit=limit, user_id=self.user_id)
 
     def illusts(self, limit=None):
-        return self.get_creations(creation_type=params.ILLUST, limit=limit, user_id=self.user_id)
+        return self.get_creations(creation_type=params.CreationType.ILLUST, limit=limit, user_id=self.user_id)
 
     def mangas(self, limit=None):
-        return self.get_creations(creation_type=params.MANGA, limit=limit, user_id=self.user_id)
+        return self.get_creations(creation_type=params.CreationType.MANGA, limit=limit, user_id=self.user_id)
 
     def visits(self, user_id):
-        return AndroidClient.User(self, user_id)
+        return AndroidAPIClient.User(self, user_id)
 
 
-#
-# for testing
-#
 def test():
     from .. import settings
 
     print('Testing AndroidClient')
 
-    client = AndroidClient(settings.username, settings.password)
+    client = AndroidAPIClient(settings.username, settings.password)
 
-    ids = client.search(keyword='arknights', limit=242, sort=params.DATE_DESC, match=params.ANY, range=params.A_YEAR)
+    ids = client.search(keyword='arknights', limit=242, sort=params.Sort.DATE_DESC, match=params.Match.ANY,
+                        search_range=params.Range.A_YEAR)
     assert len(ids) == 242, len(ids)
 
     ids = client.bookmarks(limit=30)
@@ -331,7 +341,7 @@ def test():
     ids = novel_writer.bookmarks(limit=100)
     assert len(ids) == 100, len(ids)
 
-    ids = novel_writer.bookmarks(type=params.NOVEL, limit=17)
+    ids = novel_writer.bookmarks(limit=17)
     assert len(ids) == 17, len(ids)
 
     ids = novel_writer.novels(limit=3)
@@ -339,6 +349,26 @@ def test():
 
     ids = novel_writer.illusts(limit=0)
     assert len(ids) == 0, len(ids)
+
+    ids = client.search(keyword='arknights', limit=234, sort=params.Sort.DATE_DESC,
+                        search_type=params.SearchType.ILLUST_OR_MANGA,
+                        match=params.Match.EXACT,
+                        search_range=params.Range.A_MONTH)
+    assert len(ids) == 234
+
+    ids = client.rank(rank_type=params.Rank.ROOKIE, date=datetime.date.today(), content=params.Content.MANGA)
+    assert len(ids) == 100, len(ids)
+
+    user_id = 38088
+    user = client.visits(user_id=user_id)
+    user_illust_ids = user.illusts()
+    assert user_illust_ids == 108, len(user_illust_ids)
+
+    user_novel_ids = user.novels()
+    assert len(user_novel_ids) == 0, len(user_novel_ids)
+
+    user_manga_ids = user.mangas()
+    assert len(user_manga_ids) == 2, len(user_manga_ids)
 
 
 def main():
