@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+
+# XXX NOTE:
+#   Pikax is subject to reconstruct soon    
+#   Viewing current progress should visits api or v2 folder
+
 """Contain classes for use
 
 **Classes**
@@ -23,7 +28,7 @@ class Pikax:
     """Representing Pixiv.net
 
     **Description**
-    If it is not log in,
+    If it is not log in, results maybe less than actual results
 
 
     **Functions**
