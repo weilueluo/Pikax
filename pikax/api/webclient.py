@@ -172,16 +172,16 @@ class WebClient(AccountClient, CookiesClient, APIUserInterface, APIPagesInterfac
             except LoginError:
                 raise LoginError('Web client login failed')
 
-    def bookmarks(self, limit: int) -> List[int]:
+    def bookmarks(self, limit: int = None) -> List[int]:
         pass
 
-    def illusts(self, limit: int) -> List[int]:
+    def illusts(self, limit: int = None) -> List[int]:
         pass
 
-    def novels(self, limit: int) -> List[int]:
+    def novels(self, limit: int = None) -> List[int]:
         pass
 
-    def mangas(self, limit: int) -> List[int]:
+    def mangas(self, limit: int = None) -> List[int]:
         pass
 
     def search(self, keyword: str = '', type: params.Type = params.Type.ILLUST,

@@ -17,7 +17,8 @@ from .. import util
 from ..exceptions import ReqException, BaseClientException, ClientException, LoginError
 from .. import params
 
-from .models import APIUserInterface, APIPagesInterface
+from .models import APIUserInterface
+from .defaultclient import DefaultAPIClient
 
 __all__ = ['AndroidClient']
 
@@ -146,7 +147,7 @@ class FunctionalBaseClient(BaseClient):
         if search_type not in [params.ILLUST, params.NOVEL, params.USER]:
             raise ClientException(f'search type must be either {params.ILLUST}, {params.NOVEL} or {params.USER}')
         param = {
-            'word': keyword
+            'word': str(keyword)
         }
 
         if search_type is not params.USER:
@@ -241,7 +242,7 @@ class FunctionalBaseClient(BaseClient):
         return self._get_ids(start_url, limit=limit, id_type=creation_type)
 
 
-class AndroidClient(FunctionalBaseClient, APIUserInterface, APIPagesInterface):
+class AndroidClient(FunctionalBaseClient, DefaultAPIClient):
     # This class will be used by Pikax as api
 
     class User(APIUserInterface):
@@ -270,10 +271,6 @@ class AndroidClient(FunctionalBaseClient, APIUserInterface, APIPagesInterface):
         # if params.user is passed in as type,
         # only keyword is considered
 
-        self._check_params(match=match, sort=sort, search_range=range)
-        if type is params.MANGA:  # extra check
-            raise ClientException(f'search type cannot be {params.MANGA}')
-
         start_url = self._get_search_start_url(keyword=keyword, search_type=type, match=match, sort=sort,
                                                search_range=range)
         ids = self._get_ids(start_url, limit=limit, id_type=type)
@@ -288,7 +285,7 @@ class AndroidClient(FunctionalBaseClient, APIUserInterface, APIPagesInterface):
 
     def rank(self, limit=None, date=str(datetime.date.today()), content=params.Content.ILLUST,
              type=params.Rank.DAILY):
-        raise NotImplementedError('Pikax.pikax.rank should be used instead')
+        return super().rank(limit=limit, date=date, content=content, type=type)
 
     def bookmarks(self, type=params.ILLUST, limit=None, restrict=params.PUBLIC, tagged=False):
         return self.get_bookmarks(bookmark_type=type, limit=limit, restrict=restrict, tagged=tagged,
