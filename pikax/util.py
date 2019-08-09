@@ -352,7 +352,7 @@ class Printer(object):
         self.est_time_lefts = [0, 0, 0]
         self.start_time = None
 
-    def print_progress(self, curr, total):
+    def print_progress(self, curr, total, msg=None):
         curr_percent = math.floor(curr / total * 100)
         curr_time = time.time()
         if self.is_first_print:
@@ -381,10 +381,15 @@ class Printer(object):
         self.last_percent = curr_percent
 
         if est_time_left != 0.0:
-            log('{0} / {1} => {2}% | Time Left est. {3:.2f}s'.format(curr, total, curr_percent, est_time_left),
-                end='', start='\r', inform=True)
+            progress_text = '{0} / {1} => {2}% | Time Left est. {3:.2f}s'.format(curr, total, curr_percent,
+                                                                                 est_time_left)
         else:
-            log('{0} / {1} => {2}% '.format(curr, total, curr_percent), end='', start='\r', inform=True)
+            progress_text = '{0} / {1} => {2}% '.format(curr, total, curr_percent)
+
+        if msg:
+            progress_text = progress_text + ' | ' + str(msg)
+
+        log(progress_text, end='', start=settings.CLEAR_LINE, inform=True)
 
     def print_done(self, msg=None):
         if msg:
@@ -405,9 +410,9 @@ class Printer(object):
 printer = Printer()
 
 
-def print_progress(curr, total):
+def print_progress(curr, total, msg=None):
     global printer
-    printer.print_progress(curr, total)
+    printer.print_progress(curr, total, msg)
 
 
 def print_done(msg=None):

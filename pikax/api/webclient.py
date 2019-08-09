@@ -189,7 +189,7 @@ class WebAPIClient(AccountClient, CookiesClient, DefaultAPIClient):
         pass
 
     def search(self, keyword: str = '', search_type: params.SearchType = params.SearchType.ILLUST_OR_MANGA,
-               match: params.Match = params.Match.EXACT, sort: params.Sort = params.Sort.DATE_DESC,
+               match: params.Match = params.Match.PARTIAL, sort: params.Sort = params.Sort.DATE_DESC,
                search_range: Union[datetime.timedelta, params.Range] = None, limit: int = None) -> List[int]:
         return super().search(keyword=keyword, search_type=search_type, match=match, sort=sort,
                               search_range=search_range, limit=limit)

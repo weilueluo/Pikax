@@ -1,6 +1,5 @@
 from .models import BaseIDProcessor
 from .artwork import Illust, Novel
-from ..exceptions import ArtworkError
 
 
 class DefaultIDProcessor(BaseIDProcessor):
@@ -19,7 +18,7 @@ class DefaultIDProcessor(BaseIDProcessor):
         return self._general_processor(Illust, ids)
 
     def process_novels(self, ids):
-        raise NotImplementedError
+        return self._general_processor(Novel, ids)
 
 
 def test():

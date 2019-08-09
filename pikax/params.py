@@ -100,7 +100,7 @@ class BookmarkType(PikaxEnum):
 
 class SearchType(PikaxEnum):
     ILLUST_OR_MANGA = 'illust'
-    NOVEL = 'novel'  # XXX: Need implementation
+    NOVEL = 'novel'
     USER = 'user'  # XXX: Need implementation
 
 
@@ -109,6 +109,13 @@ class ProcessType(PikaxEnum):
     MANGA = enum.auto()
     NOVEL = enum.auto()
     GIF = enum.auto()
+
+
+class DownloadType(PikaxEnum):
+    ILLUST = enum.auto()
+    MANGA = enum.auto()
+    NOVEL = enum.auto()
+    GIF = enum.auto()  # XXX need implementation
 
 
 # for testing

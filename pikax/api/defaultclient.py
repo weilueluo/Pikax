@@ -11,7 +11,123 @@ from ..exceptions import ReqException, SearchError, RankError, UserError
 __all__ = ['DefaultAPIClient']
 
 
-class DefaultSearch:
+class DefaultNovelSearch:
+    def __init__(self):
+        pass
+
+    @classmethod
+    def _check_and_set_params(cls, match, search_range, sort, keyword):
+        search_params = dict()
+
+        if not keyword:
+            keyword = ''
+        else:
+            keyword = str(keyword)
+
+        allowed_matches = [params.Match.EXACT, params.Match.PARTIAL, params.Match.ANY, params.Match.TEXT]
+        if match:
+            if match not in allowed_matches:
+                raise SearchError(f'match type: {match} for novel search is not valid, must be in {allowed_matches}')
+            elif match is params.Match.EXACT:
+                search_url = 'https://www.pixiv.net/novel/tags.php?'
+                search_params['tag'] = keyword
+            else:
+                search_url = 'https://www.pixiv.net/novel/search.php?'
+                search_params['word'] = keyword
+
+            if match is params.Match.PARTIAL:
+                search_params['s_mode'] = 's_tag'
+            elif match is params.Match.TEXT:
+                search_params['s_mode'] = 's_tc'
+
+        else:
+            search_url = 'https://www.pixiv.net/novel/search.php?'
+            search_params['word'] = keyword
+
+        allowed_sort = [params.Sort.DATE_DESC, params.Sort.DATE_ASC]
+        if sort and sort not in allowed_sort:
+            raise SearchError(f'invalid sort in novel search: {sort}, must be in {allowed_sort}')
+        elif sort is params.Sort.DATE_ASC:
+            search_params['order'] = 'date'
+        else:
+            search_params['order'] = 'date_d'
+
+        if search_range:
+            today = datetime.date.today()
+            search_params['ecd'] = str(today)
+            if isinstance(search_range, str):
+                search_params['scd'] = search_range
+            elif params.Range.is_valid(search_range):
+                diff = today - search_range.value
+                search_params['scd'] = str(diff)
+            elif isinstance(search_range, datetime.timedelta):
+                diff = today - search_range
+                search_params['scd'] = str(diff)
+            else:
+                raise SearchError(
+                    f'Invalid search range: {search_range}, must be str, params.Range or datetime.timedelta')
+
+        return search_url, search_params
+
+    @classmethod
+    def search(cls, keyword: str = '', limit=None, match: params.Match = params.Match.PARTIAL,
+               search_range: params.Range = params.Range.A_WEEK, sort: params.Sort = params.Sort.DATE_DESC,
+               session=None):
+        url, search_params = cls._check_and_set_params(match=match, search_range=search_range, sort=sort,
+                                                       keyword=keyword)
+        return cls._search(search_params=search_params, url=url, limit=limit, session=session)
+
+    @classmethod
+    def _search(cls, search_params, url, limit, session):
+        curr_page = 1
+        ids_so_far = []
+        search_regex = r'/novel/show.php\?id=\d{8}'
+        while True:
+            # get a page's ids
+            search_params['p'] = curr_page
+            util.log('Searching novel id for params:', search_params, 'at page:', curr_page)
+            try:
+                err_msg = 'Failed getting ids from params ' + str(search_params) + ' page: ' + str(curr_page)
+                results = util.req(url=url, params=search_params, session=session,
+                                   err_msg=err_msg, log_req=False)
+                # print(results.text)
+            except ReqException as e:
+                util.log(str(e), error=True, save=True)
+                if curr_page == 1:
+                    util.log('Theres no result found for input', inform=True, save=True)
+                else:
+                    util.log('End of search at page: ' + str(curr_page), inform=True, save=True)
+                return ids_so_far
+
+            ids = re.findall(search_regex, results.text)
+
+            # set length of old ids and new ids,
+            # use later to check if reached end of all pages
+            old_len = len(ids_so_far)
+            ids_so_far += ids
+            ids_so_far = list(set(ids_so_far))
+            new_len = len(ids_so_far)
+
+            # if limit is specified, check if reached limited number of items
+            if limit is not None:
+                if limit == new_len:
+                    return ids_so_far
+                elif limit < new_len:
+                    return util.trim_to_limit(ids_so_far, limit=limit)
+                # limit has not reached
+
+            # now check if any new items is added
+            if old_len == new_len:  # if no new item added, end of search pages
+                if limit is not None:  # if limit is specified, it means search ended without meeting user's limit
+                    util.log('Search did not return enough items for limit:', new_len, '<', limit, inform=True,
+                             save=True)
+                return ids_so_far
+
+            # search next page
+            curr_page += 1
+
+
+class DefaultIllustSearch:
     """Representing the search page in pixiv.net
 
     **Functions**
@@ -20,25 +136,14 @@ class DefaultSearch:
     """
     _search_popularity_postfix = u'users入り'
 
-    _search_type_to_url = {
-        params.SearchType.ILLUST_OR_MANGA: 'https://www.pixiv.net/search.php?',
-        params.SearchType.NOVEL: 'https://www.pixiv.net/novel/search.php?'
-    }
-
-    _search_type_to_regex = {
-        params.SearchType.ILLUST_OR_MANGA: r'(\d{8})_p\d',
-        params.SearchType.NOVEL: r'/novel/show.php\?id=\d{8}'
-    }
-
     def __init__(self):
         pass
 
     @classmethod
     def _set_params(cls, search_type, dimension, match, sort, search_range):
+
         search_params = dict()
         if search_type:  # default match all type
-            if search_type not in cls._search_type_to_url.keys():  # XXX User implementation
-                raise SearchError(f'Invalid search type: {search_type}')
             if search_type is params.SearchType.ILLUST_OR_MANGA:
                 search_params['type'] = search_type.value
 
@@ -84,7 +189,7 @@ class DefaultSearch:
         total_limit = limit
         for popularity in settings.SEARCH_POPULARITY_LIST:
             ids += cls._search(search_params=search_params, keyword=keyword, limit=limit, popularity=popularity,
-                               session=session, search_type=search_type)
+                               session=session)
             if total_limit:
                 num_of_ids_sofar = len(ids)
                 if num_of_ids_sofar > total_limit:
@@ -174,7 +279,7 @@ class DefaultSearch:
                                                        session=session, search_type=search_type)
         else:
             ids = cls._search(search_params=search_params, keyword=keyword, limit=limit, popularity=popularity,
-                              session=session, search_type=search_type)
+                              session=session)
 
         # log ids found
         util.log('Found', str(len(ids)), 'ids for', keyword, 'in', str(time.time() - start) + 's')
@@ -186,23 +291,22 @@ class DefaultSearch:
         # return artworks
 
     @classmethod
-    def _search(cls, search_params, keyword, popularity, limit, session, search_type):
+    def _search(cls, search_params, keyword, popularity, limit, session):
         curr_page = 1
         ids_so_far = []
-        url = cls._search_type_to_url[search_type]
-        search_regex = cls._search_type_to_regex[search_type]
+        url = 'https://www.pixiv.net/search.php?'
+        search_regex = r'(\d{8})_p\d'
         while True:
             # get a page's ids
             search_params['p'] = curr_page
             search_params['word'] = str(keyword)
             if popularity is not None:
                 search_params['word'] += ' ' + str(popularity) + cls._search_popularity_postfix
-            util.log('Searching id for params:', search_params, 'at page:', curr_page)
+            util.log('Searching illust id for params:', search_params, 'at page:', curr_page)
             try:
                 err_msg = 'Failed getting ids from params ' + str(search_params) + ' page: ' + str(curr_page)
                 results = util.req(url=url, params=search_params, session=session,
                                    err_msg=err_msg, log_req=False)
-                print(results.text)
             except ReqException as e:
                 util.log(str(e), error=True, save=True)
                 if curr_page == 1:
@@ -283,7 +387,7 @@ class DefaultRank:
             elif isinstance(date, datetime.date):
                 rank_params['date'] = format(date, '%Y%m%d')
             elif isinstance(date, params.Date):
-                rank_params['date'] = date.value
+                rank_params['date'] = format(date.value, '%Y%m%d')
             else:
                 raise RankError(f'Invalid date: {date}')
 
@@ -480,12 +584,16 @@ class DefaultAPIClient(APIPagesInterface, APIUserInterface, APIAccessInterface):
         self._session = session
 
     def search(self, keyword: str = '', search_type: params.SearchType = params.SearchType.ILLUST_OR_MANGA,
-               match: params.Match = params.Match.EXACT, sort: params.Sort = params.Sort.DATE_DESC,
+               match: params.Match = params.Match.PARTIAL, sort: params.Sort = params.Sort.DATE_DESC,
                search_range: Union[datetime.timedelta, params.Range] = None, limit: int = None) -> List[int]:
-        return DefaultSearch.search(keyword=keyword, search_type=search_type, match=match, sort=sort,
-                                    search_range=search_range,
-                                    limit=limit,
-                                    session=self._session)
+        if search_type is params.SearchType.ILLUST_OR_MANGA:
+            return DefaultIllustSearch.search(keyword=keyword, search_type=search_type, match=match, sort=sort,
+                                              search_range=search_range, limit=limit, session=self._session)
+        elif search_type is params.SearchType.NOVEL:
+            if not self._session:
+                raise NotImplementedError('Default API Client does not implement novel search without session')
+            return DefaultNovelSearch.search(keyword=keyword, search_range=search_range, match=match, sort=sort,
+                                             limit=limit, session=self._session)
 
     def rank(self, limit: int = None, date: Union[str, datetime.date] = format(datetime.date.today(), '%Y%m%d'),
              content: params.Content = params.Content.ILLUST, rank_type: params.Rank = params.Rank.DAILY) -> List[int]:
@@ -538,7 +646,13 @@ def test():
 
 
 def main():
+    import sys
+    sys.stdout.reconfigure(encoding='utf-8')
     test()
+
+    # ids = DefaultNovelSearch.search(keyword='arknights', search_range=params.Range.A_MONTH, limit=100)
+    # print(ids)
+    # print(len(ids))
 
 
 if __name__ == '__main__':

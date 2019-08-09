@@ -44,7 +44,7 @@ class Illust(Artwork):
 
     def config(self):
         try:
-            illust_data = util.req(type='get', url=self._details_url, log_req=True).json()
+            illust_data = util.req(type='get', url=self._details_url, log_req=False).json()
             illust_data = illust_data['body']
 
             # properties
@@ -88,17 +88,7 @@ class Illust(Artwork):
         download_url = self.__download_urls[index]
         filename = self._get_download_filename(download_url)
 
-        if os.path.exists(filename):
-            return Artwork.DownloadStatus.SKIPPED, None, filename
-
-        try:
-
-            return Artwork.DownloadStatus.OK, \
-                   util.req(url=download_url, headers=self._headers, log_req=False), \
-                   filename
-
-        except ReqException:
-            return Artwork.DownloadStatus.FAILED, download_url, filename
+        return Artwork.DownloadStatus.OK, (download_url, self._headers), filename
 
     def __len__(self):
         return len(self.__download_urls)

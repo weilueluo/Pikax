@@ -275,7 +275,7 @@ class AndroidAPIClient(FunctionalBaseClient, DefaultAPIClient):
     def __init__(self, username, password):
         FunctionalBaseClient.__init__(self, username, password)
 
-    def search(self, keyword='', search_type=params.SearchType.ILLUST_OR_MANGA, match=params.Match.EXACT,
+    def search(self, keyword='', search_type=params.SearchType.ILLUST_OR_MANGA, match=params.Match.PARTIAL,
                sort=params.Sort.DATE_DESC,
                search_range=None, limit=None):
         # if params.user is passed in as type,
@@ -294,7 +294,7 @@ class AndroidAPIClient(FunctionalBaseClient, DefaultAPIClient):
 
         return ids
 
-    def rank(self, limit=None, date=str(datetime.date.today()), content=params.Content.ILLUST,
+    def rank(self, limit=None, date=format(datetime.date.today(), '%Y%m%d'), content=params.Content.ILLUST,
              rank_type=params.Rank.DAILY):
         return super().rank(limit=limit, date=date, content=content, rank_type=rank_type)
 
