@@ -14,11 +14,38 @@ class LoginHandler:
         ANDROID = enum.auto()
         LOG_OUT = enum.auto()
 
-    def __init__(self, username, password):
+    def __init__(self, username=None, password=None):
         self.username = username
         self.password = password
 
-    def login(self):
+    def web_login(self, username=None, password=None):
+        if username and password:
+            self.username = username
+            self.password = password
+
+        try:
+            util.log('Attempting Web Login ...')
+            return self.LoginStatus.PC, WebAPIClient(self.username, self.password)
+        except LoginError as e:
+            util.log(f'web login failed: {e}')
+            return self.LoginStatus.LOG_OUT, DefaultAPIClient()
+
+    def android_login(self, username=None, password=None):
+        if username and password:
+            self.username = username
+            self.password = password
+
+        try:
+            util.log('Attempting Android Login ...')
+            return self.LoginStatus.ANDROID, AndroidAPIClient(self.username, self.password)
+        except LoginError as e:
+            util.log(f'android login failed: {e}')
+            return self.LoginStatus.LOG_OUT, DefaultAPIClient()
+
+    def login(self, username=None, password=None):
+        if username and password:
+            self.username = username
+            self.password = password
 
         try:
             util.log('Attempting Web Login ...')

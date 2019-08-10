@@ -80,3 +80,6 @@ class ClientException(BaseClientException):
 
 class ProcessError(PikaxException):
     pass
+
+class PikaxResultError(PikaxException):
+    pass

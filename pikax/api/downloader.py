@@ -31,19 +31,19 @@ class DefaultDownloader(BaseDownloader):
                     return Artwork.DownloadStatus.OK, artwork_detail
 
         except requests.RequestException as e:
-            return Artwork.DownloadStatus.FAILED, artwork_detail
+            return Artwork.DownloadStatus.FAILED, artwork_detail + f': {e}'
 
     @staticmethod
     def download_novel(artwork: Artwork, folder: str = None) -> Tuple[Artwork.DownloadStatus, str]:
-        pass
+        raise NotImplementedError
 
     @staticmethod
     def download_gif(artwork: Artwork, folder: str = None) -> Tuple[Artwork.DownloadStatus, str]:
-        pass
+        raise NotImplementedError
 
     @staticmethod
     def download_manga(artwork: Artwork, folder: str = None) -> Tuple[Artwork.DownloadStatus, str]:
-        pass
+        raise NotImplementedError
 
 
 def test():

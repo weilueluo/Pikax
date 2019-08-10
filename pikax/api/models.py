@@ -30,17 +30,17 @@ class APIAccessInterface:
 class APIPagesInterface:
 
     def search(self, keyword: str = '',
-               type: params.Type = params.Type.ILLUST,
+               search_type: params.Type = params.Type.ILLUST,
                match: params.Match = params.Match.PARTIAL,
                sort: params.Sort = params.Sort.DATE_DESC,
                range: Union[datetime.timedelta, params.Range] = None,
                limit: int = None) -> List[int]: raise NotImplementedError
 
     def rank(self,
-             limit: int = None,
-             date: Union[str, datetime.date] = format(datetime.date.today(), '%Y%m%d'),
+             rank_type: params.Rank = params.Rank.DAILY,
              content: params.Content = params.Content.ILLUST,
-             type: params.Rank = params.Rank.DAILY) -> List[int]: raise NotImplementedError
+             date: Union[str, datetime.date] = format(datetime.date.today(), '%Y%m%d'),
+             limit: int = None) -> List[int]: raise NotImplementedError
 
 
 class Artwork:
