@@ -41,7 +41,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   results = pixiv.rank(limit=50)
   pixiv.download(results)
 ````
-#### 搜索并下载arknights相关，赞数约10000的10张插画
+#### 搜索并下载arknights相关，赞数约1000的50张插画
 ````
   from pikax.pikax import Pikax, settings, params
 
