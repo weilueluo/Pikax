@@ -68,3 +68,31 @@ class SearchError(PikaxException):
 
 class RankError(PikaxException):
     pass
+
+
+class BaseClientException(PikaxException):
+    pass
+
+
+class ClientException(BaseClientException):
+    pass
+
+
+class ProcessError(PikaxException):
+    pass
+
+
+class PikaxResultError(PikaxException):
+    pass
+
+
+class ParamsException(PikaxException):
+    pass
+
+
+class PikaxUserError(PikaxException):
+    pass
+
+
+class APIUserError(PikaxException):
+    pass

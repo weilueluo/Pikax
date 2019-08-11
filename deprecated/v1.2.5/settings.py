@@ -4,8 +4,7 @@ not all requests uses this headers
 """
 DEFAULT_HEADERS = {
     'referer': 'https://www.pixiv.net/',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                  '(KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36'
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36'
 }
 
 """
@@ -42,15 +41,12 @@ LOG_TYPE
 'inform': print successive stage and error only
 'std': allow normal printings
 'save': save error to LOG_FILE only
-'inform save': will do both inform and save etc ..
+'inform save' or 'informsave': will do both inform and save only
 '': log nothing
 
 'inform', 'std' and 'warn' are different outputs
 """
-LOG_STD = False
-LOG_INFORM = True
-LOG_WARN = False
-LOG_SAVE = False
+LOG_TYPE = 'inform std warn'
 
 """
 file used to log error if save is included in LOG_TYPE
@@ -58,15 +54,16 @@ file used to log error if save is included in LOG_TYPE
 LOG_FILE = 'log.txt'
 
 """
-default folder format for downloading,
-do not change, reference only, 
-you can specify a new folder when calling pikax.download
+Folder format for downloading favorites
 """
-DEFAULT_MANGAS_FOLDER = '#{name}\'s  mangas'
-DEFAULT_ILLUSTS_FOLDER = '#{name}\'s illusts'
-DEFAULT_BOOKMARKS_FOLDER = '#{name}\'s bookmarks'
-DEFAULT_SEARCH_FOLDER = '#PixivSearch_{keyword}_{search_type}_{match}_{sort}_{search_range}_{popularity}_{limit}'
-DEFAULT_RANK_FOLDER = '#PixivRanking_{date}_{rank_type}_{content}_{limit}'
+FAV_DOWNLOAD_FOLDER = '#{username}\'s favs'
+# below used in other user only
+USER_MANGAS_DOWNLOAD_FOLDER = '#{title}\'s  mangas'
+USER_ILLUSTS_DOWNLOAD_FOLDER = '#{title}\'s illusts'
+USER_BOOKMARKS_DOWNLOAD_FOLDER = '#{title}\'s bookmarks'
+USER_NOVELS_DOWNLOAD_FOLDER = '#{title}\'s novels'
+SEARCH_RESULTS_FOLDER = '#PixivSearch_{keyword}_{type}_{dimension}_{mode}_{popularity}_{limit}'
+RANK_RESULTS_FOLDER = '#PixivRanking-{mode}-{limit}-{content}-{date}'
 
 """
 String to clear previous stdout line
@@ -84,7 +81,7 @@ Minimum items per process, if more than is given
 MIN_ITEMS_PER_THREAD = 10
 
 """
-Indicate a failure when there's too much exceptions occurred during requesting in the same loop
+Indicate a failure when theres too much exceptions occured during requesting in the same loop
 """
 MAX_WHILE_TRUE_LOOP_EXCEPTIONS = 3
 
@@ -102,20 +99,14 @@ None means download all pages
 MAX_PAGES_PER_ARTWORK = 3
 
 """
-file for saving cookies
+List of popularities to use when 'popular' is pass to search
+"""
+SEARCH_POPULARITY_LIST = [20000, 10000, 5000, 1000, 500]
+
+"""
+
 """
 COOKIES_FILE = 'cookies.data'
-
-"""
-default whether to log requests to stdout
-"""
-LOG_REQUEST = False
-
-"""
-folder used when testing, do not run test if you are using folder of this name
-or change this name before running test
-"""
-TEST_FOLDER = '#test_folder'
 
 """
 user name and password used to login

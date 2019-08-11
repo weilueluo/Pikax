@@ -4,31 +4,30 @@ This module contains utilities/tools for pikax
 :func log: print according to parameters and settings
 :func req: attempt to send network requests using requests lib and returns the result
 :func json_loads: given string or bytes, loads and return its json using standard lib
+:func generate_artworks_from_ids: returns lists of artworks given list of ids using multiprocessing/multithreading
 :func trim_to_limit: returns a trimmed list if items if length exceeded limit given
 :func clean_filename: returns the given string after removing no allowed characters
 :func print_json: print json in formatted way, used for debug
 
 """
-import json
-import math
-import os
-import re
-import sys
-import time
-
-import requests
+import sys, json, requests, os, time, math, re
+import multiprocessing
+from multiprocessing import Process, current_process, Manager
+from threading import Thread
 
 from . import settings
 from .exceptions import ReqException
 
 sls = os.linesep
 
-_std_enabled = settings.LOG_STD
-_inform_enabled = settings.LOG_INFORM
-_save_enabled = settings.LOG_SAVE
-_warn_enabled = settings.LOG_WARN
+_log_type = settings.LOG_TYPE
+_std_enabled = _log_type.find('std') != -1
+_inform_enabled = _log_type.find('inform') != -1
+_save_enabled = _log_type.find('save') != -1
+_warn_enabled = _log_type.find('warn') != -1
 
-__all__ = ['log', 'req', 'json_loads', 'trim_to_limit', 'clean_filename', 'print_json']
+__all__ = ['log', 'req', 'json_loads', 'generate_artworks_from_ids', 'trim_to_limit', 'multiprocessing_',
+           'clean_filename', 'print_json']
 
 
 def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,
@@ -45,7 +44,7 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', info
 
     **Parameters**
     :param start:
-        the string to print at the start, preceding all other string, including inform & save 's prefix
+        the string to print at the start, preceeding all other string, including inform & save 's prefix
     :type start:
         string
 
@@ -85,15 +84,15 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', info
 
 
 # send request using requests, raise ReqException if fails all retries
-def req(url, req_type='get', session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS,
-        timeout=settings.TIMEOUT, err_msg=None, log_req=settings.LOG_REQUEST, retries=settings.MAX_RETRIES_FOR_REQUEST,
+def req(url, type='get', session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS,
+        timeout=settings.TIMEOUT, err_msg=None, log_req=True, retries=settings.MAX_RETRIES_FOR_REQUEST,
         proxies=settings.REQUEST_PROXIES):
-    """Send requests according to given parameters using requests library
+    """Send requests according to given paramters using requests library
 
     **Description**
     This function send request using requests library,
-    however its parameters does not accepts all parameters as in requests.get/post
-    and some custom parameters is added as shown below
+    however its parameters does not accepts all paramters as in requests.get/post
+    and some custom paramters is added as shown below
 
     **Parameters**
     :param url:
@@ -101,9 +100,9 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
     :type url:
         string
 
-    :param req_type:
+    :param type:
         the type of requests to send, given string is converted to uppercase before checking, default get
-    :type req_type:
+    :type type:
         string
 
     :param session:
@@ -112,7 +111,7 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
         requests.Session
 
     :param params:
-        the parameters send along request, default None
+        the paramters send along request, default None
     :type params:
         same as params in requests library
 
@@ -161,30 +160,30 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
     :raises ReqException: if all retries fails or invalid type is given
 
     """
-    req_type = req_type.upper()
+    type = type.upper()
     curr_retries = 0
     while curr_retries < retries:
         if log_req:
-            log(req_type + ':', str(url), 'with params:', str(params), end='')
+            log(type + ':', str(url), 'with params:', str(params), end='')
         try:
 
             # try send request according to parameters
             if session:
-                if req_type == 'GET':
+                if type == 'GET':
                     res = session.get(url=url, headers=headers, params=params, timeout=timeout, proxies=proxies)
-                elif req_type == 'POST':
+                elif type == 'POST':
                     res = session.post(url=url, headers=headers, params=params, timeout=timeout, data=data,
                                        proxies=proxies)
                 else:
-                    raise ReqException('Request type error:', req_type)
+                    raise ReqException('Request type error:', type)
             else:
-                if req_type == 'GET':
+                if type == 'GET':
                     res = requests.get(url=url, headers=headers, params=params, timeout=timeout, proxies=proxies)
-                elif req_type == 'POST':
+                elif type == 'POST':
                     res = requests.post(url=url, headers=headers, params=params, timeout=timeout, data=data,
                                         proxies=proxies)
                 else:
-                    raise ReqException('Request type error:', req_type)
+                    raise ReqException('Request type error:', type)
 
             if log_req:
                 log(res.status_code)
@@ -200,26 +199,49 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
             else:
                 log('Requests returned Falsey, retries:', curr_retries, save=True)
         except requests.exceptions.Timeout as e:
-            log(req_type, url, params, 'Time Out:', curr_retries, save=True)
+            log(type, url, params, 'Time Out:', curr_retries, save=True)
             log('Reason:', str(e), save=True, inform=True)
         except requests.exceptions.RequestException as e:
             if err_msg:
                 log('RequestException:', err_msg, save=True)
             else:
-                log(settings.DEFAULT_REQUEST_ERROR_MSG.format(type=req_type), save=True)
+                log(settings.DEFAULT_REQUEST_ERROR_MSG.format(type=type), save=True)
             log('Reason:', str(e), 'Retries:', curr_retries, save=True)
 
         curr_retries += 1
         time.sleep(0.5)  # dont retry again too fast
 
     # if still fails after all retries
-    exception_msg = str(req_type) + ' failed: ' + str(url) + ' params: ' + str(params)
+    exception_msg = str(type) + ' failed: ' + str(url) + ' params: ' + str(params)
     raise ReqException(exception_msg)
 
 
 # attempt to decode given json, raise JSONDecodeError if fails
 def json_loads(text, encoding='utf-8'):
     return json.loads(text, encoding=encoding)
+
+
+def _generate_small_list_of_artworks(ids, artworks):
+    from .items import Artwork
+    artworks += [Artwork.factory(id) for id in ids]
+
+
+# return a list of artworks given a list of ids, using pool
+def generate_artworks_from_ids(ids, limit=None):
+    start = time.time()
+    log('Generating Artwork objects ... ', start='\r\n', inform=True)
+    ids = trim_to_limit(ids, limit=limit)
+
+    artworks = Manager().list()
+    multiprocessing_(items=ids, small_list_executor=_generate_small_list_of_artworks, results_saver=artworks)
+    total = len(artworks)
+    log('Total Expected:', total, inform=True)
+    artworks = [artwork for artwork in artworks if artwork is not None]
+    success = len(artworks)
+    log('Failed:', total - success, inform=True)
+    log('Success:', success, inform=True)
+    log('Done. Time Taken: ' + str(time.time() - start) + 's', inform=True)
+    return artworks
 
 
 # trim the given items length to given limit
@@ -244,13 +266,80 @@ def clean_filename(string):
     return re.sub(r'[:<>"\\/|?*]', '', str(string))
 
 
-# used for testing
+# used for tesing
 def print_json(json_obj):
     print(json.dumps(json_obj, indent=4, ensure_ascii=False))
 
 
 def new_session():
     return requests.Session()
+
+
+def _multithreading_(items, small_list_executor, results_saver=None):
+    threads = []
+    num_of_items = len(items)
+    num_of_threads = settings.MAX_THREAD_PER_PROCESS
+    if num_of_threads == 1:
+        num_of_items_per_thread = num_of_items  # if num of threads is 1
+    elif num_of_threads > 1:
+        while num_of_threads > 1:
+            num_of_items_per_thread = math.ceil(num_of_items / num_of_threads)
+            if num_of_items_per_thread < settings.MIN_ITEMS_PER_THREAD:
+                num_of_threads -= 1
+                num_of_items_per_thread = num_of_items  # for condition not meet in next loop
+            else:
+                break
+    else:
+        raise ValueError('number of threads must be at least 1, please check settings.py')
+
+    if num_of_threads > num_of_items:
+        num_of_threads = num_of_items
+
+    for thread_count in range(0, num_of_threads):
+        start = thread_count * num_of_items_per_thread
+        end = (thread_count + 1) * num_of_items_per_thread
+        items_for_this_thread = items[start:end]
+        threads.append(Thread(target=small_list_executor, args=(items_for_this_thread, results_saver), daemon=True))
+    log('  |->', current_process().name, '=>', len(threads), 'threads =>', num_of_items, 'items', inform=True)
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+
+# breaks the given items into small lists in different process and threads,
+# pass these small lists to small_list_executor
+# results_saver is used to save results if any
+# raise ValueError if num of max threads specified in settings is < 1
+def multiprocessing_(items, small_list_executor, results_saver=None):
+    log('Starting multiprocessing...', start='\r\n', inform=True)
+    start_time = time.time()
+    processes = []
+    num_of_items = len(items)
+    num_of_processes = os.cpu_count()
+    while num_of_processes > 1:
+        num_of_items_per_process = math.ceil(num_of_items / num_of_processes)
+        if num_of_items_per_process < settings.MIN_ITEMS_PER_THREAD:
+            num_of_processes -= 1
+            num_of_items_per_process = num_of_items  # if next condition failed, num_of_processes = 1
+        else:
+            break
+
+    if num_of_processes > num_of_items:
+        num_of_processes = num_of_items
+
+    for process_count in range(0, num_of_processes):
+        start = process_count * num_of_items_per_process
+        end = (process_count + 1) * num_of_items_per_process
+        items_for_this_process = items[start:end]
+        processes.append(
+            Process(target=_multithreading_, args=(items_for_this_process, small_list_executor, results_saver),
+                    daemon=True))
+    log('|--', current_process().name, '=>', len(processes), 'processes =>', num_of_items, 'items', inform=True)
+    for process in processes:
+        process.start()
+    for process in processes:
+        process.join()
 
 
 class Printer(object):
@@ -260,7 +349,7 @@ class Printer(object):
         self.last_percent = None
         self.last_percent_time_left = None
         self.last_percent_print_time = None
-        self.est_time_lefts = [0, 0, 0, 0, 0]
+        self.est_time_lefts = [0, 0, 0]
         self.start_time = None
 
     def print_progress(self, curr, total, msg=None):

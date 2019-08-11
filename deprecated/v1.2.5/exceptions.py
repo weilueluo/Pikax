@@ -81,18 +81,5 @@ class ClientException(BaseClientException):
 class ProcessError(PikaxException):
     pass
 
-
 class PikaxResultError(PikaxException):
-    pass
-
-
-class ParamsException(PikaxException):
-    pass
-
-
-class PikaxUserError(PikaxException):
-    pass
-
-
-class APIUserError(PikaxException):
     pass

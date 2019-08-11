@@ -1,51 +1,22 @@
-"""
-Pikax.search:
-keyword: string to search
-type: manga | illust | default any
-dimension: vertical | horizontal | square | default any
-mode: strict_tag | loose | default tag contains
-popularity: a number, add after search keyword as: number users入り, use 'popular' if you want to get better results | default date descending, all results, which is not as good usually
-limit: how many artworks to get | default all
-
-
-Pikax.rank:
-mode: daily | weekly | monthly | rookie | default daily # has problem: | male | female | original
-limit: number of artworks to search | default all
-date: up to which date | default today, string format: yyyymmdd or python datetime object
-content: illust | manga | default any
-
-Pikax.favorites:
-username: your pixiv username
-password: your pixiv password
-type: public | private | default both, which of your collections want to save
-"""
-
-from pikax.pikax import Pikax, settings
+from pikax.pikax import Pikax, settings, params
 
 
 def download_daily_rankings_example():
     pixiv = Pikax()
-    results = pixiv.rank(limit=100, content='illust', type='daily', date=None)
-    pixiv.download(results, folder='#Pikax_daily_ranking')
+    results = pixiv.rank(limit=50)
+    pixiv.download(results)
 
 
 def download_search_example():
-    pixiv = Pikax()
-    # pixiv.login(settings.username, settings.password)  # optional, but strongly suggested
-    results = pixiv.search(keyword='オリジナル', type='illust', dimension='horizontal', popularity=10000, limit=20,
-                           match=None, mode='safe')
+    pixiv = Pikax(settings.username, settings.password)
+    results = pixiv.search(keyword='arknights', limit=50, popularity=1000, match=params.Match.PARTIAL)
     pixiv.download(results)
 
 
 def download_other_user_items_example():
-    pixiv = Pikax()
+    pixiv = Pikax(settings.username, settings.password)
 
-    # not suggested
-    # other_user = pixiv.access(user_id=201323)
-
-    # suggested
-    user = pixiv.login(settings.username, settings.password)  # login
-    other_user = user.visits(user_id=201323)  # visit other user by id
+    other_user = pixiv.visits(user_id=201323)  # visit other user by id
 
     illusts = other_user.illusts(limit=25)  # get his illustrations
     pixiv.download(illusts)  # download
@@ -66,21 +37,7 @@ def download_own_bookmarks_example():
 
 def download_by_artwork_id_example():
     pixiv = Pikax()
-    pixiv.download(artwork_id=75530638)
-
-
-def download_r18_ranking_example():
-    pixiv = Pikax()
-    pixiv.login(settings.username, settings.password)
-    res = pixiv.rank(type='daily', limit=50, mode='r18')
-    pixiv.download(res)
-
-
-def download_r18_search_example():
-    pixiv = Pikax()
-    # pixiv.login(settings.username, settings.password)
-    res = pixiv.search(keyword='miku', type='illust', limit=50, mode='r18')
-    pixiv.download(res)
+    pixiv.download(illust_id=75530638)
 
 
 def download_with_filter_example():
@@ -92,22 +49,21 @@ def download_with_filter_example():
 
 
 def download_with_filter_example2():
-    pixiv = Pikax()
-    pixiv.login(settings.username, settings.password)  # login
-    results = pixiv.search(keyword='初音', limit=200, mode='r18', popularity=1000)  # search
+    pixiv = Pikax(settings.username, settings.password)
+    results = pixiv.search(keyword='初音', limit=200, popularity=1000)  # search
 
-    new_results = (results.bookmarks > 1000) - (results.views < 50000)  # get likes > 1000 and remove views < 50000
+    new_results = (results.bookmarks > 1000).views > 20000  # get likes > 1000 and views > 20000
     pixiv.download(new_results)  # download
 
 
 def main():
     download_daily_rankings_example()
-    # download_search_example()
-    # download_own_bookmarks_example()
-    # download_other_user_items_example()
-    # download_by_artwork_id_example()
-    # download_r18_search_example()
-    # download_r18_ranking_example()
+    download_search_example()
+    download_own_bookmarks_example()
+    download_other_user_items_example()
+    download_by_artwork_id_example()
+    download_with_filter_example()
+    download_with_filter_example2()
 
 
 if __name__ == '__main__':

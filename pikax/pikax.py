@@ -1,248 +1,237 @@
-# -*- coding: utf-8 -*-
+import datetime
+from typing import Union
 
-# XXX NOTE:
-#   Pikax is subject to reconstruct soon    
-#   Viewing current progress should visits api or v2 folder
-
-"""Contain classes for use
-
-**Classes**
-:class: Pikax
-"""
-
-import time, re, sys, os, json, datetime, math
-from multiprocessing import Manager
-
-from pikax.exceptions import ArtworkError
-
-from . import util, settings
-from .pages import SearchPage, RankingPage
-from .items import Artwork, PixivResult, User
-
-sys.stdout.reconfigure(encoding='utf-8')
-
-__all__ = ['Pikax']
+from . import params, settings, util
+from .api.artwork import Illust
+from .api.defaultclient import DefaultAPIClient
+from .downloader import DefaultDownloader
+from .items import LoginHandler
+from .models import PikaxInterface, PikaxUserInterface, PikaxResult, PikaxPagesInterface
+from .processor import DefaultIDProcessor
+from .result import DefaultPikaxResult
+from .user import DefaultPikaxUser
 
 
-class Pikax:
-    """Representing Pixiv.net
-
-    **Description**
-    If it is not log in, results maybe less than actual results
-
-
-    **Functions**
-    :func search: returns a PixivResult Object
-    :func rank: returns a PixivResult Object
-    :func download: download artworks given PixivResult and folder as str
-    :func login: returns a User Object given username and password
-    :func access: returns a User Object given user_id and this pikax Object's session
-
+class Pikax(PikaxInterface):
+    """
+    The entry point of this api
     """
 
-    def __init__(self, user=None):
-        self.user = user
-        self.search_page = SearchPage(user=user)
-        self.ranking_page = RankingPage(user=user)
-        self.logged = user != None
+    def __init__(self, username=None, password=None):
+        self._login_handler = LoginHandler()
+        self.default_client = DefaultAPIClient()
+        self.id_processor = DefaultIDProcessor()
+        self.downloader = DefaultDownloader()
+        self.username = password
+        self.password = username
+        self.web_client = None
+        self.android_client = None
 
-    def search(self, keyword, limit=None, type=None, dimension=None, match=None, popularity=None, order=None,
-               mode=None):
-        """Search Pixiv and returns PixivResult Object
+        if username and password:
+            self.login()
 
-        **Description**
-        Invoke search method in SearchPage and create a PixivResult Object using default folder in settings
-
-        **Returns**
-        :return: result of the search in SearchPage with default search folder as in settings.py
-        :rtype: PixivResult Object
+    def login(self, username: str = settings.username, password: str = settings.password) -> (
+            PikaxUserInterface, PikaxPagesInterface):
         """
-        util.log('Searching:', keyword)
+        Attempt login using web and android method and returns the logged user
+        if succeed, else returns None
+        This method also saves logged client which used to perform other actions
 
-        artworks = self.search_page.search(keyword=keyword, type=type, dimension=dimension, match=match,
-                                           popularity=popularity, limit=limit, order=order, mode=mode)
-
-        folder = settings.SEARCH_RESULTS_FOLDER.format(keyword=keyword, type=type, dimension=dimension, mode=mode,
-                                                       popularity=popularity, limit=limit)
-
-        results = PixivResult(artworks, folder)
-
-        return results
-
-    def rank(self, mode=None, limit=None, date=None, content=None, type='daily'):
-        """Rank Pixiv and returns PixivResult Object
-
-        **Description**
-        Invoke rank method in RankingPage and create a PixivResult Object using default folder in settings
-
-        **Returns**
-        :return: result of the rank in RankingPage with default rank folder as in settings.py
-        :rtype: PixivResult Object
+        :param username: Username for login
+        :param password: Password for login
+        :return: a logged PikaxUser implemented PikaxUserInterface or None if failed
+        :rtype: PikaxUserInterface or None
         """
-        util.log('Ranking:', mode)
 
-        artworks = self.ranking_page.rank(mode=mode, limit=limit, date=date, content=content, type=type)
-        folder = settings.RANK_RESULTS_FOLDER.format(mode=mode, limit=limit, date=date, content=content)
-        results = PixivResult(artworks, folder)
-        return results
+        util.log('Attempting Login', inform=True)
 
-    # PixivResult > artwork_id
-    def download(self, pixiv_result=None, artwork_id=None, folder=None):
-        """Download the given pixiv_result or artwork_id with given folder
+        if username and password:
+            self.username = username
+            self.password = password
 
-        **Description**
-        download the given PixivResult Object or artwork_id
-        if PixivResult is given, artwork_id is ignored
+        status, client = self._login_handler.web_login(self.username, self.password)
+        if status is LoginHandler.LoginStatus.PC:
+            self.web_client = client
+            util.log('successfully logged in as web user', inform=True)
 
-        **Parameters**
-        :param pixiv_result:
-            the PixivResult Object which contains artworks to download
-        :type pixiv_result:
-            PixivResult or None
+        status, client = self._login_handler.android_login(self.username, self.password)
+        if status is LoginHandler.LoginStatus.ANDROID:
+            self.android_client = client
+            util.log('successfully logged in as android user', inform=True)
 
-        :param artwork_id:
-            the artwork id of the artwork to download
-        :type artwork_id:
-            int or None
+        if not (self.android_client or self.web_client):
+            util.log('failed login, using default client, some features will be unavailable', inform=True)
+            return None
 
-        :param folder:
-            the folder used to save the download result, default folder in settings.py
-            is used if not given
-        :type folder:
-            str or None
+        logged_client = self._get_client()
+        return DefaultPikaxUser(client=logged_client, user_id=logged_client.id)
 
-        **Returns**
-        :return: None
+    def search(self, keyword: str = '',
+               search_type: params.SearchType = params.SearchType.ILLUST_OR_MANGA,
+               match: params.Match = params.Match.PARTIAL,
+               sort: params.Sort = params.Sort.DATE_DESC,
+               search_range: datetime.timedelta = None,
+               popularity: int = None,
+               limit: int = None) \
+            -> PikaxResult:
+        """
+        Search pixiv with best available client.
+        Note that pixiv returns less result if not logged in
+
+        :param keyword: the word to search
+        :param search_type: type of artwork to search
+        :param match: define how strict the keywords are matched against artworks
+        :param sort: order of the search result
+        :param search_range: the date offset from today, can be a datetime.timedelta object
+        :param popularity: if given, {popularity} users入り will be added after keywords
+        :param limit: return number of artwork specified by limit, all by default
+        :return: an object implement PikaxResult
+        :rtype: PikaxResult
+        """
+
+        util.log(f'Searching {keyword} of type {search_type} with limit {limit}', inform=True)
+
+        client = self._get_client()
+        if popularity:
+            keyword = self._add_popularity_to_keyword(keyword, popularity)
+        ids = client.search(keyword=keyword, search_type=search_type, match=match, sort=sort,
+                            search_range=search_range, limit=limit)
+        util.print_done(f'number of ids: {len(ids)}')
+        process_type = self._get_process_from_search(search_type)
+        download_type = self._get_download_from_process(process_type)
+        success, fail = self._get_id_processor().process(ids, process_type=process_type)
+        folder = settings.DEFAULT_SEARCH_FOLDER.format(keyword=keyword, search_type=search_type, match=match, sort=sort,
+                                                       search_range=search_range, popularity=popularity, limit=limit)
+        return DefaultPikaxResult(success, download_type=download_type, folder=folder)
+
+    def rank(self, limit: int = datetime.datetime,
+             date: Union[str, datetime.datetime] = format(datetime.datetime.today(), '%Y%m%d'),
+             content: params.Content = params.Content.ILLUST,
+             rank_type: params.RankType = params.RankType.DAILY) \
+            -> PikaxResult:
+        """
+        Return the ranking artworks in pixiv according to parameters.
+        This method returns complete artworks even if not logged in
+
+        :param limit: the number of artworks to return
+        :param date: the date of ranking
+        :param content: the type of artwork to rank
+        :param rank_type: the mode for ranking, daily, monthly etc ...
+        :return: an object implement PikaxResult
+        :rtype: PikaxResult
+        """
+
+        util.log(f'Ranking date {date} of type {rank_type} and content {content} with limit {limit}', inform=True)
+
+        client = self._get_client()
+        ids = client.rank(rank_type=rank_type, content=content, date=date, limit=limit)
+        util.print_done(f'number of ids: {len(ids)}')
+        process_type = self._get_process_from_content(content)
+        download_type = self._get_download_from_process(process_type)
+        success, fail = self._get_id_processor().process(ids, process_type=process_type)
+        folder = settings.DEFAULT_RANK_FOLDER.format(limit=limit, date=date, content=content, rank_type=rank_type)
+        return DefaultPikaxResult(success, download_type=download_type, folder=folder)
+
+    def download(self, pikax_result=None, folder: str = '', illust_id: int = None) -> None:
+        """
+        Download all items given
+
+        :param pikax_result: a PikaxResult to download, default None
+        :param folder: the folder where artworks are download, default using folder in settings.py
+        :param illust_id: the illust id to download, default None
         :rtype: None
-
         """
+        if pikax_result:
+            self.downloader.download(pikax_result=pikax_result, folder=folder)
+        if illust_id:
+            util.log(f'Initializing download with illust id: {illust_id}', inform=True)
+            ill = Illust(illust_id=illust_id)
+            self.downloader.download(pikax_result=DefaultPikaxResult([ill], download_type=params.DownloadType.ILLUST),
+                                     folder=folder)
 
-        util.log('Downloading ... ', start='\r\n', inform=True)
-        if pixiv_result is not None:
-            return download.download(pixiv_result, folder)
-        elif artwork_id:
-            try:
-                Artwork(artwork_id).download(folder=folder)
-                util.log('', inform=True)  # move to next line
-            except ArtworkError as e:
-                util.log(str(e), error=True, save=True)
-
-    def login(self, username, password):
-        """Return the logined User Object
-
-        **Description**
-        returns the User Object build from given username and password
-        this will alert pixiv's search and rank to be logged and return more complete results as well
-
-        **returns**
-        :return: a logged User
-        :rtype: User
-
+    def visits(self, user_id: int) -> PikaxUserInterface:
         """
-        util.log('Login:', username)
-        self.user = User(username=username, password=password)
-        self.search_page = SearchPage(user=self.user)
-        self.ranking_page = RankingPage(user=self.user)
-        util.log('Pixiv is now logged in as [{username}]'.format(username=username), inform=True, save=True)
-        self.logged = True
-        return self.user
+        Access a user in Pixiv given the user id with best available client
 
-    def access(self, user_id):
-        """Given a pixiv user id and returns a User Object
-
+        :param user_id: the user id of the member in Pixiv
+        :return: an object implement PikaxUserInterface
+        :rtype: PikaxUserInterface
         """
-        util.log('access:', user_id, 'with user:', self.user)
-        return User(user_id=user_id, session=self.user.session if self.user else None)
+        client = self._get_client()
+        return DefaultPikaxUser(client=client, user_id=user_id)
 
+    def _get_client(self):
+        if self.web_client:
+            return self.web_client
+        elif self.android_client:
+            return self.android_client
+        else:
+            return self.default_client
 
-#
-# for download stuff below
-#
-
-class download:
-
-    @staticmethod
-    def _download_list_of_items(items, results_dict):
-        for item in items:
-            item.download(folder=results_dict['folder'], results_dict=results_dict)
-
-    @staticmethod
-    def _sort_by_pages_count(item):
-        if settings.MAX_PAGES_PER_ARTWORK:
-            if item.page_count > settings.MAX_PAGES_PER_ARTWORK:
-                return settings.MAX_PAGES_PER_ARTWORK
-        return item.page_count
+    def _get_id_processor(self):
+        return self.id_processor
 
     @staticmethod
-    def _rearrange_into_optimal_chunks(items, next=True):
-
-        num_of_items = len(items)
-        num_of_slots = os.cpu_count()
-        while num_of_slots > 1:
-            num_of_items_per_slot = math.ceil(num_of_items / num_of_slots)
-            if num_of_items_per_slot < settings.MIN_ITEMS_PER_THREAD:
-                num_of_slots -= 1
-            else:
-                break
-
-        if num_of_slots > num_of_items:
-            num_of_slots = num_of_items
-
-        slots = []
-        for i in range(0, num_of_slots):
-            slots.append([])
-
-        # descending page count
-        items.sort(key=download._sort_by_pages_count, reverse=True)
-        for index, item in enumerate(items):
-            index = index % num_of_slots
-            slots[index].append(item)
-
-        final_list = []
-        for slot in slots:
-
-            # do it twice, one for process one for threading
-            if next:
-                slot = download._rearrange_into_optimal_chunks(slot, next=False)
-            final_list += slot
-
-        return final_list
+    def _add_popularity_to_keyword(keyword, popularity):
+        return str(keyword) + f' {popularity}users入り'
 
     @staticmethod
-    def _download_initilizer(pixiv_result, folder):
-        if folder is None:
-            folder = pixiv_result.folder
-        folder = str(folder)
-        folder = util.clean_filename(folder)  # remove not allowed chracters as file name in windows
-        if not os.path.exists(folder):
-            os.mkdir(folder)
-        pixiv_result.artworks = download._rearrange_into_optimal_chunks(pixiv_result.artworks)
-        results_dict = Manager().dict()
-        results_dict['total expected'] = len(pixiv_result.artworks)
-        results_dict['success'] = 0
-        results_dict['failed'] = 0
-        results_dict['skipped'] = 0
-        results_dict['total pages'] = 0
-        results_dict['folder'] = folder
-        return results_dict
+    def _get_process_from_search(search_type):
+        return params.SearchType.map_search_to_process(
+            search_type)
 
     @staticmethod
-    def _log_download_results(pixiv_result, start_time, end_time, results_dict=dict()):
-        util.log('', end=settings.CLEAR_LINE, inform=True)  # remove last printed saved ok line
-        util.log('', inform=True)  # move to next line
-        for key, value in results_dict.items():
-            util.log(key.title(), ':', value, inform=True, save=True)
-        util.log('Time Taken:', str(end_time - start_time) + 's', inform=True, save=True)
-        util.log('Done',
-                 str(results_dict['success'] + results_dict['skipped']) + '/' + str(results_dict['total expected']),
-                 end='\n\n', inform=True, save=True)
+    def _get_download_from_process(process_type):
+        return params.ProcessType.map_process_to_download(
+            process_type)
 
     @staticmethod
-    def download(pixiv_result, folder):
-        results_dict = download._download_initilizer(pixiv_result, folder)
-        start_time = time.time()
-        util.multiprocessing_(items=pixiv_result.artworks, small_list_executor=download._download_list_of_items,
-                              results_saver=results_dict)
-        end_time = time.time()
-        download._log_download_results(pixiv_result, start_time, end_time, results_dict)
-        return results_dict
+    def _get_process_from_content(content):
+        return params.Content.map_content_to_process(content)
+
+
+def test():
+    from . import settings
+    import shutil
+    pikax = Pikax(settings.username, settings.password)
+
+    result = pikax.search(keyword='arknights', limit=15)
+    test_folder = settings.TEST_FOLDER
+    pikax.download(result, folder=test_folder)
+
+    result = pikax.rank(limit=25)
+    pikax.download(result, folder=test_folder)
+
+    user = pikax.login(settings.username, settings.password)
+    illusts = user.illusts()
+    assert len(illusts) == 0, len(illusts)
+
+    bookmarks = user.bookmarks(limit=30)
+    assert len(bookmarks) == 30, len(bookmarks)
+
+    mangas = user.mangas()
+    assert len(mangas) == 0, len(mangas)
+
+    user = pikax.visits(user_id=1113943)
+
+    ill = user.illusts(limit=25)
+    assert len(ill) == 25, len(ill)
+
+    man = user.mangas(limit=10)
+    assert len(man) == 10, len(man)
+
+    col = user.bookmarks(limit=10)
+    assert len(col) == 10, len(col)
+
+    shutil.rmtree(test_folder)
+    print(f'removed test folder: {test_folder}')
+
+    print('successfully tested pikax')
+
+
+def main():
+    test()
+
+
+if __name__ == '__main__':
+    main()

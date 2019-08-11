@@ -1,10 +1,10 @@
 # Pikax:unicorn:
 ![GitHub stars](https://img.shields.io/github/stars/Redcxx/pikax?color=000&style=flat-square) ![PyPI](https://img.shields.io/pypi/v/pikax?color=000&style=flat-square) ![PyPI - License](https://img.shields.io/pypi/l/pikax?color=000&style=flat-square) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Redcxx/pikax?color=000&style=flat-square) ![GitHub last commit](https://img.shields.io/github/last-commit/Redcxx/pikax?color=000&style=flat-square) ![PyPI - Downloads](https://img.shields.io/pypi/dw/pikax?color=000&style=flat-square)
->## theres a login issue and I am working on it
 Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) mass download tool
 #### [Chinese ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.md)
 ````
-  pip install Pikax # current pre-release
+  # the current v2 is not compatiable with v1, please upgrade carefully, deprecated folder contains v1's source code
+  pip install Pikax # current release
 ````
 ---
 ## Requirements
@@ -33,57 +33,55 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ### For customization visits [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
 ---
 ## Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
-> ### Pixiv will generate incomplete data if you do not login
 #### Download today's top 20 illustration
 ```
-  from pikax.pikax import Pikax
+  from pikax.pikax import Pikax, params
 
   pixiv = Pikax()
-  results = pixiv.rank(limit=20, content='illust', type='daily', mode='safe')
-  pixiv.download(results, folder='#Pixiv_daily_ranking')
+  results = pixiv.rank(limit=50)
+  pixiv.download(results)
 ```
 #### Search and download 10 arknights related horizontal non-r18 illustrations with 10000 likes (approx)
 ```
-  from pikax.pikax import Pikax
+  from pikax.pikax import Pikax, settings, params
 
-  pixiv = Pikax()
-  pixiv.login(settings.username, settings.password) # login
-  results = pixiv.search(keyword='arknights', type='illust', dimension='horizontal', popularity=10000, limit=10, mode='safe', match=None)
+  pixiv = Pikax(settings.username, settings.password)
+  results = pixiv.search(keyword='arknights', limit=50, popularity=1000, match=params.Match.PARTIAL)
   pixiv.download(results)
 ```
 #### Download user's artworks (required username and password [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py) contains a temp account)
 ```
-  from pikax.pikax import Pikax
+  from pikax.pikax import Pikax, settings, params
 
   # yours
   pixiv = Pikax()
-  user = pixiv.login(username=settings.username, password=settings.password) # login
-  bookmarks = user.bookmarks(limit=20) # get bookmarks
-  pixiv.download(bookmarks) # download
+  user = pixiv.login(username=settings.username, password=settings.password)  # login
+  bookmarks = user.bookmarks(limit=20)  # get bookmarks
+  pixiv.download(bookmarks)  # download
 
   # any user
   pixiv = Pikax()
+  pixiv = Pikax(settings.username, settings.password)
+  other_user = pixiv.visits(user_id=201323)  # get user from id
 
-  user = pixiv.login(settings.username, settings.password) # login
-  other_user = user.visits(user_id=3872398) # visit other user by id
+  illusts = other_user.illusts(limit=25)  # get his illustrations
+  pixiv.download(illusts)  # download
 
-  illusts = other_user.illusts(limit=None) # get his illustrations
-  pixiv.download(illusts) # download
+  mangas = other_user.mangas(limit=10)  # get his mangas
+  pixiv.download(mangas)  # download
 
-  mangas = other_user.mangas(limit=5) # get his mangas
-  pixiv.download(mangas) # download
-
-  bookmarks = other_user.bookmarks(limit=None) # get his bookmarks
-  pixiv.download(bookmarks) # download
+  bookmarks = other_user.bookmarks(limit=20)  # get his bookmarks
+  pixiv.download(bookmarks)  # download
 ```
 #### download by artwork id
 ````
   from pikax.pikax import Pikax
 
   pixiv = Pikax()
-  pixiv.download(artwork_id=75608670)
+  pixiv.download(illust_id=75608670)
 ````
-#### Visit [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py) for more examples and details
+#### Visits [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py) for more examples
+#### Visits [models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py) for more details on usage
 
 ## More operations
 #### download top 50 of daily ranking and remove artworks with likes <= 1000
@@ -91,23 +89,26 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   from pikax.pikax import Pikax
 
   pixiv = Pikax()
-  pixiv.login(settings.username, settings.password) # login
-  results = pixiv.rank(limit=50) # top 50 daily ranking
+  results = pixiv.rank(limit=50)  # top 50 ranking
 
-  new_results = results.likes > 1000 # filters likes > 1000
-  pixiv.download(new_results) # download
+  new_results = results.bookmarks > 1000  # remove likes less than 1000
+  pixiv.download(new_results)  # download
 ````
 
 #### download 200 '初音' related, around 1000 bookmarks r18 artworks
 #### remove artworks with likes >= 1000 and views < 50000
 ````
-  from pikax.pikax import Pikax
+  from pikax.pikax import Pikax, settings
 
-  pixiv = Pikax()
-  pixiv.login(settings.username, settings.password) # login
-  results = pixiv.search(keyword='初音', limit=200, mode='r18', popularity=1000) # search
-  
-  new_results = (results.likes > 1000) - (results.views < 50000) # filters
-  pixiv.download(new_results) # download
+  pixiv = Pikax(settings.username, settings.password)
+  results = pixiv.search(keyword='初音', limit=200, popularity=1000)  # search
+
+  new_results = (results.bookmarks > 1000).views > 20000  # get likes > 1000 and views > 20000
+  pixiv.download(new_results)  # download
 ````
-#### visits[items.PixivResult](https://github.com/Redcxx/Pikax/blob/master/pikax/items.py#L155) for more operations
+#### visits[models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py) for more operations
+### Note to v1 users
+ - I removed some functions such as configure r18 settings and dimension options for search, this is because in order to solve the login issue, I had to use an Android login entry point which does not support as much functionalities as the web logged user does. So in order to provide a consistent interface, I decided to remove them. Although I had found a way to solve the login issue of web, but it require a lot time to implement the technique and it requires a extra dependency, I am still a student and need to study ... I will try to fix them in the future when I am free, no guarantee though ...
+ - Instead of using string as parameters now I created params.py which contains enums covering almost all input parameters
+ - A brand new download printing is introduced for better ux, instead of popping out skips in the process, they will pop out together at the end, and now it has a est. time left
+ #### You can reach me by [email](mailto:weilue.luo@student.manchester.ac.uk)
