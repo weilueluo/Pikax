@@ -16,9 +16,9 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ```
 ### Currently supported features
 - Search
-  - keyword/tags, limit, type, dimension, mode, popularity, r18
+  - keyword/tags, limit, type, mode, popularity
 - Ranking
-  - mode, limit, date, content, r18
+  - mode, limit, date, content
 - Yours or others
   - illustrations, mangas, bookmarks
 - Multiprocessing & multithreading download
@@ -33,7 +33,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ### For customization visits [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
 ---
 ## Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
-#### Download today's top 20 illustration
+#### Download today's top 50 illustration
 ```
   from pikax.pikax import Pikax, params
 
@@ -41,7 +41,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   results = pixiv.rank(limit=50)
   pixiv.download(results)
 ```
-#### Search and download 10 arknights related horizontal non-r18 illustrations with 10000 likes (approx)
+#### Search and download 50 arknights related horizontal non-r18 illustrations with 1000 likes (approx)
 ```
   from pikax.pikax import Pikax, settings, params
 
