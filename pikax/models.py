@@ -363,7 +363,6 @@ class BaseDownloader:
 
         download_function = self.download_type_to_function[pikax_result.download_type]
         download_function = functools.partial(download_function, folder=folder)
-        # artworks = self.config_artworks(pikax_result.artworks)
         artworks = pikax_result.artworks
         successes = []
         fails = []
@@ -380,6 +379,8 @@ class BaseDownloader:
             curr_artwork += 1
             for download_detail in download_details:
                 curr_page += 1
+                if curr_page > settings.MAX_PAGES_PER_ARTWORK:
+                    break
                 status, msg = download_detail
                 info = str(msg) + ' ' + str(status.value)
                 if status is Artwork.DownloadStatus.OK:
