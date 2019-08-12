@@ -1,5 +1,5 @@
 # Pikax:unicorn:
-![GitHub stars](https://img.shields.io/github/stars/Redcxx/pikax?color=000&style=flat-square) ![PyPI](https://img.shields.io/pypi/v/pikax?color=000&style=flat-square) ![PyPI - License](https://img.shields.io/pypi/l/pikax?color=000&style=flat-square) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Redcxx/pikax?color=000&style=flat-square) ![GitHub last commit](https://img.shields.io/github/last-commit/Redcxx/pikax?color=000&style=flat-square) ![PyPI - Downloads](https://img.shields.io/pypi/dw/pikax?color=000&style=flat-square)
+![GitHub stars](https://img.shields.io/github/stars/Redcxx/pikax?color=000&style=flat-square) ![PyPI](https://img.shields.io/pypi/v/pikax?color=000&style=flat-square) ![PyPI - License](https://img.shields.io/pypi/l/pikax?color=000&style=flat-square) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Redcxx/pikax?color=000&style=flat-square) ![GitHub last commit](https://img.shields.io/github/last-commit/Redcxx/pikax?color=000&style=flat-square) ![PyPI - Downloads](https://img.shields.io/pypi/dw/pikax?color=000&style=flat-square) <br>
 Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]批量下载工具。
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
 
@@ -17,7 +17,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 ```
 ### 目前支持的下载功能
 - 搜索
-  - 关键字/标签，数量，类别，尺寸，模式，受欢迎程度
+  - 关键字/标签，数量，类别，模式，受欢迎程度
 - 排行榜
   - 日期，数量，模式，内容种类
 - 你的或者别人的
@@ -41,7 +41,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   results = pixiv.rank(limit=50)
   pixiv.download(results)
 ````
-#### 搜索并下载arknights相关，赞数约10000的10张插画
+#### 搜索并下载arknights相关，赞数约1000的50张插画
 ````
   from pikax.pikax import Pikax, settings, params
 
@@ -112,4 +112,4 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
  - 现在基本上所有输入的参数都可以在params.py的找到，里面几乎涵盖了所有参数的枚举
  - 更棒的打印，现在跳过的画作只会在下载后显示，而且加入了剩余时间的估算
  
- #### 联系我可发邮件只到[这里](mailto:weilue.luo@student.manchester.ac.uk)
+ #### 联系我可发邮件到[这里](mailto:weilue.luo@student.manchester.ac.uk)
