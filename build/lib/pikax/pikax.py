@@ -230,7 +230,12 @@ def test():
 
 
 def main():
-    test()
+    # test()
+    from . import settings
+    pixiv = Pikax()
+    pixiv.login(settings.username, settings.password)
+    res = pixiv.search(keyword='arknights', popularity=1000, limit=10)
+    pixiv.download(res)
 
 
 if __name__ == '__main__':
