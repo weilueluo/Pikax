@@ -19,9 +19,9 @@ Number of retries for requesting
 MAX_RETRIES_FOR_REQUEST = 3
 
 """
-Minimum waiting time between two successive requests,
-Please set this number to a suitable amount to reduce
-pressure of Pixiv server
+Minimum waiting time in seconds between two successive requests,
+Set this number to a suitable amount to reduce
+chances of getting block
 """
 DELAY_PER_REQUEST = None
 
@@ -40,12 +40,8 @@ REQUEST_PROXIES = {}
 """
 LOG_TYPE
 'inform': print successive stage and error only
-'std': allow normal printings
+'std': allow debug printings
 'save': save error to LOG_FILE only
-'inform save': will do both inform and save etc ..
-'': log nothing
-
-'inform', 'std' and 'warn' are different outputs
 """
 LOG_STD = False
 LOG_INFORM = True
@@ -72,16 +68,6 @@ DEFAULT_RANK_FOLDER = '#PixivRanking_{date}_{rank_type}_{content}_{limit}'
 String to clear previous stdout line
 """
 CLEAR_LINE = '\r' + ' ' * 100 + '\r'
-
-"""
-Maximum number of threads to used per process
-"""
-MAX_THREAD_PER_PROCESS = 4
-
-"""
-Minimum items per process, if more than is given
-"""
-MIN_ITEMS_PER_THREAD = 10
 
 """
 Indicate a failure when there's too much exceptions occurred during requesting in the same loop
