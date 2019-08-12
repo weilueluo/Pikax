@@ -6,6 +6,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   # the current v2 is not compatiable with v1, please upgrade carefully, deprecated folder contains v1's source code
   pip install Pikax # current release
 ````
+![demo-gif](https://github.com/Redcxx/Pikax/blob/master/demo-gif.gif)
 ---
 ## Requirements
 - [Python3](https://www.python.org/downloads/)
@@ -29,9 +30,6 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 - Filter Artworks/Artists
 - ...
 - Tell me!
----
-### For customization visits [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
----
 ## Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 #### Download today's top 50 illustration
 ```
@@ -107,6 +105,8 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   pixiv.download(new_results)  # download
 ````
 #### visits[models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py) for more operations
+### For customization visits [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
+---
 ### Note to v1 users
  - I removed some functions such as configure r18 settings and dimension options for search, this is because in order to solve the login issue, I had to use an Android login entry point which does not support as much functionalities as the web logged user does. So in order to provide a consistent interface, I decided to remove them. Although I had found a way to solve the login issue of web, but it require a lot time to implement the technique and it requires a extra dependency, I am still a student and need to study ... I will try to fix them in the future when I am free, no guarantee though ...
  - Instead of using string as parameters now I created params.py which contains enums covering almost all input parameters
