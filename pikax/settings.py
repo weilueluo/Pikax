@@ -85,7 +85,7 @@ A artwork id may have multiple pages,
 sometimes is not desire to download all of them,
 None means download all pages
 """
-MAX_PAGES_PER_ARTWORK = 3
+MAX_PAGES_PER_ARTWORK = None
 
 """
 file for saving cookies
