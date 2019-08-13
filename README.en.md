@@ -6,7 +6,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   # the current v2 is not compatiable with v1, please upgrade carefully, deprecated folder contains v1's source code
   pip install Pikax # current release
 ````
-![demo-gif](https://github.com/Redcxx/Pikax/blob/master/demo-gif.gif)
+![demo-gif](https://github.com/Redcxx/Pikax/blob/master/demo.gif)
 ---
 ## Requirements
 - [Python3](https://www.python.org/downloads/)

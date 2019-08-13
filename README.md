@@ -7,7 +7,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   # 当前的v2跟v1不兼容，v1用户谨慎更新，deprecated文件夹有v1的源码
   pip install Pikax # 当前的发布
 ````
-![demo-gif](https://github.com/Redcxx/Pikax/blob/master/demo-gif.gif)
+![demo-gif](https://github.com/Redcxx/Pikax/blob/master/demo.gif)
 ---
 ## 需要
 - [Python3](https://www.python.org/downloads/)
