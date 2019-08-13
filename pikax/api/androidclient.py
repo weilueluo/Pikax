@@ -148,20 +148,14 @@ class FunctionalBaseClient(BaseClient):
         cls._check_params(match=match, sort=sort, search_range=search_range)
         if search_type and not params.SearchType.is_valid(search_type):
             raise BaseClientException(f'search type must be type of {params.SearchType}')
-        param = {
-            'word': str(keyword)
-        }
+        param = {'word': str(keyword), 'search_target': match.value, 'sort': sort.value}
 
-        if search_type is not params.SearchType.USER:
-            param['search_target'] = match.value
-            param['sort'] = sort.value
-
-            if search_range:
-                if params.Range.is_valid(search_range):
-                    search_range = search_range.value
-                today = datetime.date.today()
-                param['start_date'] = str(today)
-                param['end_date'] = str(today - search_range)
+        if search_range:
+            if params.Range.is_valid(search_range):
+                search_range = search_range.value
+            today = datetime.date.today()
+            param['start_date'] = str(today)
+            param['end_date'] = str(today - search_range)
 
         encoded_params = urllib.parse.urlencode(param)
         return cls._search_url.format(type=search_type.value) + encoded_params
