@@ -379,7 +379,7 @@ class BaseDownloader:
             curr_artwork += 1
             for download_detail in download_details:
                 curr_page += 1
-                if curr_page > settings.MAX_PAGES_PER_ARTWORK:
+                if settings.MAX_PAGES_PER_ARTWORK and curr_page > settings.MAX_PAGES_PER_ARTWORK:
                     break
                 status, msg = download_detail
                 info = str(msg) + ' ' + str(status.value)
