@@ -31,7 +31,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 - 。。。
 - 有人再做吧，我自己够用了owo
 ## 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
-#### 下载当日排行榜前20的插画
+#### 下载当日排行榜前50的插画
 ````
   from pikax.pikax import Pikax, params
 
