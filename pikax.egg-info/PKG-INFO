@@ -1,13 +1,13 @@
 Metadata-Version: 2.1
 Name: pikax
-Version: 2.0.1
+Version: 2.0.2
 Summary: A Pixiv Mass Downloading Tool
 Home-page: https://github.com/Redcxx/Pikax
 Author: Redcxx
 Author-email: weilue.luo@student.manchester.ac.uk
 License: UNKNOWN
 Description: # Pikax:unicorn:
-        ![GitHub stars](https://img.shields.io/github/stars/Redcxx/pikax?color=000&style=flat-square) ![PyPI](https://img.shields.io/pypi/v/pikax?color=000&style=flat-square) ![PyPI - License](https://img.shields.io/pypi/l/pikax?color=000&style=flat-square) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Redcxx/pikax?color=000&style=flat-square) ![GitHub last commit](https://img.shields.io/github/last-commit/Redcxx/pikax?color=000&style=flat-square) ![PyPI - Downloads](https://img.shields.io/pypi/dw/pikax?color=000&style=flat-square)
+        ![GitHub stars](https://img.shields.io/github/stars/Redcxx/pikax?color=000&style=flat-square) ![PyPI](https://img.shields.io/pypi/v/pikax?color=000&style=flat-square) ![PyPI - License](https://img.shields.io/pypi/l/pikax?color=000&style=flat-square) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Redcxx/pikax?color=000&style=flat-square) ![GitHub last commit](https://img.shields.io/github/last-commit/Redcxx/pikax?color=000&style=flat-square) ![PyPI - Downloads](https://img.shields.io/pypi/dw/pikax?color=000&style=flat-square) <br>
         Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]批量下载工具。
         #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
         
@@ -15,6 +15,7 @@ Description: # Pikax:unicorn:
           # 当前的v2跟v1不兼容，v1用户谨慎更新，deprecated文件夹有v1的源码
           pip install Pikax # 当前的发布
         ````
+        ![demo-gif](https://github.com/Redcxx/Pikax/blob/master/demo.gif)
         ---
         ## 需要
         - [Python3](https://www.python.org/downloads/)
@@ -25,7 +26,7 @@ Description: # Pikax:unicorn:
         ```
         ### 目前支持的下载功能
         - 搜索
-          - 关键字/标签，数量，类别，尺寸，模式，受欢迎程度
+          - 关键字/标签，数量，类别，模式，受欢迎程度
         - 排行榜
           - 日期，数量，模式，内容种类
         - 你的或者别人的
@@ -37,9 +38,6 @@ Description: # Pikax:unicorn:
         - 作品/画师 过滤
         - 。。。
         - 有人再做吧，我自己够用了owo
-        ---
-        ### 个性化设置请前往[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
-        ---
         ## 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
         #### 下载当日排行榜前20的插画
         ````
@@ -49,7 +47,7 @@ Description: # Pikax:unicorn:
           results = pixiv.rank(limit=50)
           pixiv.download(results)
         ````
-        #### 搜索并下载arknights相关，赞数约10000的10张插画
+        #### 搜索并下载arknights相关，赞数约1000的50张插画
         ````
           from pikax.pikax import Pikax, settings, params
         
@@ -115,12 +113,15 @@ Description: # Pikax:unicorn:
           pixiv.download(new_results)  # 下载
         ````
         #### 更多操作请参考[models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py)
+        ### 个性化设置请前往[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
+        ---
         ### 致v1用户
          - 我移除了一部分功能比如自动设置r18和尺寸搜索设置，这是因为为了解决登录问题我模拟了他们在安卓应用上的登录，但是手机应用有些设定是不支持的，比如我刚刚说的那两个，为了有一个统一的接口我决定移除他们。虽然我已经找到了解决的办法但是这个办法需要我大量的精力和时间去实现并且要求额外的依赖，而我只是一个可怜的学生因此只可能在以后有空的时候做一下，不过不能保证真的会做。。。
          - 现在基本上所有输入的参数都可以在params.py的找到，里面几乎涵盖了所有参数的枚举
          - 更棒的打印，现在跳过的画作只会在下载后显示，而且加入了剩余时间的估算
          
-         #### 联系我可发邮件只到[这里](mailto:weilue.luo@student.manchester.ac.uk)
+         #### 联系我可发邮件到[这里](mailto:weilue.luo@student.manchester.ac.uk)
+        
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
