@@ -3,10 +3,6 @@
 # for explaining https://oauth.secure.pixiv.net/auth/token
 #
 
-#
-# NOTE XXX This api is developing and not used by pikax yet
-#
-
 
 import datetime
 import time
