@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pikax
-Version: 2.0.7
+Version: 2.0.9
 Summary: A Pixiv Mass Downloading Tool
 Home-page: https://github.com/Redcxx/Pikax
 Author: Redcxx
@@ -39,9 +39,9 @@ Description: # Pikax:unicorn:
         - 。。。
         - 有人再做吧，我自己够用了owo
         ## 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
-        #### 下载当日排行榜前20的插画
+        #### 下载当日排行榜前50的插画
         ````
-          from pikax.pikax import Pikax, params
+          from pikax.pikax import Pikax
         
           pixiv = Pikax()
           results = pixiv.rank(limit=50)

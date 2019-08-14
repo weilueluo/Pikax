@@ -262,6 +262,7 @@ class Printer(object):
         self.last_percent_print_time = None
         self.est_time_lefts = [0, 0, 0, 0, 0]
         self.start_time = None
+        self.last_printed_line = None
 
     def print_progress(self, curr, total, msg=None):
         curr_percent = math.floor(curr / total * 100)
@@ -300,7 +301,13 @@ class Printer(object):
         if msg:
             progress_text = progress_text + ' | ' + str(msg)
 
+        if self.last_printed_line:
+            spaces = len(self.last_printed_line)
+        else:
+            spaces = 1
+
         log(progress_text, end='', start=settings.CLEAR_LINE, inform=True)
+        self.last_printed_line = progress_text
 
     def print_done(self, msg=None):
         if msg:
@@ -315,6 +322,7 @@ class Printer(object):
         self.last_percent = None
         self.last_percent_print_time = None
         self.last_percent_time_left = None
+        self.last_printed_line = None
         self.est_time_lefts = [0, 0, 0]
 
 

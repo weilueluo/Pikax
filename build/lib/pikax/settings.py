@@ -67,7 +67,7 @@ DEFAULT_RANK_FOLDER = '#PixivRanking_{date}_{rank_type}_{content}_{limit}'
 """
 String to clear previous stdout line
 """
-CLEAR_LINE = '\b' * 300
+CLEAR_LINE = '\r' + ' ' * 150 + '\r'
 
 """
 Indicate a failure when there's too much exceptions occurred during requesting in the same loop
