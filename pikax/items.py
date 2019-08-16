@@ -1,11 +1,11 @@
 import enum
 import os
 
-from pikax.exceptions import LoginError
-from pikax.api.androidclient import AndroidAPIClient
-from pikax.api.webclient import WebAPIClient
-from pikax.api.defaultclient import DefaultAPIClient
-from pikax import util
+from .exceptions import LoginError
+from .api.androidclient import AndroidAPIClient
+from .api.webclient import WebAPIClient
+from .api.defaultclient import DefaultAPIClient
+from . import util
 
 
 class LoginHandler:

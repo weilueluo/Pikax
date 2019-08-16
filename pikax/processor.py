@@ -1,5 +1,5 @@
-from pikax.api.artwork import Illust
-from pikax.api.models import BaseIDProcessor
+from .api.artwork import Illust
+from .api.models import BaseIDProcessor
 
 
 class DefaultIDProcessor(BaseIDProcessor):

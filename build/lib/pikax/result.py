@@ -1,5 +1,5 @@
-from pikax.exceptions import PikaxResultError
-from pikax.api.models import Artwork
+from .exceptions import PikaxResultError
+from .api.models import Artwork
 from .models import PikaxResult
 
 

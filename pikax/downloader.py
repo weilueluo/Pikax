@@ -5,8 +5,8 @@ from typing import Tuple, Iterator
 import requests
 
 from .models import BaseDownloader
-from pikax import util
-from pikax.api.models import Artwork
+from . import util
+from .api.models import Artwork
 
 
 class DefaultDownloader(BaseDownloader):
