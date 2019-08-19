@@ -1,13 +1,11 @@
 import os
 import sys
-from tkinter import ttk
 
 from common import go_to_next_screen, StdoutRedirector
 from factory import make_label, make_entry, make_button, make_dropdown, NORMAL, grid, pack, DISABLED, make_text
 from lib.pikax.util import clean_filename
 from menu import MenuScreen
 from models import PikaxGuiComponent
-from lib import pikax
 
 
 class SearchScreen(PikaxGuiComponent):
@@ -41,7 +39,7 @@ class SearchScreen(PikaxGuiComponent):
         self.back_button.configure(command=self.back_clicked)
 
         self.output_text = make_text(self.frame)
-        self.output_text.configure(state=DISABLED)
+        self.output_text.configure(state=DISABLED, height=6)
         sys.stdout = StdoutRedirector(self.output_text)
 
         self.load()
@@ -68,7 +66,6 @@ class SearchScreen(PikaxGuiComponent):
         self.search_and_download_button.configure(state=NORMAL)
 
         self.output_text.grid_configure(row=7, columnspan=2)
-        self.output_text.configure(height=6)
 
         self.frame.pack_configure(expand=True)
 
@@ -96,25 +93,36 @@ class SearchScreen(PikaxGuiComponent):
 
     def search_and_download_clicked(self):
         try:
-            keyword = str(self.keyword_entry.get() or '')
-            limit_input = int(self.limit_entry.get()) if self.limit_entry.get() else None
+            keyword = str(self.keyword_entry.get())
+            if not keyword:
+                raise ValueError('Keyword cannot be empty')
+
+            folder_input = str(self.folder_entry.get())
+            if folder_input != clean_filename(folder_input):
+                raise ValueError('Folder name contains invalid characters')
+            folder = folder_input or None
+
+            try:
+                limit_input = int(self.limit_entry.get()) if self.limit_entry.get() else None
+            except ValueError:
+                raise ValueError('Limit must be a integer or empty')
             match_input = str(self.match_dropdown.get())
             sort_input = str(self.sort_dropdown.get())
             popularity_input = str(self.popularity_dropdown.get())
-            folder_input = str(self.folder_entry.get())
             params = self.check_inputs(limit_input=limit_input, match_input=match_input, sort_input=sort_input,
-                                       popularity_input=popularity_input, folder_input=folder_input)
+                                       popularity_input=popularity_input)
         except (TypeError, ValueError) as e:
-            print('Please check your inputs', os.linesep, f'Error Message: {e}')
+            sys.stdout.write('Please check your inputs' + os.linesep + f'Error Message: {e}')
             return
 
         import threading
         params['keyword'] = keyword
+        params['folder'] = folder
         download_thread = threading.Thread(target=self.pikax_handler.search, kwargs=params)
         download_thread.start()
 
     @staticmethod
-    def check_inputs(limit_input, match_input, sort_input, popularity_input, folder_input):
+    def check_inputs(limit_input, match_input, sort_input, popularity_input):
         from lib.pikax import params
 
         if not limit_input or limit_input == 'any':
@@ -139,15 +147,16 @@ class SearchScreen(PikaxGuiComponent):
         else:
             popularity = int(popularity_input)
 
-        if folder_input:
-            folder = clean_filename(folder_input)
-        else:
-            folder = None
-
         return {
             'limit': limit,
             'sort': sort,
             'match': match,
-            'popularity': popularity,
-            'folder': folder
+            'popularity': popularity
         }
+
+
+if __name__ == '__main__':
+    from tkinter import Tk
+    root = Tk()
+    SearchScreen(root, None)
+    root.mainloop()

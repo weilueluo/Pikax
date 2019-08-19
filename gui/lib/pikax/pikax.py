@@ -132,7 +132,7 @@ class Pikax(PikaxInterface):
         folder = settings.DEFAULT_RANK_FOLDER.format(limit=limit, date=date, content=content, rank_type=rank_type)
         return DefaultPikaxResult(success, download_type=download_type, folder=folder)
 
-    def download(self, pikax_result=None, folder: str = '') -> None:
+    def download(self, pikax_result=None, folder: str = '', illust_id: int = None) -> None:
         """
         Download all items given
 
@@ -141,8 +141,13 @@ class Pikax(PikaxInterface):
         :param illust_id: the illust id to download, default None
         :rtype: None
         """
-        for curr, total, info in self.downloader.download(pikax_result=pikax_result, folder=folder):
-            yield curr, total, info
+        if pikax_result:
+            self.downloader.download(pikax_result=pikax_result, folder=folder)
+        if illust_id:
+            util.log(f'Initializing download with illust id: {illust_id}', inform=True)
+            ill = Illust(illust_id=illust_id)
+            self.downloader.download(pikax_result=DefaultPikaxResult([ill], download_type=params.DownloadType.ILLUST),
+                                     folder=folder)
 
     def visits(self, user_id: int) -> PikaxUserInterface:
         """

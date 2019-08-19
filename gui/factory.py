@@ -37,7 +37,7 @@ def make_dropdown(master, default, choices):
 
 
 def make_text(master):
-    return Text(master, wrap=WORD, height=2, width=60, state=DISABLED)
+    return Text(master, wrap=WORD, height=1, width=80, state=DISABLED, highlightthickness=0, borderwidth=0)
 
 
 def grid(component):

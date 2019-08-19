@@ -1,3 +1,4 @@
+
 from lib.pikax.exceptions import PikaxException
 from lib.pikax.items import LoginHandler
 from lib.pikax.pikax import Pikax
@@ -15,12 +16,18 @@ class PikaxHandler:
         else:
             raise PikaxException('Failed Login')
 
-    def rank(self):
-        ...
+    def rank(self, rank_type, limit, date, content, folder):
+        try:
+            result = self.pikax.rank(rank_type=rank_type, limit=limit, date=date, content=content)
+            self.pikax.download(result, folder=folder)
+        except PikaxException as e:
+            import sys
+            sys.stdout.write(f'Rank & download failed, message:\n{e}')
 
     def search(self, keyword, limit, sort, match, popularity, folder):
-
-        result = self.pikax.search(keyword=keyword, limit=limit, sort=sort, match=match, popularity=popularity)
-        for curr, total, info in self.pikax.download(result, folder):
-            print(curr, total, info)
-
+        try:
+            result = self.pikax.search(keyword=keyword, limit=limit, sort=sort, match=match, popularity=popularity)
+            self.pikax.download(result, folder)
+        except PikaxException as e:
+            import sys
+            sys.stdout.write(f'Search & download failed, message:\n{e}')

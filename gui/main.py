@@ -4,17 +4,16 @@ from login import LoginScreen
 from pikaxhandler import PikaxHandler
 
 root = Tk()
-root.geometry('400x400')
+root.geometry('600x400')
 root.title('Pikax - Pixiv Downloader')
-
-pikax_handler = PikaxHandler()
+root.protocol("WM_DELETE_WINDOW", root.destroy)
 
 
 # restorecyclebin@gmail.com
 
 
 def main():
-    login_screen = LoginScreen(master=root, pikax_handler=pikax_handler)
+    login_screen = LoginScreen(master=root, pikax_handler=PikaxHandler())
     root.mainloop()
 
 

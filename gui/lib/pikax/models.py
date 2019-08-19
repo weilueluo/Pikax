@@ -286,7 +286,7 @@ class PikaxInterface(PikaxPagesInterface):
             -> (PikaxUserInterface, PikaxPagesInterface):
         raise NotImplementedError
 
-    def download(self, pikax_result: PikaxResult, folder: str = None) -> None:
+    def download(self, pikax_result: PikaxResult, folder: str = None, illust_id: int = None) -> None:
         """
         Download all items given
 
@@ -391,17 +391,18 @@ class BaseDownloader:
                     fails.append(msg)
                 info = f'{curr_artwork} / {total_artworks} ' \
                        f'=> {math.ceil((curr_artwork / total_artworks) * 100)}% | ' + info
-                yield curr_page, total_pages, info
+                util.print_progress(curr_page, total_pages, msg=info)
         util.print_done()
 
-        util.log(f'There are {len(successes)} downloaded pages', inform=True)
+        finish_msg = ''
+        finish_msg += f'There are {len(successes)} downloaded pages\n'
 
-        util.log(f'There are {len(skips)} skipped pages', inform=True)
+        finish_msg += f'There are {len(skips)} skipped pages\n'
         for index, skip_info in enumerate(skips):
-            util.log(skip_info, start=f' [{index + 1}] ', inform=True)
+            finish_msg += f' [{index + 1}] ' + str(skip_info) + '\n'
 
-        util.log(f'There are {len(fails)} failed pages', inform=True)
-        for index, skip_info in enumerate(fails):
-            util.log(skip_info, start=f' [{index + 1}] ', inform=True)
+        finish_msg += f'There are {len(fails)} failed pages\n'
+        for index, fail_info in enumerate(fails):
+            finish_msg += f' [{index + 1}] ' + str(fail_info) + '\n'
 
-        util.print_done(str(folder))
+        util.print_done(str(finish_msg + '\n' + folder))

@@ -1,9 +1,11 @@
-from factory import make_label, make_entry, make_button, NORMAL, pack, CENTER, BOTTOM, make_text, DISABLED
-from lib.pikax.exceptions import PikaxException
-
-from models import PikaxGuiComponent
-from common import go_to_next_screen, StdoutRedirector
 import sys
+from threading import Thread
+from tkinter import DISABLED, CENTER, BOTTOM, NORMAL
+
+from common import go_to_next_screen, StdoutRedirector
+from factory import make_label, make_entry, make_button, pack
+from lib.pikax.exceptions import PikaxException
+from models import PikaxGuiComponent
 
 
 class LoginScreen(PikaxGuiComponent):
@@ -21,11 +23,14 @@ class LoginScreen(PikaxGuiComponent):
         self.username_entry.bind('<Return>', self.login)
         self.password_entry.bind('<Return>', self.login)
         self.output_text = make_entry(self.frame)
-        self.output_text.configure(state=DISABLED, justify=CENTER)
+        self.output_text.configure(state=DISABLED, justify=CENTER, width=60)
         sys.stdout = StdoutRedirector(self.output_text)
         self.load()
 
     def login(self, event=None):
+        Thread(target=self._login).start()
+
+    def _login(self):
         username = self.username_entry.get()
         password = self.password_entry.get()
         try:
@@ -33,7 +38,7 @@ class LoginScreen(PikaxGuiComponent):
             from menu import MenuScreen
             go_to_next_screen(src=self, dest=MenuScreen)
         except PikaxException:
-            print('Login Failed')
+            sys.stdout.write('Login Failed')
 
     def load(self):
         self.frame.pack_configure(expand=True)

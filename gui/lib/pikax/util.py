@@ -30,7 +30,7 @@ _warn_enabled = settings.LOG_WARN
 
 __all__ = ['log', 'req', 'json_loads', 'trim_to_limit', 'clean_filename', 'print_json']
 
-
+# changed for gui
 def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,
         warn=False, normal=False):
     """Print according to params and settings.py
@@ -67,21 +67,10 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', info
 
     """
 
-    if normal:
-        print(start, *objects, sep=sep, end=end, file=file, flush=flush)
-        return
+    import sys
 
-    global _std_enabled, _inform_enabled, _save_enabled, _warn_enabled
-    if _inform_enabled and inform:
-        print(start, '>>>', *objects, sep=sep, end=end, file=file, flush=flush)
-    if _save_enabled and save:
-        print(start, *objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a', encoding='utf-8'), flush=False)
-    if _inform_enabled and error:
-        print(start, '!!!', *objects, sep=sep, end=end, file=file, flush=flush)
-    if _warn_enabled and warn:
-        print(start, '###', *objects, sep=sep, end=end, file=file, flush=flush)
-    if _std_enabled and not (inform or save or error or warn):
-        print(start, *objects, sep=sep, end=end, file=file, flush=flush)
+    line = ''.join(str(item) for item in objects)
+    sys.stdout.write(str(start) + line + str(end))
 
 
 # send request using requests, raise ReqException if fails all retries
@@ -252,7 +241,7 @@ def print_json(json_obj):
 def new_session():
     return requests.Session()
 
-
+# changed for gui
 class Printer(object):
 
     def __init__(self):
@@ -260,7 +249,7 @@ class Printer(object):
         self.last_percent = None
         self.last_percent_time_left = None
         self.last_percent_print_time = None
-        self.est_time_lefts = [0, 0, 0, 0, 0]
+        self.est_time_lefts = [0, 0, 0]
         self.start_time = None
         self.last_printed_line = None
 
@@ -301,11 +290,7 @@ class Printer(object):
         if msg:
             progress_text = progress_text + ' | ' + str(msg)
 
-        if self.last_printed_line:
-            spaces = len(self.last_printed_line)
-        else:
-            spaces = 1
-
+        progress_text = '\n'.join(progress_text.split('|'))
         log(progress_text, end='', start=settings.CLEAR_LINE, inform=True)
         self.last_printed_line = progress_text
 
