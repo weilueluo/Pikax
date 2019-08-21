@@ -5,7 +5,6 @@ from threading import Thread
 from tkinter import NORMAL, DISABLED, END
 
 from common import StdoutRedirector, go_to_next_screen
-from factory import make_text, make_entry, make_label, make_button, make_dropdown, grid, pack
 from lib.pikax import params
 from lib.pikax.util import clean_filename
 from models import PikaxGuiComponent
@@ -15,11 +14,13 @@ class RankScreen(PikaxGuiComponent):
 
     def __init__(self, master, pikax_handler):
         super().__init__(master, pikax_handler)
-        self.date_label = make_label(self.frame, 'date')
-        self.limit_label = make_label(self.frame, 'limit')
-        self.type_label = make_label(self.frame, 'type')
-        self.content_label = make_label(self.frame, 'content')
-        self.download_folder_label = make_label(self.frame, 'download folder')
+
+        # labels
+        self.date_label = self.make_label('date')
+        self.limit_label = self.make_label('limit')
+        self.type_label = self.make_label('type')
+        self.content_label = self.make_label('content')
+        self.download_folder_label = self.make_label('download folder')
 
         self.labels = [
             self.date_label,
@@ -29,20 +30,15 @@ class RankScreen(PikaxGuiComponent):
             self.download_folder_label
         ]
 
-        self.back_button = make_button(self.frame, 'back')
-        self.download_button = make_button(self.frame, 'rank and download')
-
-        self.date_entry = make_entry(self.frame)
-        self.limit_entry = make_entry(self.frame)
-        self.download_folder_entry = make_entry(self.frame)
-
-        self.content_types = ['illustration', 'manga']
-        self.content_default = self.content_types[0]
-        self.content_dropdown = make_dropdown(self.frame, self.content_default, self.content_types)
-
-        self.rank_types = ['daily', 'weekly', 'monthly', 'rookie']
-        rank_default = 'daily'
-        self.type_dropdown = make_dropdown(self.frame, rank_default, self.rank_types)
+        # inputs
+        self.date_entry = self.make_entry()
+        self.date_entry.insert(0, format(date.today(), '%Y%m%d'))
+        self.limit_entry = self.make_entry()
+        rank_types = ['daily', 'weekly', 'monthly', 'rookie']
+        self.type_dropdown = self.make_dropdown('daily', rank_types)
+        content_types = ['illustration', 'manga']
+        self.content_dropdown = self.make_dropdown('illustration', content_types)
+        self.download_folder_entry = self.make_entry()
 
         self.inputs = [
             self.date_entry,
@@ -52,16 +48,17 @@ class RankScreen(PikaxGuiComponent):
             self.download_folder_entry
         ]
 
-        self.text_output = make_text(self.frame)
-        self.text_output.configure(state=DISABLED, height=6)
-        sys.stdout = StdoutRedirector(self.text_output)
-
+        # buttons
+        self.back_button = self.make_button('back')
+        self.download_button = self.make_button('rank and download')
         self.back_button.configure(command=self.back_clicked)
         self.download_button.configure(command=self.download_clicked)
         self.download_button.configure(command=self.download)
-        self.date_entry_default = format(date.today(), '%Y%m%d')
-        self.date_entry.insert(0, self.date_entry_default)
-        self.date_entry.bind('<FocusIn>', lambda x: self.date_entry.delete(0, END))
+
+        # download outputs
+        self.text_output = self.make_text()
+        self.text_output.configure(state=DISABLED, height=6)
+        self.redirect_output_to(self.text_output)
 
         self.load()
 
@@ -128,26 +125,30 @@ class RankScreen(PikaxGuiComponent):
         ...
 
     def load(self):
+        # labels
         for index, item in enumerate(self.labels):
             item.grid_configure(row=index)
-            grid(item)
-
+            self.grid(item)
+        # entries
         for index, item in enumerate(self.inputs):
             item.grid_configure(row=index, column=1)
-            grid(item)
+            self.grid(item)
 
+        # buttons
         self.back_button.grid_configure(row=len(self.labels))
         self.download_button.grid_configure(row=len(self.labels), column=1)
-        grid(self.back_button)
-        grid(self.download_button)
+        self.grid(self.back_button)
+        self.grid(self.download_button)
         self.back_button.configure(state=NORMAL)
         self.download_button.configure(state=NORMAL)
 
+        # download output
         self.text_output.grid_configure(row=len(self.labels) + 1, columnspan=2)
-        grid(self.text_output)
+        self.grid(self.text_output)
 
+        # frame
         self.frame.pack_configure(expand=True)
-        pack(self.frame)
+        self.pack(self.frame)
 
     def destroy(self):
         self.frame.destroy()

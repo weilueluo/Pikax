@@ -1,38 +1,57 @@
 import sys
 from threading import Thread
-from tkinter import DISABLED, CENTER, BOTTOM, NORMAL
+from tkinter import DISABLED, CENTER, NORMAL, Text
 
-from common import go_to_next_screen, StdoutRedirector
-from factory import make_label, make_entry, make_button, pack
+from common import go_to_next_screen
 from lib.pikax.exceptions import PikaxException
 from models import PikaxGuiComponent
-
 
 class LoginScreen(PikaxGuiComponent):
 
     def __init__(self, master, pikax_handler):
         super().__init__(master, pikax_handler)
-        self.title_label = make_label(self.frame, text='Pikax')
+        self.title_label = self.make_label(text='Pikax')
         self.title_label.configure(font="-weight bold", anchor=CENTER)
-        self.username_label = make_label(self.frame, text='username')
-        self.password_label = make_label(self.frame, text='password')
-        self.username_entry = make_entry(self.frame)
-        self.password_entry = make_entry(self.frame)
-        self.login_button = make_button(self.frame, text='login')
+        self.username_label = self.make_label(text='username')
+        self.password_label = self.make_label(text='password')
+        self.username_entry = self.make_entry()
+        self.password_entry = self.make_entry()
+        self.output_text = self.make_entry()
+        self.contact_label = self.make_text()
+        self.contact_label.configure(bg='grey95', fg='grey50')
+        self.contact_label.configure(state=NORMAL)
+        self.contact_label.tag_configure("center", justify=CENTER)
+        self.contact_label.insert(0.0, 'Issue? report @ https://github.com/Redcxx/Pikax/issues')
+        self.contact_label.tag_add("center", "1.0", "end")
+        self.contact_label.configure(state=DISABLED)
+        self.login_button = self.make_button(text='login')
+
         self.login_button.configure(command=self.login)
         self.username_entry.bind('<Return>', self.login)
         self.password_entry.bind('<Return>', self.login)
-        self.output_text = make_entry(self.frame)
+        self.password_entry.configure(show="\u2022")  # bullet
         self.output_text.configure(state=DISABLED, justify=CENTER, width=60)
-        sys.stdout = StdoutRedirector(self.output_text)
+        self.redirect_output_to(self.output_text)
+
+        self.components = [
+            self.title_label,
+            self.username_label,
+            self.username_entry,
+            self.password_label,
+            self.password_entry,
+            self.login_button,
+            self.output_text,
+            self.contact_label
+        ]
+
         self.load()
 
     def login(self, event=None):
         Thread(target=self._login).start()
 
     def _login(self):
-        username = self.username_entry.get()
-        password = self.password_entry.get()
+        username = self.username_entry.get().strip()
+        password = self.password_entry.get().strip()
         try:
             self.pikax_handler.login(username, password)
             from menu import MenuScreen
@@ -41,20 +60,16 @@ class LoginScreen(PikaxGuiComponent):
             sys.stdout.write('Login Failed')
 
     def load(self):
-        self.frame.pack_configure(expand=True)
-        self.output_text.pack_configure(side=BOTTOM, expand=True)
 
-        pack(self.title_label)
-        pack(self.username_label)
-        pack(self.username_entry)
-        pack(self.password_label)
-        pack(self.password_entry)
-        pack(self.login_button)
-        pack(self.output_text)
-        pack(self.frame)
+        for index, component in enumerate(self.components):
+            component.grid_configure(row=index)
+            self.grid(component)
 
         self.username_entry.focus()
         self.login_button.configure(state=NORMAL)
+        self.frame.pack_configure(expand=True)
+        self.pack(self.frame)
+
 
     def destroy(self):
         self.frame.destroy()

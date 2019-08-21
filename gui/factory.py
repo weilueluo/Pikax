@@ -13,6 +13,7 @@ def make_button(master, text=''):
                   state=DISABLED,
                   padx=10,
                   pady=2,
+                  width=17
                   )
 
 
@@ -46,3 +47,7 @@ def grid(component):
 
 def pack(component):
     component.pack(padx=5, pady=5)
+
+
+def button_grid_configure(button):
+    button.grid_configure(padx=5, pady=5)
