@@ -36,8 +36,10 @@ class PikaxGuiComponent:
     def make_entry(self):
         return make_entry(self.frame)
 
-    def make_text(self):
-        return make_text(self.frame)
+    def make_download_output(self):
+        text = make_text(self.frame)
+        text.configure(height=6, state=DISABLED)
+        return text
 
     def grid(self, component):
         grid(component)

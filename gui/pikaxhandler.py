@@ -1,5 +1,6 @@
+import sys
 
-from lib.pikax.exceptions import PikaxException
+from lib.pikax.exceptions import PikaxException, ArtworkError
 from lib.pikax.items import LoginHandler
 from lib.pikax.pikax import Pikax
 
@@ -31,3 +32,9 @@ class PikaxHandler:
         except PikaxException as e:
             import sys
             sys.stdout.write(f'Search & download failed, message:\n{e}')
+
+    def download_by_id(self, illust_id):
+        try:
+            self.pikax.download(illust_id=illust_id)
+        except ArtworkError as e:
+            sys.stdout.write(str(e) + '\n' + 'Likely due to Id does not exists')

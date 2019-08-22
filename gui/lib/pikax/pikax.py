@@ -144,10 +144,12 @@ class Pikax(PikaxInterface):
         if pikax_result:
             self.downloader.download(pikax_result=pikax_result, folder=folder)
         if illust_id:
-            util.log(f'Initializing download with illust id: {illust_id}', inform=True)
+            util.log(f'Initializing download with illust id: {illust_id}')
             ill = Illust(illust_id=illust_id)
             self.downloader.download(pikax_result=DefaultPikaxResult([ill], download_type=params.DownloadType.ILLUST),
                                      folder=folder)
+            # import sys
+            # sys.stdout.write(f'{illust_id} downloaded')
 
     def visits(self, user_id: int) -> PikaxUserInterface:
         """

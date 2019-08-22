@@ -56,9 +56,8 @@ class RankScreen(PikaxGuiComponent):
         self.download_button.configure(command=self.download)
 
         # download outputs
-        self.text_output = self.make_text()
-        self.text_output.configure(state=DISABLED, height=6)
-        self.redirect_output_to(self.text_output)
+        self.download_output = self.make_download_output()
+        self.redirect_output_to(self.download_output)
 
         self.load()
 
@@ -143,8 +142,8 @@ class RankScreen(PikaxGuiComponent):
         self.download_button.configure(state=NORMAL)
 
         # download output
-        self.text_output.grid_configure(row=len(self.labels) + 1, columnspan=2)
-        self.grid(self.text_output)
+        self.download_output.grid_configure(row=len(self.labels) + 1, columnspan=2)
+        self.grid(self.download_output)
 
         # frame
         self.frame.pack_configure(expand=True)

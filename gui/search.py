@@ -57,9 +57,8 @@ class SearchScreen(PikaxGuiComponent):
         self.back_button.configure(command=self.back_clicked)
 
         # download outputs
-        self.output_text = self.make_text()
-        self.output_text.configure(state=DISABLED, height=6)
-        self.redirect_output_to(self.output_text)
+        self.download_output = self.make_download_output()
+        self.redirect_output_to(self.download_output)
 
         self.load()
 
@@ -81,8 +80,8 @@ class SearchScreen(PikaxGuiComponent):
         self.search_and_download_button.configure(state=NORMAL)
 
         # download outputs
-        self.output_text.grid_configure(row=7, columnspan=2)
-        self.grid(self.output_text)
+        self.download_output.grid_configure(row=7, columnspan=2)
+        self.grid(self.download_output)
 
         self.frame.pack_configure(expand=True)
         self.pack(self.frame)

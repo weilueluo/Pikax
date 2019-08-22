@@ -13,12 +13,16 @@ class StdoutRedirector:
     def __init__(self, text_component):
         self.text_component = text_component
 
-    def write(self, string):
+    def write(self, string, append=False):
+        string = str(string)
         self.text_component.configure(state=NORMAL)
 
         if isinstance(self.text_component, Text):
-            self.text_component.delete(1.0, END)
-            self.text_component.insert(1.0, string)
+            if append:
+                self.text_component.insert(END, '\n' + string)
+            else:
+                self.text_component.delete(1.0, END)
+                self.text_component.insert(1.0, string)
             self.text_component.see(END)
         elif isinstance(self.text_component, Entry):
             self.text_component.delete(0, END)

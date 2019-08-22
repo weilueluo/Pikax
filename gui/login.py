@@ -17,7 +17,7 @@ class LoginScreen(PikaxGuiComponent):
         self.username_entry = self.make_entry()
         self.password_entry = self.make_entry()
         self.output_text = self.make_entry()
-        self.contact_label = self.make_text()
+        self.contact_label = self.make_download_output()
         self.contact_label.configure(bg='grey95', fg='grey50')
         self.contact_label.configure(state=NORMAL)
         self.contact_label.tag_configure("center", justify=CENTER)
