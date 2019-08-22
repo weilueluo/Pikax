@@ -9,14 +9,16 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 ````
 ![demo-gif](https://github.com/Redcxx/Pikax/blob/master/demo.gif)
 ---
-## 需要
+# [图形界面版](https://github.com/Redcxx/Pikax/blob/master/gui/dist/Pikax%20-%20Pixiv%20Downloader.exe)，注：目前还十分不稳定
+---
+# 需要
 - [Python3](https://www.python.org/downloads/)
 - [Requests](https://2.python-requests.org/en/master/)
 - 可以访问[Pixiv](https://www.pixiv.net/)的网络
 ```
   pip install requests
 ```
-### 目前支持的下载功能
+# 目前支持的下载功能
 - 搜索
   - 关键字/标签，数量，类别，模式，受欢迎程度
 - 排行榜
@@ -25,13 +27,13 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   - 插画，漫画，收藏
 - 多核多线程下载
 
-### 在计划中的功能
+# 在计划中的功能
 - 搜索画师
 - 作品/画师 过滤
 - 。。。
 - 有人再做吧，我自己够用了owo
-## 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
-#### 下载当日排行榜前50的插画
+# 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
+### 下载当日排行榜前50的插画
 ````
   from pikax.pikax import Pikax
 
@@ -39,7 +41,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   results = pixiv.rank(limit=50)
   pixiv.download(results)
 ````
-#### 搜索并下载arknights相关，赞数约1000的50张插画
+### 搜索并下载arknights相关，赞数约1000的50张插画
 ````
   from pikax.pikax import Pikax, settings, params
 
@@ -47,7 +49,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   results = pixiv.search(keyword='arknights', limit=50, popularity=1000, match=params.Match.PARTIAL)
   pixiv.download(results)
 ````
-#### 下载用户的作品 （需要登录，[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)有临时的账号）
+### 下载用户的作品 （需要登录，[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)有临时的账号）
 ````
   from pikax.pikax import Pikax, settings, params
 
@@ -72,18 +74,18 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   pixiv.download(bookmarks)  # 下载
 ````
 
-#### 用作品id下载
+### 用作品id下载
 ````
   from pikax.pikax import Pikax
 
   pixiv = Pikax()
   pixiv.download(illust_id=75608670)
 ````
-#### 更多例子请参考[demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
-#### 更详细的接口详情请参考[models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py)
+### 更多例子请参考[demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
+### 更详细的接口详情请参考[models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py)
 
-## 更多操作
-#### 下载排行榜前50且收藏高于1000的作品
+# 更多操作
+### 下载排行榜前50且收藏高于1000的作品
 ````
   from pikax.pikax import Pikax
 
@@ -94,7 +96,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   pixiv.download(new_results)  # 下载
 ````
 
-#### 搜索'初音'相关的200个收藏约1000的作品并筛选出其中赞大于1000且浏览量大于20000的作品
+### 搜索'初音'相关的200个收藏约1000的作品并筛选出其中赞大于1000且浏览量大于20000的作品
 ````
   from pikax.pikax import Pikax, settings
 
@@ -104,12 +106,12 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   new_results = (results.bookmarks > 1000).views > 20000  # 获取 赞 > 1000 和 浏览 > 20000 的作品
   pixiv.download(new_results)  # 下载
 ````
-#### 更多操作请参考[models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py)
+### 更多操作请参考[models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py)
 ### 个性化设置请前往[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
 ---
-### 致v1用户
+# 致v1用户
  - 我移除了一部分功能比如自动设置r18和尺寸搜索设置，这是因为为了解决登录问题我模拟了他们在安卓应用上的登录，但是手机应用有些设定是不支持的，比如我刚刚说的那两个，为了有一个统一的接口我决定移除他们。虽然我已经找到了解决的办法但是这个办法需要我大量的精力和时间去实现并且要求额外的依赖，而我只是一个可怜的学生因此只可能在以后有空的时候做一下，不过不能保证真的会做。。。
  - 现在基本上所有输入的参数都可以在params.py的找到，里面几乎涵盖了所有参数的枚举
  - 更棒的打印，现在跳过的画作只会在下载后显示，而且加入了剩余时间的估算
  
- #### 联系我可发邮件到[这里](mailto:weilue.luo@student.manchester.ac.uk)
+ ## 联系我可发邮件到[这里](mailto:weilue.luo@student.manchester.ac.uk)
