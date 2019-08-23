@@ -1,4 +1,4 @@
-import tkinter as tk
+
 from threading import Thread
 
 import settings
@@ -23,6 +23,7 @@ class DownloadThread(Thread):
 class DownloadWindow(PikaxGuiComponent):
 
     def __init__(self, target, args=(), kwargs=()):
+        import tkinter as tk
         self.window = tk.Tk()
         self.window.geometry(settings.DOWNLOAD_WINDOW_SIZE)
         self.window.title(settings.PIKAX_DOWNLOADER_TITLE)
@@ -55,6 +56,7 @@ class DownloadWindow(PikaxGuiComponent):
         return text_area
 
     def load(self):
+        import tkinter as tk
         for index, component in enumerate(self.components):
             component.grid_configure(row=index)
             self.grid(component)

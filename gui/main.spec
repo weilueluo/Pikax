@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['main.py'],
+a = Analysis(['D:/University of Manchester/Projects/Pikax/gui/main.py'],
              pathex=['D:\\University of Manchester\\Projects\\Pikax\\gui'],
              binaries=[],
              datas=[],
