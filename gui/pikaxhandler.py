@@ -1,4 +1,5 @@
 import sys
+from threading import Thread
 
 from lib.pikax.exceptions import PikaxException, ArtworkError
 from lib.pikax.items import LoginHandler

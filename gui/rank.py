@@ -4,7 +4,8 @@ from datetime import date
 from threading import Thread
 from tkinter import NORMAL, DISABLED, END
 
-from common import StdoutRedirector, go_to_next_screen
+from common import StdoutRedirector, go_to_next_screen, download
+from download import DownloadWindow
 from lib.pikax import params
 from lib.pikax.util import clean_filename
 from models import PikaxGuiComponent
@@ -53,11 +54,9 @@ class RankScreen(PikaxGuiComponent):
         self.download_button = self.make_button('rank and download')
         self.back_button.configure(command=self.back_clicked)
         self.download_button.configure(command=self.download_clicked)
-        self.download_button.configure(command=self.download)
 
-        # download outputs
-        self.download_output = self.make_download_output()
-        self.redirect_output_to(self.download_output)
+        for widget in self.frame.children.values():
+            widget.bind('<Return>', self.download_clicked)
 
         self.load()
 
@@ -95,7 +94,7 @@ class RankScreen(PikaxGuiComponent):
             'rank_type': type
         }
 
-    def download(self):
+    def download_clicked(self, event=None):
         limit_input = self.limit_entry.get()
         date_input = self.date_entry.get()
         type_input = self.type_dropdown.get()
@@ -111,7 +110,8 @@ class RankScreen(PikaxGuiComponent):
 
             rank_params = self.check_input(limit=limit_input, date=date_input, type=type_input, content=content_input)
             rank_params['folder'] = folder
-            Thread(target=self.pikax_handler.rank, kwargs=rank_params).start()
+            download(target=self.pikax_handler.rank, kwargs=rank_params)
+
         except ValueError as e:
             import sys
             sys.stdout.write(f'Please check your inputs,\nError message:{e}')
@@ -119,9 +119,6 @@ class RankScreen(PikaxGuiComponent):
     def back_clicked(self):
         from menu import MenuScreen
         go_to_next_screen(self, MenuScreen)
-
-    def download_clicked(self):
-        ...
 
     def load(self):
         # labels
@@ -141,9 +138,7 @@ class RankScreen(PikaxGuiComponent):
         self.back_button.configure(state=NORMAL)
         self.download_button.configure(state=NORMAL)
 
-        # download output
-        self.download_output.grid_configure(row=len(self.labels) + 1, columnspan=2)
-        self.grid(self.download_output)
+        self.date_entry.focus_set()
 
         # frame
         self.frame.pack_configure(expand=True)

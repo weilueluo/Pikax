@@ -164,7 +164,7 @@ class download:
     @staticmethod
     def _download_list_of_items(items, results_dict):
         for item in items:
-            item.download(folder=results_dict['folder'], results_dict=results_dict)
+            item.download_clicked(folder=results_dict['folder'], results_dict=results_dict)
 
     @staticmethod
     def _sort_by_pages_count(item):

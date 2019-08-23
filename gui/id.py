@@ -11,8 +11,9 @@ class IdScreen(PikaxGuiComponent):
 
     def __init__(self, master, pikax_handler):
         super().__init__(master, pikax_handler)
-        self.id_or_url_label = self.make_label('Id or illustration url here')
+        self.id_or_url_label = self.make_label('Illustration id or url')
         self.id_or_url_entry = self.make_entry()
+        self.id_or_url_entry.configure(width=40)
         self.download_button = self.make_button(text='download')
         self.download_output = self.make_download_output()
         self.back_button = self.make_button('back')
@@ -28,6 +29,8 @@ class IdScreen(PikaxGuiComponent):
         self.back_button.configure(command=self.back_clicked)
         self.redirect_output_to(self.download_output)
 
+        self.download_thread = None
+
         self.load()
 
     def back_clicked(self):
@@ -38,7 +41,8 @@ class IdScreen(PikaxGuiComponent):
         user_input = self.id_or_url_entry.get()
         search_id = re.search(r'(?<!\d)\d{8}(?!\d)', user_input, re.S)
         if search_id:
-            Thread(target=self.pikax_handler.download_by_id, args=(search_id.group(0),)).start()
+            self.download_thread = Thread(target=self.pikax_handler.download_by_id, args=(search_id.group(0),))
+            self.download_thread.start()
         else:
             if re.search(r'\d{8}', user_input, re.S):
                 sys.stdout.write('Ambiguous Id found, id should be 8 digits')

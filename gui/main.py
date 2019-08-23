@@ -1,12 +1,8 @@
 from tkinter import *
 
+import settings
 from login import LoginScreen
 from pikaxhandler import PikaxHandler
-
-root = Tk()
-root.geometry('600x400')
-root.title('Pikax - Pixiv Downloader')
-root.protocol("WM_DELETE_WINDOW", root.destroy)
 
 
 # restorecyclebin@gmail.com
@@ -22,6 +18,11 @@ def center(win):
 
 
 def main():
+    root = Tk()
+    root.geometry(settings.MAIN_WINDOW_SIZE)
+    root.title(settings.PIKAX_DOWNLOADER_TITLE)
+    root.resizable(False, False)
+    root.protocol("WM_DELETE_WINDOW", root.destroy)
     center(root)
     LoginScreen(master=root, pikax_handler=PikaxHandler())
     root.mainloop()

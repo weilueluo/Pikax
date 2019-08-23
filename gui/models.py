@@ -1,5 +1,5 @@
 from factory import *
-from common import StdoutRedirector
+
 
 class PikaxGuiComponent:
 
@@ -48,4 +48,6 @@ class PikaxGuiComponent:
         pack(component)
 
     def redirect_output_to(self, text_component):
+        import sys
+        from common import StdoutRedirector
         sys.stdout = StdoutRedirector(text_component)

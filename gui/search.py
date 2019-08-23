@@ -1,7 +1,8 @@
 import os
 import sys
 
-from common import go_to_next_screen, StdoutRedirector
+from common import go_to_next_screen, StdoutRedirector, download
+from download import DownloadWindow
 from factory import NORMAL, grid, pack, DISABLED
 from lib.pikax.util import clean_filename
 from menu import MenuScreen
@@ -56,9 +57,8 @@ class SearchScreen(PikaxGuiComponent):
         self.back_button = self.make_button(text='back')
         self.back_button.configure(command=self.back_clicked)
 
-        # download outputs
-        self.download_output = self.make_download_output()
-        self.redirect_output_to(self.download_output)
+        for widget in self.frame.children.values():
+            widget.bind('<Return>', self.search_and_download_clicked)
 
         self.load()
 
@@ -78,10 +78,6 @@ class SearchScreen(PikaxGuiComponent):
         self.back_button.configure(state=NORMAL)
         self.search_and_download_button.grid_configure(row=6, column=1)
         self.search_and_download_button.configure(state=NORMAL)
-
-        # download outputs
-        self.download_output.grid_configure(row=7, columnspan=2)
-        self.grid(self.download_output)
 
         self.frame.pack_configure(expand=True)
         self.pack(self.frame)
@@ -116,11 +112,9 @@ class SearchScreen(PikaxGuiComponent):
             sys.stdout.write('Please check your inputs' + os.linesep + f'Error Message: {e}')
             return
 
-        import threading
         params['keyword'] = keyword
         params['folder'] = folder
-        download_thread = threading.Thread(target=self.pikax_handler.search, kwargs=params)
-        download_thread.start()
+        download(target=self.pikax_handler.search, kwargs=params)
 
     @staticmethod
     def check_inputs(limit_input, match_input, sort_input, popularity_input):

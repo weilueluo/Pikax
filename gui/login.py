@@ -50,6 +50,7 @@ class LoginScreen(PikaxGuiComponent):
         Thread(target=self._login).start()
 
     def _login(self):
+        self.login_button.configure(state=DISABLED)
         username = self.username_entry.get().strip()
         password = self.password_entry.get().strip()
         try:
@@ -57,6 +58,7 @@ class LoginScreen(PikaxGuiComponent):
             from menu import MenuScreen
             go_to_next_screen(src=self, dest=MenuScreen)
         except PikaxException:
+            self.login_button.configure(state=NORMAL)
             sys.stdout.write('Login Failed')
 
     def load(self):
