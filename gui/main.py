@@ -20,7 +20,8 @@ def center(win):
 
 def main():
     root = Tk()
-    root.geometry(settings.MAIN_WINDOW_SIZE)
+    root.configure(borderwidth=0, highlightthickness=0)
+    root.geometry('{}x{}'.format(settings.MAIN_WINDOW_WIDTH, settings.MAIN_WINDOW_HEIGHT))
     root.title(settings.PIKAX_DOWNLOADER_TITLE)
     root.resizable(False, False)
     root.protocol("WM_DELETE_WINDOW", root.destroy)
@@ -32,3 +33,4 @@ def main():
 if __name__ == '__main__':
     multiprocessing.freeze_support()
     main()
+

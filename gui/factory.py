@@ -10,7 +10,6 @@ def make_button(master, text=''):
     return Button(master=master,
                   text=text,
                   relief=RAISED,
-                  state=DISABLED,
                   padx=10,
                   pady=2,
                   width=17
@@ -18,16 +17,16 @@ def make_button(master, text=''):
 
 
 def make_label(master, text=''):
-    return ttk.Label(master=master,
+    return Label(master=master,
                      text=text)
 
 
 def make_entry(master):
-    return ttk.Entry(master=master)
+    return Entry(master=master, borderwidth=0, highlightthickness=0)
 
 
 def make_frame(master):
-    return ttk.Frame(master=master)
+    return Frame(master=master)
 
 
 def make_dropdown(master, default, choices):
