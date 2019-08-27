@@ -16,6 +16,7 @@ class PikaxGuiComponent:
         self._label_font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE,
                                      weight=font.BOLD)
         self._entry_font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 2)
+        self._button_font = self.entry_font
         # subclass must set these
         self._grid_height = -1
         self._grid_width = -1
@@ -64,6 +65,10 @@ class PikaxGuiComponent:
         return self._label_font
 
     @property
+    def button_font(self):
+        return self._button_font
+
+    @property
     def entry_font(self):
         return self._entry_font
 
@@ -91,6 +96,7 @@ class PikaxGuiComponent:
         text.configure(height=6, state=DISABLED)
         return text
 
+
     @staticmethod
     def grid(component, row=None, column=None, rowspan=None, columnspan=None):
         if row:
@@ -112,10 +118,15 @@ class PikaxGuiComponent:
                       height=self.height, width=self.width)
 
     @staticmethod
-    def redirect_output_to(text_component):
+    def redirect_output_to(text_component, text_widget=True, canvas=None):
         import sys
-        from common import StdoutRedirector
-        sys.stdout = StdoutRedirector(text_component)
+        if text_widget:
+            from common import StdoutTextWidgetRedirector
+            sys.stdout = StdoutTextWidgetRedirector(text_component)
+        else:
+            from common import StdoutCanvasTextRedirector
+            sys.stdout = StdoutCanvasTextRedirector(canvas, text_component)
+
 
     def get_canvas_location(self, row, column, rowspan, columnspan):
         if row < 0 or row > self.grid_height:

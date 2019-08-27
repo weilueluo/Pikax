@@ -4,7 +4,7 @@ from datetime import date
 from threading import Thread
 from tkinter import NORMAL, DISABLED, END
 
-from common import StdoutRedirector, go_to_next_screen, download
+from common import StdoutTextWidgetRedirector, go_to_next_screen, download
 from download import DownloadWindow
 from lib.pikax import params
 from lib.pikax.util import clean_filename

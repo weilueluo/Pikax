@@ -1,7 +1,7 @@
 import os
 import sys
 
-from common import go_to_next_screen, StdoutRedirector, download
+from common import go_to_next_screen, StdoutTextWidgetRedirector, download
 from download import DownloadWindow
 from factory import NORMAL, grid, pack, DISABLED
 from lib.pikax.util import clean_filename

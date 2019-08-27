@@ -9,7 +9,7 @@ def make_button(master, text=''):
     # image = PhotoImage(file='neurons.gif')
     return Button(master=master,
                   text=text,
-                  relief=RAISED,
+                  relief=FLAT,
                   padx=10,
                   pady=2,
                   width=17
@@ -22,7 +22,7 @@ def make_label(master, text=''):
 
 
 def make_entry(master):
-    return Entry(master=master, borderwidth=0, highlightthickness=0)
+    return Entry(master=master, borderwidth=0, highlightthickness=0, justify=CENTER)
 
 
 def make_frame(master):

@@ -16,13 +16,17 @@ def download(target, args=(), kwargs=()):
     Process(target=DownloadWindow, args=(target, args, kwargs)).start()
 
 
-class StdoutRedirector:
+def remove_invalid_chars(string):
+    return ''.join([s if ord(s) < 65565 else '#' for s in str(string)])
+
+
+class StdoutTextWidgetRedirector:
     def __init__(self, text_component):
         self.text_component = text_component
 
     def write(self, string, append=False):
         try:
-            string = ''.join([s if ord(s) < 65565 else '#' for s in str(string)])
+            string = remove_invalid_chars(string)
             self.text_component.configure(state=NORMAL)
 
             if isinstance(self.text_component, Text):
@@ -40,6 +44,22 @@ class StdoutRedirector:
             self.text_component.configure(state=DISABLED)
         except TclError as e:  # should not happen
             sys.stderr.write(str(e))
+
+    def flush(self):
+        pass
+
+
+class StdoutCanvasTextRedirector:
+    def __init__(self, canvas, text_id):
+        self.text_id = text_id
+        self.canvas = canvas
+
+    def write(self, string):
+        try:
+            string = remove_invalid_chars(string)
+            self.canvas.itemconfigure(self.text_id, text=string)
+        except TclError as e:
+            self.canvas.itemconfigure(self.text_id, text=remove_invalid_chars(str(e)))
 
     def flush(self):
         pass
