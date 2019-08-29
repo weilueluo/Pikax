@@ -61,9 +61,9 @@ class IdScreen(PikaxGuiComponent):
             self.download_thread.start()
         else:
             if re.search(r'\d{8}', user_input, re.S):
-                sys.stdout.write('Ambiguous Id found, id should be 8 digits')
+                sys.stdout.write('Ambiguous ID found, ID should be 8 digits only')
             else:
-                sys.stdout.write('No id found in input')
+                sys.stdout.write('No ID found in input')
 
     def destroy(self):
         self.frame.destroy()

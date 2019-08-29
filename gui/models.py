@@ -232,7 +232,7 @@ class PikaxGuiComponent:
         )
 
     def make_text(self, *args, **kwargs):
-        return tk.Text(
+        text = tk.Text(
             master=self.frame,
             wrap=tk.WORD,
             height=1,
@@ -245,3 +245,4 @@ class PikaxGuiComponent:
             *args,
             **kwargs
         )
+        return text

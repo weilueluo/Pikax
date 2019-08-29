@@ -1,7 +1,7 @@
 import glob
 import re
 import sys
-import tkinter
+import tkinter as tk
 from multiprocessing import Process
 from tkinter import END, NORMAL, DISABLED, Text, Entry, TclError
 
@@ -39,6 +39,8 @@ class StdoutTextWidgetRedirector:
                 else:
                     self.text_component.delete(1.0, END)
                     self.text_component.insert(1.0, string)
+                self.text_component.tag_configure('center', justify=tk.CENTER)
+                self.text_component.tag_add('center', 1.0, tk.END)
                 self.text_component.see(END)
             elif isinstance(self.text_component, Entry):
                 self.text_component.delete(0, END)
@@ -69,7 +71,7 @@ class StdoutCanvasTextRedirector:
         pass
 
 
-def crop_to_dimension(im, width_ratio, height_ratio, focus=tkinter.CENTER):
+def crop_to_dimension(im, width_ratio, height_ratio, focus=tk.CENTER):
     transformed_width = im.height / height_ratio * width_ratio
     if transformed_width < im.width:
         width = transformed_width
@@ -82,15 +84,15 @@ def crop_to_dimension(im, width_ratio, height_ratio, focus=tkinter.CENTER):
     half_width = width / 2
     half_height = height / 2
 
-    if focus == tkinter.CENTER:
+    if focus == tk.CENTER:
         mid = mid
-    elif focus == tkinter.N:
+    elif focus == tk.N:
         mid[1] = half_height
-    elif focus == tkinter.S:
+    elif focus == tk.S:
         mid[1] = im.size[1] - half_height
-    elif focus == tkinter.W:
+    elif focus == tk.W:
         mid[0] = half_width
-    elif focus == tkinter.E:
+    elif focus == tk.E:
         mid[0] = im.size[0] - half_width
     else:
         raise ValueError(f'Invalid focus: {focus}')

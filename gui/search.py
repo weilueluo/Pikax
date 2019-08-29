@@ -1,9 +1,8 @@
 import os
 import sys
+import tkinter as tk
 
-from common import go_to_next_screen, StdoutTextWidgetRedirector, download
-from download import DownloadWindow
-from factory import NORMAL, grid, pack, DISABLED
+from common import go_to_next_screen, download
 from lib.pikax.util import clean_filename
 from menu import MenuScreen
 from models import PikaxGuiComponent
@@ -14,24 +13,18 @@ class SearchScreen(PikaxGuiComponent):
     def __init__(self, master, pikax_handler):
         super().__init__(master, pikax_handler)
 
+        self.grid_height = 10
+        self.grid_width = 15
+
         # labels
-        self.keyword_label = self.make_label(text='keyword')
-        self.match_label = self.make_label(text='tag match')
-        self.sort_label = self.make_label(text='sort')
-        self.popularity_label = self.make_label(text='popularity')
-        self.limit_label = self.make_label(text='limit')
-        self.download_folder_label = self.make_label(text='download folder')
+        self.keyword_text_id = self.add_text(text='keyword', column=5, row=1)
+        self.match_text_id = self.add_text(text='tag match', column=5, row=2)
+        self.sort_text_id = self.add_text(text='sort', column=5, row=3)
+        self.popularity_text_id = self.add_text(text='popularity', column=5, row=4)
+        self.limit_text_id = self.add_text(text='limit', column=5, row=5)
+        self.download_folder_text_id = self.add_text(text='download folder', column=5, row=6)
 
-        self.labels = [
-            self.keyword_label,
-            self.limit_label,
-            self.match_label,
-            self.sort_label,
-            self.popularity_label,
-            self.download_folder_label
-        ]
-
-        # inputs
+        # create inputs
         self.keyword_entry = self.make_entry()
         self.limit_entry = self.make_entry()
         match_choices = ['exact', 'partial', 'any']
@@ -42,45 +35,32 @@ class SearchScreen(PikaxGuiComponent):
         self.popularity_dropdown = self.make_dropdown('any', popularity_choices)
         self.download_folder_entry = self.make_entry()
 
-        self.inputs = [
-            self.keyword_entry,
-            self.limit_entry,
-            self.match_dropdown,
-            self.sort_dropdown,
-            self.popularity_dropdown,
-            self.download_folder_entry
-        ]
+        # add inputs
+        self.keyword_entry_id = self.add_widget(widget=self.keyword_entry, column=9, row=1)
+        self.limit_entry_id = self.add_widget(widget=self.limit_entry, column=9, row=2)
+        self.match_dropdown_id = self.add_widget(widget=self.match_dropdown, column=9, row=3)
+        self.sort_dropdown_id = self.add_widget(widget=self.sort_dropdown, column=9, row=4)
+        self.popularity_dropdown_id = self.add_widget(widget=self.popularity_dropdown, column=9, row=5)
+        self.download_folder_entry = self.add_widget(widget=self.download_folder_entry, column=9, row=6)
 
-        # buttons
-        self.search_and_download_button = self.make_button(text='search and download')
-        self.search_and_download_button.configure(command=self.search_and_download_clicked)
+        # create buttons
+        self.search_and_download_button = self.make_button(text='download')
         self.back_button = self.make_button(text='back')
-        self.back_button.configure(command=self.back_clicked)
 
+        # add buttons
+        self.back_button_id = self.add_widget(widget=self.back_button, column=5, row=7)
+        self.search_and_download_button_id = self.add_widget(self.search_and_download_button, column=9, row=7)
+
+        # config
+        self.config_buttons()
         for widget in self.frame.children.values():
             widget.bind('<Return>', self.search_and_download_clicked)
-
-        self.load()
-
-    def load(self):
-        # labels
-        for index, label in enumerate(self.labels):
-            label.grid_configure(row=index)
-            self.grid(label)
-
-        # inputs
-        for index, input in enumerate(self.inputs):
-            input.grid_configure(row=index, column=1)
-            self.grid(input)
-
-        # buttons
-        self.back_button.grid_configure(row=6, column=0)
-        self.back_button.configure(state=NORMAL)
-        self.search_and_download_button.grid_configure(row=6, column=1)
-        self.search_and_download_button.configure(state=NORMAL)
-
         self.frame.pack_configure(expand=True)
         self.pack(self.frame)
+
+    def config_buttons(self):
+        self.search_and_download_button.configure(command=self.search_and_download_clicked)
+        self.back_button.configure(command=self.back_clicked)
 
     def destroy(self):
         self.frame.destroy()
