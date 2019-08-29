@@ -2,7 +2,6 @@
 from threading import Thread
 
 import settings
-from factory import make_text
 from models import PikaxGuiComponent
 
 
@@ -51,7 +50,7 @@ class DownloadWindow(PikaxGuiComponent):
         self.destroy()
 
     def make_download_output(self):
-        text_area = make_text(self.frame)
+        text_area = self.make_text()
         text_area.configure(height=20)
         return text_area
 

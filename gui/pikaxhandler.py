@@ -10,11 +10,13 @@ class PikaxHandler:
     def __init__(self):
         self.pikax = Pikax()
         self.user = None
+        self.logged = False
 
     def login(self, username, password):
         status, client = LoginHandler().android_login(username, password)
         if status is LoginHandler.LoginStatus.ANDROID:
             self.pikax.android_client = client
+            self.logged = True
         else:
             raise PikaxException('Failed Login')
 

@@ -1,18 +1,22 @@
+import glob
+import re
 import sys
+import tkinter
 from multiprocessing import Process
 from tkinter import END, NORMAL, DISABLED, Text, Entry, TclError
 
-from download import DownloadWindow
+import settings
 
 
 def go_to_next_screen(src, dest):
     pikax_handler = src.pikax_handler
     master = src.frame.master
-    src.destroy()
     dest(master, pikax_handler)
+    src.destroy()  # destroy after creation to prevent black screen in the middle
 
 
 def download(target, args=(), kwargs=()):
+    from download import DownloadWindow
     Process(target=DownloadWindow, args=(target, args, kwargs)).start()
 
 
@@ -63,3 +67,44 @@ class StdoutCanvasTextRedirector:
 
     def flush(self):
         pass
+
+
+def crop_to_dimension(im, width_ratio, height_ratio, focus=tkinter.CENTER):
+    transformed_width = im.height / height_ratio * width_ratio
+    if transformed_width < im.width:
+        width = transformed_width
+        height = im.height
+    else:
+        height = im.width / width_ratio * height_ratio
+        width = im.width
+
+    mid = list(x / 2 for x in im.size)
+    half_width = width / 2
+    half_height = height / 2
+
+    if focus == tkinter.CENTER:
+        mid = mid
+    elif focus == tkinter.N:
+        mid[1] = half_height
+    elif focus == tkinter.S:
+        mid[1] = im.size[1] - half_height
+    elif focus == tkinter.W:
+        mid[0] = half_width
+    elif focus == tkinter.E:
+        mid[0] = im.size[0] - half_width
+    else:
+        raise ValueError(f'Invalid focus: {focus}')
+
+    left = mid[0] - half_width
+    upper = mid[1] - half_height
+    right = mid[0] + half_width
+    lower = mid[1] + half_height
+
+    return im.crop((left, upper, right, lower))
+
+
+def get_background_file_path():
+    for file in glob.glob(settings.IMAGES_PATH):
+        if re.search(settings.CANVAS_BACKGROUND_PATH, file):
+            return file
+    return None

@@ -1,11 +1,7 @@
 import re
-import sys
 from datetime import date
-from threading import Thread
-from tkinter import NORMAL, DISABLED, END
 
-from common import StdoutTextWidgetRedirector, go_to_next_screen, download
-from download import DownloadWindow
+from common import go_to_next_screen, download
 from lib.pikax import params
 from lib.pikax.util import clean_filename
 from models import PikaxGuiComponent
@@ -16,22 +12,17 @@ class RankScreen(PikaxGuiComponent):
     def __init__(self, master, pikax_handler):
         super().__init__(master, pikax_handler)
 
-        # labels
-        self.date_label = self.make_label('date')
-        self.limit_label = self.make_label('limit')
-        self.type_label = self.make_label('type')
-        self.content_label = self.make_label('content')
-        self.download_folder_label = self.make_label('download folder')
+        self.grid_width = 15
+        self.grid_height = 10
 
-        self.labels = [
-            self.date_label,
-            self.limit_label,
-            self.type_label,
-            self.content_label,
-            self.download_folder_label
-        ]
+        # texts
+        self.date_text_id = self.add_text(text='date', row=2, column=5)
+        self.limit_text_id = self.add_text(text='limit', row=3, column=5)
+        self.type_text_id = self.add_text(text='type', row=4, column=5)
+        self.content_text_id = self.add_text(text='content', row=5, column=5)
+        self.download_folder_text_id = self.add_text(text='download folder', row=6, column=5)
 
-        # inputs
+        # create inputs
         self.date_entry = self.make_entry()
         self.date_entry.insert(0, format(date.today(), '%Y%m%d'))
         self.limit_entry = self.make_entry()
@@ -41,24 +32,35 @@ class RankScreen(PikaxGuiComponent):
         self.content_dropdown = self.make_dropdown('illustration', content_types)
         self.download_folder_entry = self.make_entry()
 
-        self.inputs = [
-            self.date_entry,
-            self.limit_entry,
-            self.type_dropdown,
-            self.content_dropdown,
-            self.download_folder_entry
-        ]
+        # add inputs
+        self.date_entry_id = self.add_widget(widget=self.date_entry, row=2, column=9)
+        self.limit_entry_id = self.add_widget(widget=self.limit_entry, row=3, column=9)
+        self.type_dropdown_id = self.add_widget(widget=self.type_dropdown, row=4, column=9)
+        self.content_dropdown_id = self.add_widget(widget=self.content_dropdown, row=5, column=9)
+        self.download_folder_entry_id = self.add_widget(widget=self.download_folder_entry, row=6, column=9)
 
-        # buttons
-        self.back_button = self.make_button('back')
-        self.download_button = self.make_button('rank and download')
-        self.back_button.configure(command=self.back_clicked)
-        self.download_button.configure(command=self.download_clicked)
+        # create buttons
+        self.back_button = self.make_button(text='back')
+        self.download_button = self.make_button(text='download')
 
+        # add buttons
+        self.back_button_id = self.add_widget(widget=self.back_button, row=7, column=5)
+        self.download_button_id = self.add_widget(self.download_button, row=7, column=9)
+
+        # output
+        self.output_id = self.add_text(text='', row=8, column=5, columnspan=4)
+        self.redirect_output_to(self.output_id, text_widget=False)
+
+        # config
+        self.config_buttons()
         for widget in self.frame.children.values():
             widget.bind('<Return>', self.download_clicked)
+        self.date_entry.focus_set()
+        self.pack(self.frame, expand=True)
 
-        self.load()
+    def config_buttons(self):
+        self.back_button.configure(command=self.back_clicked)
+        self.download_button.configure(command=self.download_clicked)
 
     def check_input(self, limit, date, type, content):
         try:
@@ -119,30 +121,6 @@ class RankScreen(PikaxGuiComponent):
     def back_clicked(self):
         from menu import MenuScreen
         go_to_next_screen(self, MenuScreen)
-
-    def load(self):
-        # labels
-        for index, item in enumerate(self.labels):
-            item.grid_configure(row=index)
-            self.grid(item)
-        # entries
-        for index, item in enumerate(self.inputs):
-            item.grid_configure(row=index, column=1)
-            self.grid(item)
-
-        # buttons
-        self.back_button.grid_configure(row=len(self.labels))
-        self.download_button.grid_configure(row=len(self.labels), column=1)
-        self.grid(self.back_button)
-        self.grid(self.download_button)
-        self.back_button.configure(state=NORMAL)
-        self.download_button.configure(state=NORMAL)
-
-        self.date_entry.focus_set()
-
-        # frame
-        self.frame.pack_configure(expand=True)
-        self.pack(self.frame)
 
     def destroy(self):
         self.frame.destroy()

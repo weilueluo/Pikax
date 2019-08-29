@@ -1,4 +1,4 @@
-from factory import make_button, NORMAL, pack
+from tkinter import NORMAL
 from models import PikaxGuiComponent
 from common import go_to_next_screen
 
@@ -6,23 +6,37 @@ from common import go_to_next_screen
 class MenuScreen(PikaxGuiComponent):
     def __init__(self, master, pikax_handler):
         super().__init__(master, pikax_handler)
-        self.search_button = self.make_button(text='Search')
-        self.search_button.configure(command=self.search_clicked)
+
+        self.grid_height = 10
+        self.grid_width = 1
+
+        # create buttons
         self.rank_button = self.make_button(text='Rank')
-        self.rank_button.configure(command=self.rank_clicked)
-        self.id_button = self.make_button('ID')
-        self.id_button.configure(command=self.id_clicked)
+        self.id_button = self.make_button(text='ID')
+        self.search_button = self.make_button(text='Search')
         self.back_button = self.make_button(text='Back')
-        self.back_button.configure(command=self.back_clicked)
+
+        self.rank_button_id = self.add_widget(widget=self.rank_button, row=3)
+        self.id_button_id = self.add_widget(widget=self.id_button, row=4)
+        self.search_button_id = self.add_widget(widget=self.search_button, row=5)
+        self.back_button_id = self.add_widget(widget=self.back_button, row=7)
 
         self.buttons = [
-            self.search_button,
             self.rank_button,
             self.id_button,
+            self.search_button,
             self.back_button
         ]
 
-        self.load()
+        self.config_buttons()
+        self.frame.pack_configure(expand=True)
+        self.pack(self.frame)
+
+    def config_buttons(self):
+        self.search_button.configure(command=self.search_clicked)
+        self.rank_button.configure(command=self.rank_clicked)
+        self.id_button.configure(command=self.id_clicked)
+        self.back_button.configure(command=self.back_clicked)
 
     def id_clicked(self):
         from id import IdScreen
@@ -39,18 +53,6 @@ class MenuScreen(PikaxGuiComponent):
     def back_clicked(self):
         from login import LoginScreen
         go_to_next_screen(src=self, dest=LoginScreen)
-
-    def load(self):
-
-        for button in self.buttons:
-            self.pack(button)
-            button.configure(state=NORMAL)
-
-        self.frame.pack_configure(expand=True)
-        pack(self.frame)
-
-    def destroy(self):
-        self.frame.destroy()
 
 
 def main():
