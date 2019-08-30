@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['D:/University of Manchester/Projects/Pikax/gui/main.py'],
+a = Analysis(['main.py'],
              pathex=['D:\\University of Manchester\\Projects\\Pikax\\gui'],
              binaries=[],
              datas=[],
@@ -15,6 +15,9 @@ a = Analysis(['D:/University of Manchester/Projects/Pikax/gui/main.py'],
              win_private_assemblies=False,
              cipher=block_cipher,
              noarchive=False)
+
+a.datas += [('assets/images/background.jpg', './assets/images/background.jpg', 'DATA')]
+
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,

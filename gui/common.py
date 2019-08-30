@@ -27,6 +27,7 @@ def remove_invalid_chars(string):
 class StdoutTextWidgetRedirector:
     def __init__(self, text_component):
         self.text_component = text_component
+        self.text_component.tag_configure('center', justify=tk.CENTER)
 
     def write(self, string, append=False):
         try:
@@ -38,9 +39,7 @@ class StdoutTextWidgetRedirector:
                     self.text_component.insert(END, '\n' + string)
                 else:
                     self.text_component.delete(1.0, END)
-                    self.text_component.insert(1.0, string)
-                self.text_component.tag_configure('center', justify=tk.CENTER)
-                self.text_component.tag_add('center', 1.0, tk.END)
+                    self.text_component.insert(1.0, string, 'center')
                 self.text_component.see(END)
             elif isinstance(self.text_component, Entry):
                 self.text_component.delete(0, END)
@@ -62,8 +61,8 @@ class StdoutCanvasTextRedirector:
 
     def write(self, string):
         try:
-            string = remove_invalid_chars(string)
-            self.canvas.itemconfigure(self.text_id, text=string)
+            self.canvas.itemconfigure(self.text_id, text=remove_invalid_chars(string))
+            self.canvas.configure(scrollregion=self.canvas.bbox('all'))
         except TclError as e:
             self.canvas.itemconfigure(self.text_id, text=remove_invalid_chars(str(e)))
 
@@ -106,7 +105,20 @@ def crop_to_dimension(im, width_ratio, height_ratio, focus=tk.CENTER):
 
 
 def get_background_file_path():
-    for file in glob.glob(settings.IMAGES_PATH):
-        if re.search(settings.CANVAS_BACKGROUND_PATH, file):
-            return file
-    return None
+    import os
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath('.')
+
+    return os.path.join(base_path, settings.CANVAS_BACKGROUND_PATH)
+
+
+# https://stackoverflow.com/questions/3352918/how-to-center-a-window-on-the-screen-in-tkinter
+def center(win):
+    win.update_idletasks()
+    width = win.winfo_width()
+    height = win.winfo_height()
+    x = (win.winfo_screenwidth() // 2) - (width // 2)
+    y = (win.winfo_screenheight() // 2) - (height // 2)
+    win.geometry('{}x{}+{}+{}'.format(width, height, x, y))

@@ -48,7 +48,7 @@ class RankScreen(PikaxGuiComponent):
         self.download_button_id = self.add_widget(self.download_button, row=7, column=9)
 
         # output
-        self.output_id = self.add_text(text='', row=8, column=5, columnspan=4)
+        self.output_id = self.add_text(text='', row=8, column=5, columnspan=4, font=self.output_font)
         self.redirect_output_to(self.output_id, text_widget=False)
 
         # config
@@ -116,7 +116,7 @@ class RankScreen(PikaxGuiComponent):
 
         except ValueError as e:
             import sys
-            sys.stdout.write(f'Please check your inputs,\nError message:{e}')
+            sys.stdout.write(f'Please check your inputs,\nError message: {e}')
 
     def back_clicked(self):
         from menu import MenuScreen

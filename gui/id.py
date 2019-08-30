@@ -4,6 +4,7 @@ from threading import Thread
 
 from common import go_to_next_screen
 from models import PikaxGuiComponent
+import tkinter as tk
 
 
 class IDDownloadThread(Thread):
@@ -31,9 +32,9 @@ class IdScreen(PikaxGuiComponent):
 
         # buttons
         self.download_button = self.make_button(text='download')
-        self.download_button_id = self.add_widget(widget=self.download_button, row=4, column=8)
+        self.download_button_id = self.add_widget(widget=self.download_button, row=4, column=11)
         self.back_button = self.make_button(text='back')
-        self.back_button_id = self.add_widget(widget=self.back_button, row=4, column=11)
+        self.back_button_id = self.add_widget(widget=self.back_button, row=4, column=8)
 
         self.download_output = self.make_download_output()
         self.download_output_id = self.add_widget(widget=self.download_output, row=6, column=9, columnspan=2)
@@ -45,6 +46,7 @@ class IdScreen(PikaxGuiComponent):
         self.download_thread = None
 
         self.id_or_url_entry.focus_set()
+        self.download_output.configure(state=tk.DISABLED)
         self.frame.pack_configure(expand=True)
         self.pack(self.frame)
 

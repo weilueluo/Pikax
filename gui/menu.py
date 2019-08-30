@@ -1,6 +1,7 @@
-from tkinter import NORMAL
-from models import PikaxGuiComponent
+import tkinter as tk
+
 from common import go_to_next_screen
+from models import PikaxGuiComponent
 
 
 class MenuScreen(PikaxGuiComponent):
@@ -37,6 +38,8 @@ class MenuScreen(PikaxGuiComponent):
         self.rank_button.configure(command=self.rank_clicked)
         self.id_button.configure(command=self.id_clicked)
         self.back_button.configure(command=self.back_clicked)
+        if not self.pikax_handler.logged:
+            self.search_button.configure(state=tk.DISABLED)
 
     def id_clicked(self):
         from id import IdScreen

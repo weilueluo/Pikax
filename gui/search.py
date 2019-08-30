@@ -18,10 +18,10 @@ class SearchScreen(PikaxGuiComponent):
 
         # labels
         self.keyword_text_id = self.add_text(text='keyword', column=5, row=1)
-        self.match_text_id = self.add_text(text='tag match', column=5, row=2)
-        self.sort_text_id = self.add_text(text='sort', column=5, row=3)
-        self.popularity_text_id = self.add_text(text='popularity', column=5, row=4)
-        self.limit_text_id = self.add_text(text='limit', column=5, row=5)
+        self.limit_text_id = self.add_text(text='limit', column=5, row=2)
+        self.match_text_id = self.add_text(text='tag match', column=5, row=3)
+        self.sort_text_id = self.add_text(text='sort', column=5, row=4)
+        self.popularity_text_id = self.add_text(text='popularity', column=5, row=5)
         self.download_folder_text_id = self.add_text(text='download folder', column=5, row=6)
 
         # create inputs
@@ -41,7 +41,7 @@ class SearchScreen(PikaxGuiComponent):
         self.match_dropdown_id = self.add_widget(widget=self.match_dropdown, column=9, row=3)
         self.sort_dropdown_id = self.add_widget(widget=self.sort_dropdown, column=9, row=4)
         self.popularity_dropdown_id = self.add_widget(widget=self.popularity_dropdown, column=9, row=5)
-        self.download_folder_entry = self.add_widget(widget=self.download_folder_entry, column=9, row=6)
+        self.download_folder_entry_id = self.add_widget(widget=self.download_folder_entry, column=9, row=6)
 
         # create buttons
         self.search_and_download_button = self.make_button(text='download')

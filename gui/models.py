@@ -1,11 +1,13 @@
 import tkinter as tk
 import webbrowser
-from tkinter import font
+from tkinter import font, ttk
 
 from PIL import Image, ImageTk
 
 import settings
 from common import crop_to_dimension, get_background_file_path
+
+set_combo_theme = True
 
 
 class PikaxOptionMenu(tk.OptionMenu):
@@ -25,8 +27,10 @@ class PikaxGuiComponent:
         self.master = master
         self.frame = self.make_frame(borderwidth=0, highlightthickness=0)
         self.pikax_handler = pikax_handler
-        self.width = settings.MAIN_WINDOW_WIDTH
-        self.height = settings.MAIN_WINDOW_HEIGHT
+        # this is important when opening another window, else winfo width & height will return 1
+        self.master.update()
+        self.width = self.master.winfo_width()
+        self.height = self.master.winfo_height()
 
         #
         # settings
@@ -39,9 +43,9 @@ class PikaxGuiComponent:
         # fonts
         self.text_font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE,
                                    weight=font.BOLD)
-        self.entry_font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 2)
-        self.button_font = self.entry_font
-        self.dropdown_font = self.entry_font
+        self.input_font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 2)
+        self.button_font = self.input_font
+        self.dropdown_font = self.input_font
         self.output_font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 4)
         self.canvas_artist_font = font.Font(family='Courier', size=10)
 
@@ -52,7 +56,7 @@ class PikaxGuiComponent:
         self.artist_name_color = '#1b5361'
         # button colors
         self.button_color = '#1b5361'
-        self.entry_color = '#1b5361'
+        self.input_color = '#1b5361'
         self.pressed_button_color = '#0c313b'
         self.cursor_color = 'white'
 
@@ -62,7 +66,7 @@ class PikaxGuiComponent:
         # sizes
         self.button_width = 10
         self.title_font_size = 12
-        self.dropdown_width = 16
+        self.dropdown_width = 18
 
         #
         # default operations
@@ -86,13 +90,38 @@ class PikaxGuiComponent:
                                               columnspan=2, font=self.canvas_artist_font,
                                               color=self.artist_name_color)
 
+        # set combobox style
+        combo_style = ttk.Style()
+        combo_style_name = 'combo_style'
+        if combo_style_name not in combo_style.theme_names():
+            combo_style.theme_create(combo_style_name, parent='classic',
+                                     settings={'TCombobox': {'configure': {
+                                        'selectbackground': self.input_color,
+                                        'fieldbackground': self.input_color,
+                                        'background': self.input_color,
+                                        'foreground': self.input_text_color,
+                                        'borderwidth': 0,
+                                        'highlightthickness': 0,
+                                        'width': self.dropdown_width,
+                                        'justify': tk.CENTER
+                                     }}},
+                                     )
+            # ATTENTION: this applies the new style 'combo_style' to all ttk.Combobox
+            combo_style.theme_use(combo_style_name)
+            self.master.option_add('*TCombobox*Listbox.background', self.input_color)
+            self.master.option_add('*TCombobox*Listbox.foreground', self.input_text_color)
+
     def destroy(self):
         self.frame.destroy()
 
-    def set_canvas(self, image_path, focus):
+    def get_cropped_image(self, image_path, focus=tk.CENTER):
         im = crop_to_dimension(Image.open(image_path), focus=focus, width_ratio=self.width, height_ratio=self.height)
         im = im.resize((self.width, self.height))
         im = ImageTk.PhotoImage(image=im)
+        return im
+
+    def set_canvas(self, image_path, focus):
+        im = self.get_cropped_image(image_path=image_path, focus=focus)
         background = self.make_fullscreen_canvas()
         background.create_image((0, 0), image=im, anchor=tk.NW)
         background.image = im  # keep a reference prevent gc-ed
@@ -124,14 +153,16 @@ class PikaxGuiComponent:
         return tk.Canvas(self.frame, borderwidth=0, highlightthickness=0,
                          height=self.height, width=self.width)
 
-    def redirect_output_to(self, text_component, text_widget=True):
+    def redirect_output_to(self, text_component, text_widget=True, canvas=None):
         import sys
         if text_widget:
             from common import StdoutTextWidgetRedirector
             sys.stdout = StdoutTextWidgetRedirector(text_component)
         else:
             from common import StdoutCanvasTextRedirector
-            sys.stdout = StdoutCanvasTextRedirector(self.canvas, text_component)
+            if not canvas:
+                canvas = self.canvas
+            sys.stdout = StdoutCanvasTextRedirector(canvas, text_component)
 
     def get_canvas_location(self, row, column, rowspan, columnspan):
         if row < 0 or row > self.grid_height:
@@ -157,7 +188,7 @@ class PikaxGuiComponent:
 
         return width, height
 
-    def add_text(self, text, row=0, column=0, rowspan=1, columnspan=1, font=None, color=None):
+    def add_text(self, text, row=0, column=0, rowspan=1, columnspan=1, font=None, color=None, canvas=None):
 
         width, height = self.get_canvas_location(row, column, rowspan, columnspan)
 
@@ -165,7 +196,9 @@ class PikaxGuiComponent:
             font = self.text_font
         if not color:
             color = self.display_text_color
-        return self.canvas.create_text((width, height), text=text, font=font, fill=color)
+        if not canvas:
+            canvas = self.canvas
+        return canvas.create_text((width, height), text=text, font=font, fill=color)
 
     def add_widget(self, widget, row=0, column=0, rowspan=1, columnspan=1):
         width, height = self.get_canvas_location(row=row, column=column, rowspan=rowspan, columnspan=columnspan)
@@ -198,23 +231,16 @@ class PikaxGuiComponent:
         return tk.Frame(master=self.master, *args, **kwargs)
 
     def make_dropdown(self, default, choices, **kwargs):
-        dropdown_len = 30
-        for index, choice in enumerate(choices):
-            spaces_left = dropdown_len - len(choice) / 2
-            if spaces_left > 0:
-                choices[index] = (' ' * int(spaces_left / 2)) + choice + (' ' * int(spaces_left / 2))
-
-        dropdown = PikaxOptionMenu(self.frame, default, *choices)
+        dropdown = ttk.Combobox(self.frame, values=choices)
+        dropdown.set(default)
         dropdown.configure(
             width=self.dropdown_width,
-            bg=self.entry_color,
-            fg=self.input_text_color,
             font=self.dropdown_font,
-            activebackground=self.pressed_button_color,
-            borderwidth=0,
-            highlightthickness=0,
+            state='readonly',
+            justify=tk.CENTER,
             **kwargs
         )
+        dropdown.option_add('*TCombobox*Listbox.Justify', 'center')
         return dropdown
 
     def make_entry(self, *args, **kwargs):
@@ -223,10 +249,10 @@ class PikaxGuiComponent:
             borderwidth=0,
             highlightthickness=0,
             justify=tk.CENTER,
-            bg=self.entry_color,
+            bg=self.input_color,
             fg=self.input_text_color,
             insertbackground=self.cursor_color,
-            font=self.entry_font,
+            font=self.input_font,
             *args,
             **kwargs
         )
@@ -240,8 +266,9 @@ class PikaxGuiComponent:
             state=tk.NORMAL,
             highlightthickness=0,
             borderwidth=0,
-            bg=self.entry_color,
+            bg=self.input_color,
             fg=self.input_text_color,
+            font=self.output_font,
             *args,
             **kwargs
         )
