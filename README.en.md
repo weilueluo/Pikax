@@ -8,7 +8,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ````
 ![demo-gif](https://github.com/Redcxx/Pikax/blob/master/demo.gif)
 ---
-### [GUI version](https://github.com/Redcxx/Pikax/blob/master/gui/dist), note: currently it is unstable
+## [GUI version](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
 ---
 ## Requirements
 - [Python3](https://www.python.org/downloads/)
