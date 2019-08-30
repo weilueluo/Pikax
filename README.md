@@ -2,14 +2,16 @@
 ![GitHub stars](https://img.shields.io/github/stars/Redcxx/pikax?color=000&style=flat-square) ![PyPI](https://img.shields.io/pypi/v/pikax?color=000&style=flat-square) ![PyPI - License](https://img.shields.io/pypi/l/pikax?color=000&style=flat-square) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Redcxx/pikax?color=000&style=flat-square) ![GitHub last commit](https://img.shields.io/github/last-commit/Redcxx/pikax?color=000&style=flat-square) ![PyPI - Downloads](https://img.shields.io/pypi/dm/pikax?color=000&style=flat-square) <br>
 Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]批量下载工具。
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
-
+---
+## [图形界面版](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
+- 用P站账号登录即可
+- 无账号可游客登录，无法使用搜索功能
+- 支持下载排行榜，搜索，ID
 ````
   # 当前的v2跟v1不兼容，v1用户谨慎更新，deprecated文件夹有v1的源码
   pip install Pikax # 当前的发布
 ````
 ![demo-gif](https://github.com/Redcxx/Pikax/blob/master/demo.gif)
----
-## [图形界面版](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
 ---
 ## 需要
 - [Python3](https://www.python.org/downloads/)
