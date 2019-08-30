@@ -9,7 +9,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 ````
 ![demo-gif](https://github.com/Redcxx/Pikax/blob/master/demo.gif)
 ---
-### [图形界面版](https://github.com/Redcxx/Pikax/blob/master/gui/dist)，注：目前还十分不稳定
+## [图形界面版](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
 ---
 ## 需要
 - [Python3](https://www.python.org/downloads/)
