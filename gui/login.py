@@ -7,7 +7,7 @@ from threading import Thread
 import settings
 import texts
 from account import Account
-from common import go_to_next_screen, load_from_local, save_to_local
+from common import go_to_next_screen, load_from_local, save_to_local, remove_local_file
 from lib.pikax.exceptions import PikaxException
 from menu import MenuScreen
 from models import PikaxGuiComponent
@@ -147,10 +147,17 @@ class LoginScreen(PikaxGuiComponent):
             self.pikax_handler.login(username, password)
             if self.remember_me_checkbox.get():
                 self.save_login_credential(username, password)
+            else:
+                self.remove_login_credential_if_exists()
             go_to_next_screen(src=self, dest=MenuScreen)
         except PikaxException as e:
             self.login_button.configure(state=tk.NORMAL)
             sys.stdout.write(f'{e}')
+
+    def remove_login_credential_if_exists(self):
+        credential_file = settings.LOGIN_CREDENTIAL_FILE
+        if os.path.isfile(credential_file):
+            remove_local_file(credential_file)
 
     def save_login_credential(self, username, password):
         credential_file = settings.LOGIN_CREDENTIAL_FILE

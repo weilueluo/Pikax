@@ -1,10 +1,11 @@
 import re
 import sys
+import time
 import tkinter as tk
 from threading import Thread
 
 import texts
-from common import go_to_next_screen
+from common import go_to_next_screen, download
 from models import PikaxGuiComponent
 
 
@@ -25,29 +26,29 @@ class IdScreen(PikaxGuiComponent):
         super().__init__(master, pikax_handler)
 
         self.grid_width = 20
-        self.grid_height = 9
-        self.id_or_url_text_id = self.add_text(text=texts.ID_SCREEN_ID_OR_URL, row=2, column=9, columnspan=2)
+        self.grid_height = 18
+        self.id_or_url_text_id = self.add_text(text=texts.ID_SCREEN_ID_OR_URL, row=4, column=9, columnspan=2)
 
-        self.id_or_url_entry = self.make_entry(width=40)
-        self.url_or_entry_id = self.add_widget(widget=self.id_or_url_entry, row=3, column=9, columnspan=2)
+        self.id_or_url_input = self.make_text(height=10)
+        self.id_or_url_input_id = self.add_widget(widget=self.id_or_url_input, row=8, column=9, columnspan=2)
 
         # buttons
         self.download_button = self.make_button(text=texts.ID_SCREEN_DOWNLOAD)
-        self.download_button_id = self.add_widget(widget=self.download_button, row=4, column=11)
+        self.download_button_id = self.add_widget(widget=self.download_button, row=13, column=11)
         self.back_button = self.make_button(text=texts.ID_SCREEN_BACK)
-        self.back_button_id = self.add_widget(widget=self.back_button, row=4, column=8)
+        self.back_button_id = self.add_widget(widget=self.back_button, row=13, column=8)
 
-        self.download_output = self.make_download_output()
-        self.download_output_id = self.add_widget(widget=self.download_output, row=6, column=9, columnspan=2)
-        self.redirect_output_to(self.download_output)
+        self.output = self.make_download_output()
+        self.output_id = self.add_text(text='', row=15, column=9, columnspan=2, font=self.output_font)
+        self.redirect_output_to(self.output_id, text_widget=False)
 
         self.download_button.configure(command=self.download_clicked)
         self.back_button.configure(command=self.back_clicked)
 
         self.download_thread = None
 
-        self.id_or_url_entry.focus_set()
-        self.download_output.configure(state=tk.DISABLED)
+        self.id_or_url_input.focus_set()
+        # self.output.configure(state=tk.DISABLED)
         self.frame.pack_configure(expand=True)
         self.pack(self.frame)
 
@@ -56,13 +57,12 @@ class IdScreen(PikaxGuiComponent):
         go_to_next_screen(self, MenuScreen)
 
     def download_clicked(self):
-        user_input = self.id_or_url_entry.get()
+        self.canvas.itemconfigure(self.output_id, text='')
+        user_input = self.id_or_url_input.get(0.0, tk.END)
         search_ids = re.findall(r'(?<!\d)\d{8}(?!\d)', user_input, re.S)
         if search_ids:
-            self.download_thread = IDDownloadThread(output_area=self.download_output,
-                                                    target=self.pikax_handler.download_by_ids,
-                                                    args=(search_ids,))
-            self.download_thread.start()
+            params = {'illust_ids': search_ids}
+            download(target=self.pikax_handler.download_by_ids, kwargs=params)
         else:
             sys.stdout.write(texts.ID_SCREEN_NO_ID_FOUND)
 

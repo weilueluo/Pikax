@@ -3,8 +3,8 @@
 Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]批量下载工具。
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
 ## 图形界面版
-- 用P站账号登录即可
-- 无账号可游客登录，无法使用搜索功能
+- [日志](https://github.com/Redcxx/Pikax/blob/master/gui/change log.txt)
+- 用P站账号或游客登录即可
 - 支持下载排行榜，搜索，ID
 - [下载](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
 ## 接口版

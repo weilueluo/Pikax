@@ -1,18 +1,25 @@
 import os
 import pickle
 import sys
+import threading
 import tkinter as tk
 from multiprocessing import Process
 from tkinter import END, NORMAL, DISABLED, Text, Entry, TclError
 
 import settings
 
+_screen_lock = threading.Lock()
+
 
 def go_to_next_screen(src, dest):
-    pikax_handler = src.pikax_handler
-    master = src.frame.master
-    dest(master, pikax_handler)
-    src.destroy()  # destroy after creation to prevent black screen in the middle
+    global _screen_lock
+    if _screen_lock.locked():
+        return
+    with _screen_lock:
+        pikax_handler = src.pikax_handler
+        master = src.frame.master
+        dest(master, pikax_handler)
+        src.destroy()  # destroy after creation to prevent black screen in the middle
 
 
 def download(target, args=(), kwargs=()):
@@ -62,7 +69,6 @@ class StdoutCanvasTextRedirector:
     def write(self, string):
         try:
             self.canvas.itemconfigure(self.text_id, text=remove_invalid_chars(string))
-            self.canvas.configure(scrollregion=self.canvas.bbox('all'))
         except TclError as e:
             self.canvas.itemconfigure(self.text_id, text=remove_invalid_chars(str(e)))
 

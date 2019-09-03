@@ -39,7 +39,7 @@ class DownloadWindow(PikaxGuiComponent):
 
         self.grid_height = 9
         self.text_font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 2)
-        self.display_area_height = 16
+        self.display_area_height = 14
         self.display_area_width = 75
 
         self.display_area = self.make_text()

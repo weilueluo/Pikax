@@ -32,10 +32,10 @@ LOGIN_REMEMBER_TEXT = 'Remember Me'
 
 
 # ID screen
-ID_SCREEN_ID_OR_URL = 'Illustration id(s) or url(s)'
+ID_SCREEN_ID_OR_URL = 'Illustration(s) id or url'
 ID_SCREEN_DOWNLOAD = 'Download'
 ID_SCREEN_BACK = 'Back'
-ID_SCREEN_NO_ID_FOUND = 'No valid ID found in input\nshould be 8 digits number'
+ID_SCREEN_NO_ID_FOUND = 'No valid ID found in input\nshould be exactly 8 digits number'
 
 # menu screen
 MENU_RANK = 'Rank'

@@ -8,8 +8,6 @@ import settings
 import texts
 from common import crop_to_dimension, get_background_file_path
 
-set_combo_theme = True
-
 
 class PikaxOptionMenu(tk.OptionMenu):
 
@@ -95,6 +93,8 @@ class PikaxGuiComponent:
         self.dropdown_width = 18
         self.button_padx = 10
         self.button_pady = 2
+        self.text_padx = 10
+        self.text_pady = 10
 
         #
         # default operations
@@ -228,7 +228,7 @@ class PikaxGuiComponent:
             color = self.display_text_color
         if not canvas:
             canvas = self.canvas
-        return canvas.create_text((width, height), text=text, font=font, fill=color)
+        return canvas.create_text((width, height), text=text, font=font, fill=color, justify=tk.CENTER)
 
     def add_widget(self, widget, row=0, column=0, rowspan=1, columnspan=1):
         width, height = self.get_canvas_location(row=row, column=column, rowspan=rowspan, columnspan=columnspan)
@@ -273,12 +273,12 @@ class PikaxGuiComponent:
         dropdown.option_add('*TCombobox*Listbox.Justify', 'center')
         return dropdown
 
-    def make_entry(self, *args, **kwargs):
+    def make_entry(self, justify=tk.CENTER, *args, **kwargs):
         return tk.Entry(
             master=self.frame,
             borderwidth=0,
             highlightthickness=0,
-            justify=tk.CENTER,
+            justify=justify,
             bg=self.input_color,
             fg=self.input_text_color,
             insertbackground=self.cursor_color,
@@ -287,18 +287,21 @@ class PikaxGuiComponent:
             **kwargs
         )
 
-    def make_text(self, *args, **kwargs):
+    def make_text(self, wrap=tk.WORD, height=1, width=80, state=tk.NORMAL, *args, **kwargs):
         text = tk.Text(
             master=self.frame,
-            wrap=tk.WORD,
-            height=1,
-            width=80,
-            state=tk.NORMAL,
+            wrap=wrap,
+            height=height,
+            width=width,
+            state=state,
             highlightthickness=0,
             borderwidth=0,
             bg=self.input_color,
             fg=self.input_text_color,
             font=self.output_font,
+            insertbackground=self.cursor_color,
+            padx=self.text_padx,
+            pady=self.text_pady,
             *args,
             **kwargs
         )

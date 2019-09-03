@@ -3,8 +3,8 @@
 Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) mass downloading tool
 #### [Chinese ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.md)
 ## GUI
-- Login with your Pixiv account
-- Use guest login if no account
+- [Change log](https://github.com/Redcxx/Pikax/blob/master/gui/change log.txt)
+- Login with your Pixiv account or Guest login
 - Support download of Rankings, Search and url/id
 - [Download here](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
 ## API
