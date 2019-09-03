@@ -3,7 +3,7 @@
 Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]批量下载工具。
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
 ## 图形界面版
-- [日志](https://github.com/Redcxx/Pikax/blob/master/gui/change log.txt)
+- [日志](https://github.com/Redcxx/Pikax/blob/master/gui/change_log.txt)
 - 用P站账号或游客登录即可
 - 支持下载排行榜，搜索，ID
 - [下载](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
@@ -116,5 +116,5 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
  - 我移除了一部分功能比如自动设置r18和尺寸搜索设置，这是因为为了解决登录问题我模拟了他们在安卓应用上的登录，但是手机应用有些设定是不支持的，比如我刚刚说的那两个，为了有一个统一的接口我决定移除他们。虽然我已经找到了解决的办法但是这个办法需要我大量的精力和时间去实现并且要求额外的依赖，而我只是一个可怜的学生因此只可能在以后有空的时候做一下，不过不能保证真的会做。。。
  - 现在基本上所有输入的参数都可以在params.py的找到，里面几乎涵盖了所有参数的枚举
  - 更棒的打印，现在跳过的画作只会在下载后显示，而且加入了剩余时间的估算
- 
+
  ## 联系我可发邮件到[这里](mailto:weilue.luo@student.manchester.ac.uk)
