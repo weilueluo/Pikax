@@ -3,7 +3,6 @@
 Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) mass downloading tool
 #### [Chinese ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.md)
 ## GUI
-> May need to disable firewall
 - Login with your Pixiv account
 - Use guest login if no account
 - Support download of Rankings, Search and url/id
@@ -13,7 +12,6 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   # the current v2 is not compatiable with v1, please upgrade carefully, deprecated folder contains v1's source code
   pip install Pikax # current release
 ````
-![demo-gif](https://github.com/Redcxx/Pikax/blob/master/demo.gif)
 ---
 ## Requirements
 - [Python3](https://www.python.org/downloads/)
@@ -38,6 +36,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 - ...
 - Tell me!
 ## Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
+### [Commandline Demo](https://github.com/Redcxx/Pikax/blob/master/demo.gif)
 ### Download today's top 50 illustration
 ```
   from pikax.pikax import Pikax

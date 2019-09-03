@@ -3,17 +3,15 @@
 Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]批量下载工具。
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
 ## 图形界面版
-> 可能需要关闭防火墙
 - 用P站账号登录即可
 - 无账号可游客登录，无法使用搜索功能
 - 支持下载排行榜，搜索，ID
 - [下载](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
-## 接口
+## 接口版
 ````
   # 当前的v2跟v1不兼容，v1用户谨慎更新，deprecated文件夹有v1的源码
   pip install Pikax # 当前的发布
 ````
-![demo-gif](https://github.com/Redcxx/Pikax/blob/master/demo.gif)
 ---
 ## 需要
 - [Python3](https://www.python.org/downloads/)
@@ -37,6 +35,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 - 。。。
 - 有人再做吧，我自己够用了owo
 ## 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
+### [命令行展示](https://github.com/Redcxx/Pikax/blob/master/demo.gif)
 ### 下载当日排行榜前50的插画
 ````
   from pikax.pikax import Pikax
