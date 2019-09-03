@@ -3,7 +3,8 @@ from threading import Thread
 from tkinter import font
 
 import settings
-from common import center
+import texts
+from common import config_root
 from models import PikaxGuiComponent
 
 
@@ -28,15 +29,12 @@ class DownloadWindow(PikaxGuiComponent):
         self.window = tk.Tk()
         self.width = settings.DOWNLOAD_WINDOW_WIDTH
         self.height = settings.DOWNLOAD_WINDOW_HEIGHT
-        self.window.geometry('{}x{}'.format(self.width, self.height))
-        self.window.title(settings.PIKAX_DOWNLOADER_TITLE)
-        self.window.resizable(False, False)
-        center(self.window)
+        config_root(root=self.window, title=texts.FRAME_TITLE, width=self.width, height=self.height)
         super().__init__(self.window, pikax_handler=None)
 
         self.grid_width = 3
         # add using the old grid height so that report button and cancel button are on the same height
-        self.cancel_button = self.make_button(text='cancel')
+        self.cancel_button = self.make_button(text=texts.DOWNLOADER_CANCEL)
         self.cancel_button_id = self.add_widget(widget=self.cancel_button, column=1, row=self.grid_height - 30)
 
         self.grid_height = 9

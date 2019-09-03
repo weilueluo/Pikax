@@ -43,9 +43,9 @@ LOG_TYPE
 'std': allow debug printings
 'save': save error to LOG_FILE only
 """
-LOG_STD = False
+LOG_STD = True
 LOG_INFORM = True
-LOG_WARN = False
+LOG_WARN = True
 LOG_SAVE = False
 
 """

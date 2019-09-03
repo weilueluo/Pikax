@@ -4,15 +4,15 @@ from typing import Tuple, Iterator
 
 import requests
 
-from .models import BaseDownloader
 from . import util
 from .api.models import Artwork
+from .models import BaseDownloader
 
 
 class DefaultDownloader(BaseDownloader):
     @staticmethod
     def download_illust(artwork: Artwork, folder: str = '') -> Iterator[Tuple[Artwork.DownloadStatus, str]]:
-        artwork_detail = 'None'
+        artwork_detail = 'Initialization Failed'
         folder = str(folder)
         if folder and not os.path.isdir(folder):
             os.mkdir(folder)
@@ -35,6 +35,9 @@ class DefaultDownloader(BaseDownloader):
                             for chunk in r.iter_content(chunk_size=1024):
                                 file.write(chunk)
                     yield Artwork.DownloadStatus.OK, artwork_detail
+
+                else:
+                    yield Artwork.DownloadStatus.FAILED, artwork_detail
 
         except requests.RequestException as e:
             yield Artwork.DownloadStatus.FAILED, artwork_detail + f': {e}'

@@ -5,6 +5,7 @@
 
 
 import datetime
+import hashlib
 import time
 import urllib.parse
 
@@ -22,13 +23,13 @@ __all__ = ['AndroidAPIClient']
 class BaseClient:
     # This class provide auto-refreshing headers to use for making requests
     _auth_url = 'https://oauth.secure.pixiv.net/auth/token'
-    _headers = {
+    __headers = {
         'User-Agent': 'PixivAndroidApp/5.0.151 (Android 5.1.1; SM-N950N)',
         'App-OS': 'android',
         'App-OS-Version': '5.1.1',
         'App-Version': '5.0.151',
-        'Host': 'app-api.pixiv.net',
     }
+    _hash_secret = '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c'
 
     def __init__(self, username, password):
         self._client_id = 'MOBrBDS8blbauoSck0ZfDbtuzpyT'
@@ -36,7 +37,11 @@ class BaseClient:
         self._username = username
         self._password = password
         self._session = requests.Session()
-        self._headers = BaseClient._headers.copy()
+        self._headers = BaseClient.__headers.copy()
+
+        local_time = datetime.datetime.now().isoformat()
+        self._headers['X-Client-Time'] = local_time
+        self._headers['X-Client-Hash'] = hashlib.md5((local_time + self._hash_secret).encode('utf-8')).hexdigest()
 
         # set after login
         self._access_token = None
@@ -89,6 +94,7 @@ class BaseClient:
             req_type='post',
             session=self._session,
             data=data,
+            headers=self._headers
         ).json()
 
         self._access_token_start_time = time.time()
@@ -387,3 +393,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

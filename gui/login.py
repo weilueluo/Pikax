@@ -1,13 +1,21 @@
+import os
+import sys
+import tkinter as tk
 import webbrowser
 from threading import Thread
-from tkinter import *
-from tkinter import font
 
 import settings
-from common import go_to_next_screen, get_background_file_path
+import texts
+from account import Account
+from common import go_to_next_screen, load_from_local, save_to_local
 from lib.pikax.exceptions import PikaxException
 from menu import MenuScreen
 from models import PikaxGuiComponent
+
+_first_time = True
+_prev_username = ''
+_prev_password = ''
+_prev_checkbox = None
 
 
 class LoginScreen(PikaxGuiComponent):
@@ -21,11 +29,11 @@ class LoginScreen(PikaxGuiComponent):
         self.grid_width = 11
 
         # text
-        self.username_text = 'username'
-        self.password_text = 'password'
-        self.login_button_text = 'Login'
-        self.guest_button_text = 'Guest'
-        self.register_text = 'Register'
+        self.username_text = texts.LOGIN_USERNAME
+        self.password_text = texts.LOGIN_PASSWORD
+        self.login_button_text = texts.LOGIN_LOGIN_BUTTON
+        self.guest_button_text = texts.LOGIN_GUEST_BUTTON
+        self.register_text = texts.LOGIN_REGISTER_BUTTON
 
         # make entries & button
         self.username_entry = self.make_entry()
@@ -44,7 +52,11 @@ class LoginScreen(PikaxGuiComponent):
         self.guest_button_id = self.add_widget(widget=self.guest_button, row=20, column=3)
         self.login_button_id = self.add_widget(widget=self.login_button, row=20, column=5)
         self.register_button_id = self.add_widget(widget=self.register_button, row=20, column=7)
-        self.output_id = self.add_text(text='', row=24, column=4, columnspan=3, font=self.output_font)
+        self.output_id = self.add_text(text='', row=26, column=4, columnspan=3, font=self.output_font)
+
+        # add checkbox
+        self.remember_me_checkbox = self.make_checkbox(text=texts.LOGIN_REMEMBER_TEXT)
+        self.remember_me_checkbox_id = self.add_widget(widget=self.remember_me_checkbox, row=24, column=5)
 
         self.config_texts([self.canvas_username, self.canvas_password, self.output_id])
         self.config_buttons()
@@ -53,6 +65,44 @@ class LoginScreen(PikaxGuiComponent):
 
         self.pack(self.frame, expand=True)
         self.username_entry.focus_set()
+
+        #
+        # default operations
+        #
+
+        self.restore_previous()
+
+        global _first_time
+        if _first_time:
+            self.login_if_credential_exists()
+            _first_time = False
+
+    def restore_previous(self):
+        global _prev_username
+        global _prev_password
+        global _prev_checkbox
+        self.clear_username_and_password()
+        self.fill_username_and_password(username=_prev_username, password=_prev_password)
+        if not (_prev_checkbox is None):
+            self.remember_me_checkbox.set(_prev_checkbox)
+        elif os.path.isfile(settings.LOGIN_CREDENTIAL_FILE):
+            self.remember_me_checkbox.set(True)
+
+    def clear_username_and_password(self):
+        self.username_entry.delete(0, tk.END)
+        self.password_entry.delete(0, tk.END)
+
+    def fill_username_and_password(self, username='', password=''):
+        self.username_entry.insert(0, username)
+        self.password_entry.insert(0, password)
+
+    def login_if_credential_exists(self):
+        credential_file = settings.LOGIN_CREDENTIAL_FILE
+        if os.path.isfile(credential_file):
+            account = load_from_local(credential_file)
+            self.clear_username_and_password()
+            self.fill_username_and_password(username=str(account.username), password=str(account.password))
+            self.login()
 
     def make_entry(self):
         entry = super().make_entry()
@@ -74,7 +124,7 @@ class LoginScreen(PikaxGuiComponent):
     def config_entries(self):
         self.username_entry.bind('<Return>', self.login)
         self.password_entry.bind('<Return>', self.login)
-        self.password_entry.configure(show="\u2022")  # bullet
+        self.password_entry.configure(show=texts.BULLET)
 
     @staticmethod
     def register_button_pressed():
@@ -84,15 +134,28 @@ class LoginScreen(PikaxGuiComponent):
         Thread(target=self._login).start()
 
     def _login(self):
-        self.login_button.configure(state=DISABLED)
+        self.login_button.configure(state=tk.DISABLED)
         username = self.username_entry.get().strip()
         password = self.password_entry.get().strip()
+        global _prev_password
+        global _prev_username
+        global _prev_checkbox
+        _prev_checkbox = self.remember_me_checkbox.get()
+        _prev_username = username
+        _CACHE_PASSWORD = password
         try:
             self.pikax_handler.login(username, password)
+            if self.remember_me_checkbox.get():
+                self.save_login_credential(username, password)
             go_to_next_screen(src=self, dest=MenuScreen)
         except PikaxException as e:
-            self.login_button.configure(state=NORMAL)
+            self.login_button.configure(state=tk.NORMAL)
             sys.stdout.write(f'{e}')
+
+    def save_login_credential(self, username, password):
+        credential_file = settings.LOGIN_CREDENTIAL_FILE
+        account = Account(username=username, password=password)
+        save_to_local(file_path=credential_file, item=account)
 
     def guest_login(self):
         go_to_next_screen(src=self, dest=MenuScreen)

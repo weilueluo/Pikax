@@ -1,6 +1,7 @@
 import re
 from datetime import date
 
+import texts
 from common import go_to_next_screen, download
 from lib.pikax import params
 from lib.pikax.util import clean_filename
@@ -16,20 +17,20 @@ class RankScreen(PikaxGuiComponent):
         self.grid_height = 10
 
         # texts
-        self.date_text_id = self.add_text(text='date', row=2, column=5)
-        self.limit_text_id = self.add_text(text='limit', row=3, column=5)
-        self.type_text_id = self.add_text(text='type', row=4, column=5)
-        self.content_text_id = self.add_text(text='content', row=5, column=5)
-        self.download_folder_text_id = self.add_text(text='download folder', row=6, column=5)
+        self.date_text_id = self.add_text(text=texts.RANK_DATE, row=2, column=5)
+        self.limit_text_id = self.add_text(text=texts.RANK_LIMIT, row=3, column=5)
+        self.type_text_id = self.add_text(text=texts.RANK_TYPE, row=4, column=5)
+        self.content_text_id = self.add_text(text=texts.RANK_CONTENT, row=5, column=5)
+        self.download_folder_text_id = self.add_text(text=texts.RANK_DOWNLOAD_FOLDER, row=6, column=5)
 
         # create inputs
         self.date_entry = self.make_entry()
         self.date_entry.insert(0, format(date.today(), '%Y%m%d'))
         self.limit_entry = self.make_entry()
-        rank_types = ['daily', 'weekly', 'monthly', 'rookie']
-        self.type_dropdown = self.make_dropdown('daily', rank_types)
-        content_types = ['illustration', 'manga']
-        self.content_dropdown = self.make_dropdown('illustration', content_types)
+        self.rank_types = texts.RANK_TYPES
+        self.type_dropdown = self.make_dropdown(self.rank_types[0], self.rank_types)
+        self.content_types = texts.RANK_CONTENT_TYPES
+        self.content_dropdown = self.make_dropdown(self.content_types[0], self.content_types)
         self.download_folder_entry = self.make_entry()
 
         # add inputs
@@ -40,8 +41,8 @@ class RankScreen(PikaxGuiComponent):
         self.download_folder_entry_id = self.add_widget(widget=self.download_folder_entry, row=6, column=9)
 
         # create buttons
-        self.back_button = self.make_button(text='back')
-        self.download_button = self.make_button(text='download')
+        self.back_button = self.make_button(text=texts.RANK_BACK)
+        self.download_button = self.make_button(text=texts.RANK_DOWNLOAD)
 
         # add buttons
         self.back_button_id = self.add_widget(widget=self.back_button, row=7, column=5)
@@ -69,22 +70,24 @@ class RankScreen(PikaxGuiComponent):
             else:
                 limit = None
         except ValueError:
-            raise ValueError('Limit must be an integer or empty')
+            raise ValueError(texts.RANK_LIMIT_ERROR)
 
         matcher = re.compile(r'^\d{8}$')
         if not matcher.match(date):
-            raise ValueError('Date must be a sequence of 8 digits')
+            raise ValueError(texts.RANK_DATE_ERROR)
 
-        if type == 'monthly':
+        #  ['daily', 'weekly', 'monthly', 'rookie']
+        if type == self.rank_types[2]:
             type = params.RankType.MONTHLY
-        elif type == 'weekly':
+        elif type == self.rank_types[1]:
             type = params.RankType.WEEKLY
-        elif type == 'rookie':
+        elif type == self.rank_types[3]:
             type = params.RankType.ROOKIE
         else:  # daily
             type = params.RankType.DAILY
 
-        if content == 'manga':
+        # ['illustration', 'manga']
+        if content == self.content_types[1]:
             content = params.Content.MANGA
         else:  # illustration
             content = params.Content.ILLUST
@@ -106,7 +109,7 @@ class RankScreen(PikaxGuiComponent):
             if folder:
                 folder = str(folder)
                 if folder != clean_filename(folder):
-                    raise ValueError('Folder name contains invalid characters')
+                    raise ValueError(texts.RANK_INVALID_FOLDER_ERROR)
             else:
                 folder = None
 
@@ -116,7 +119,7 @@ class RankScreen(PikaxGuiComponent):
 
         except ValueError as e:
             import sys
-            sys.stdout.write(f'Please check your inputs,\nError message: {e}')
+            sys.stdout.write(texts.RANK_ERROR_MESSAGE.format(error_message=str(e)))
 
     def back_clicked(self):
         from menu import MenuScreen

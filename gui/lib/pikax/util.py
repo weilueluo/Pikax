@@ -196,7 +196,7 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
                 log('RequestException:', err_msg, save=True)
             else:
                 log(settings.DEFAULT_REQUEST_ERROR_MSG.format(type=req_type), save=True)
-            log('Reason:', str(e), 'Retries:', curr_retries, save=True)
+            log('Reason:', str(e), ' Retries:', curr_retries, save=True)
 
         curr_retries += 1
         time.sleep(0.5)  # dont retry again too fast

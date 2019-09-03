@@ -5,6 +5,7 @@ from tkinter import font, ttk
 from PIL import Image, ImageTk
 
 import settings
+import texts
 from common import crop_to_dimension, get_background_file_path
 
 set_combo_theme = True
@@ -19,6 +20,29 @@ class PikaxOptionMenu(tk.OptionMenu):
 
     def get(self):
         return self.var.get().strip()
+
+
+class PikaxCheckBox(tk.Button):
+    def __init__(self, component, initial=False, text='', *args, **kwargs):
+        self.checked = initial
+        self.text = text
+        super().__init__(component.master,
+                         padx=component.button_padx,
+                         pady=component.button_pady,
+                         command=self.clicked,
+                         *args, **kwargs)
+        self.set(value=self.checked)
+
+    def set(self, value=False):
+        self.checked = value
+        text = texts.TICK + ' ' + self.text if self.checked else texts.CROSS + ' ' + self.text
+        self.configure(text=text)
+
+    def clicked(self, event=None):
+        self.set(value=not self.checked)
+
+    def get(self):
+        return self.checked
 
 
 class PikaxGuiComponent:
@@ -37,8 +61,8 @@ class PikaxGuiComponent:
         #
 
         # texts
-        self.issue_text = 'Report'
-        self.title_text = settings.TITLE + ' ' + settings.VERSION
+        self.issue_text = texts.MODELS_ISSUE_TEXT
+        self.title_text = texts.TITLE_TEXT
 
         # fonts
         self.text_font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE,
@@ -54,11 +78,13 @@ class PikaxGuiComponent:
         self.display_text_color = '#51abc2'
         self.input_text_color = 'white'
         self.artist_name_color = '#1b5361'
+
         # button colors
         self.button_color = '#1b5361'
         self.input_color = '#1b5361'
-        self.pressed_button_color = '#0c313b'
+        self.active_input_color = '#0c313b'
         self.cursor_color = 'white'
+        self.checkbox_text_and_tick_color = '#c7a12e'
 
         self.grid_height = self.height
         self.grid_width = self.width
@@ -67,6 +93,8 @@ class PikaxGuiComponent:
         self.button_width = 10
         self.title_font_size = 12
         self.dropdown_width = 18
+        self.button_padx = 10
+        self.button_pady = 2
 
         #
         # default operations
@@ -85,10 +113,11 @@ class PikaxGuiComponent:
                                                column=self.grid_width - 75)
         self.issue_button.configure(command=self.issue_button_pressed)
         # add background artist reference
-        self.artist_reference = self.add_text(text=f'*background by {settings.CANVAS_BACKGROUND_ARTIST_NAME}',
-                                              row=self.grid_height - 26, column=100,
-                                              columnspan=2, font=self.canvas_artist_font,
-                                              color=self.artist_name_color)
+        self.artist_reference = self.add_text(
+            text=texts.MODELS_ARTIST_REFERENCE_TEXT.format(artist_name=settings.CANVAS_BACKGROUND_ARTIST_NAME),
+            row=self.grid_height - 26, column=100,
+            columnspan=2, font=self.canvas_artist_font,
+            color=self.artist_name_color)
 
         # set combobox style
         combo_style = ttk.Style()
@@ -96,14 +125,14 @@ class PikaxGuiComponent:
         if combo_style_name not in combo_style.theme_names():
             combo_style.theme_create(combo_style_name, parent='classic',
                                      settings={'TCombobox': {'configure': {
-                                        'selectbackground': self.input_color,
-                                        'fieldbackground': self.input_color,
-                                        'background': self.input_color,
-                                        'foreground': self.input_text_color,
-                                        'borderwidth': 0,
-                                        'highlightthickness': 0,
-                                        'width': self.dropdown_width,
-                                        'justify': tk.CENTER
+                                         'selectbackground': self.input_color,
+                                         'fieldbackground': self.input_color,
+                                         'background': self.input_color,
+                                         'foreground': self.input_text_color,
+                                         'borderwidth': 0,
+                                         'highlightthickness': 0,
+                                         'width': self.dropdown_width,
+                                         'justify': tk.CENTER
                                      }}},
                                      )
             # ATTENTION: this applies the new style 'combo_style' to all ttk.Combobox
@@ -166,14 +195,15 @@ class PikaxGuiComponent:
 
     def get_canvas_location(self, row, column, rowspan, columnspan):
         if row < 0 or row > self.grid_height:
-            raise ValueError(f'Invalid row: {row}, expected: 0 <= row <= {self.grid_height}')
+            raise ValueError(texts.MODELS_INVALID_ROW_ERROR.format(row=row, grid_height=self.grid_height))
         if column < 0 or column > self.grid_width:
-            raise ValueError(f'Invalid column: {column}, expected: 0 <= column <= {self.grid_width}')
+            raise ValueError(texts.MODELS_INVALID_COLUMN_ERROR.format(column=column, grid_width=self.grid_width))
         if row + rowspan < 0 or row + rowspan > self.grid_height:
-            raise ValueError(f'Invalid rowspan: {rowspan}, expected: 0 <= {row} + rowspan <= {self.grid_height}')
-        if column + columnspan < 0 or column + columnspan > self.grid_width:
             raise ValueError(
-                f'Invalid columnspan: {columnspan}, expected: 0 <= {column} + columnspan <= {self.grid_width}')
+                texts.MODELS_INVALID_ROWSPAN_ERROR.format(rowspan=rowspan, row=row, grid_height=self.grid_height))
+        if column + columnspan < 0 or column + columnspan > self.grid_width:
+            raise ValueError(texts.MODELS_INVALID_COLUMNSPAN_ERROR.format(columnspan=columnspan, column=column,
+                                                                          grid_width=self.grid_width))
 
         row_height = self.height / self.grid_height
         column_width = self.width / self.grid_width
@@ -211,11 +241,11 @@ class PikaxGuiComponent:
     def make_button(self, *args, **kwargs):
         return tk.Button(master=self.frame,
                          relief=tk.FLAT,
-                         padx=10,
-                         pady=2,
+                         padx=self.button_padx,
+                         pady=self.button_pady,
                          borderwidth=0,
                          highlightthickness=0,
-                         activebackground=self.pressed_button_color,
+                         activebackground=self.active_input_color,
                          bg=self.button_color,
                          fg=self.display_text_color,
                          width=self.button_width,
@@ -273,3 +303,14 @@ class PikaxGuiComponent:
             **kwargs
         )
         return text
+
+    def make_checkbox(self, initial=False, *args, **kwargs):
+        return PikaxCheckBox(component=self,
+                             initial=initial,
+                             bg=self.input_color,
+                             fg=self.display_text_color,
+                             activebackground=self.active_input_color,
+                             highlightthickness=0,
+                             borderwidth=0,
+                             *args, **kwargs)
+

@@ -1,9 +1,10 @@
 import sys
-from threading import Thread
 
+from lib.pikax import params
 from lib.pikax.exceptions import PikaxException, ArtworkError
 from lib.pikax.items import LoginHandler
 from lib.pikax.pikax import Pikax
+from lib.pikax.result import DefaultPikaxResult
 
 
 class PikaxHandler:
@@ -36,8 +37,10 @@ class PikaxHandler:
             import sys
             sys.stdout.write(f'Search & download failed, message:\n{e}')
 
-    def download_by_id(self, illust_id):
+    def download_by_ids(self, illust_ids):
         try:
-            self.pikax.download(illust_id=illust_id)
+            artworks, fails = self.pikax.get_id_processor().process(ids=illust_ids, process_type=params.ProcessType.ILLUST)
+            result = DefaultPikaxResult(artworks, download_type=params.DownloadType.ILLUST)
+            self.pikax.download(result)
         except ArtworkError as e:
             sys.stdout.write(str(e) + '\n' + 'Likely due to Id does not exists')

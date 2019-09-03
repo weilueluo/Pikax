@@ -4,14 +4,18 @@ MAIN_WINDOW_HEIGHT = 600
 MAIN_WINDOW_WIDTH = 1000
 DOWNLOAD_WINDOW_WIDTH = 600
 DOWNLOAD_WINDOW_HEIGHT = 400
-TITLE = 'Pikax'
-VERSION = '0.1.2'
-PIKAX_DOWNLOADER_TITLE = 'Pikax - Pixiv Downloader'
+VERSION = '0.1.3'
 
 CANVAS_BACKGROUND_PATH = 'assets/images/background.jpg'
 CANVAS_BACKGROUND_ARTIST_NAME = 'Aer7o'
 ISSUE_URL = 'https://github.com/Redcxx/Pikax/issues'
 PIXIV_REGISTER_URL = 'https://accounts.pixiv.net/signup'
+
+# files
+FILE_SUFFIX = '.pikaxdata'
+LOGIN_CREDENTIAL_FILE = 'login_credential' + FILE_SUFFIX
+
+
 
 #
 # Windows 10 Fonts

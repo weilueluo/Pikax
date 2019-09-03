@@ -167,7 +167,6 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
         if log_req:
             log(req_type + ':', str(url), 'with params:', str(params), end='')
         try:
-
             # try send request according to parameters
             if session:
                 if req_type == 'GET':

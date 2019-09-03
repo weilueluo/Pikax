@@ -6,6 +6,7 @@ import os
 from multiprocessing.dummy import Pool
 from typing import Union, List, Tuple, Iterator
 
+import texts
 from . import params, settings, util
 from .api.models import Artwork
 
@@ -372,7 +373,8 @@ class BaseDownloader:
         curr_page = 0
         curr_artwork = 0
         pool = Pool()
-        util.log(f'Downloading Artworks | {total_pages} pages from {total_artworks} artworks', start=os.linesep,
+        util.log(texts.DOWNLOAD_INITIALIZING.format(total_pages=total_pages, total_artworks=total_artworks),
+                 start=os.linesep,
                  inform=True)
 
         for download_details in pool.imap_unordered(download_function, artworks):
@@ -395,14 +397,16 @@ class BaseDownloader:
         util.print_done()
 
         finish_msg = ''
-        finish_msg += f'There are {len(successes)} downloaded pages\n'
+        finish_msg += texts.DOWNLOAD_FINISHED_SUCCESS_PAGES.format(successes=len(successes))
 
-        finish_msg += f'There are {len(skips)} skipped pages\n'
+        finish_msg += texts.DOWNLOAD_FINISHED_SKIPPED_PAGES.format(skips=len(skips))
         for index, skip_info in enumerate(skips):
-            finish_msg += f' [{index + 1}] ' + str(skip_info) + '\n'
+            finish_msg += texts.DOWNLOAD_FINISHED_SKIPPED_INFO.format(counter=index + 1, skip_info=str(skip_info))
 
-        finish_msg += f'There are {len(fails)} failed pages\n'
+        finish_msg += texts.DOWNLOAD_FINISHED_FAILED_PAGES.format(fails=len(fails))
         for index, fail_info in enumerate(fails):
-            finish_msg += f' [{index + 1}] ' + str(fail_info) + '\n'
+            finish_msg += texts.DOWNLOAD_FINISHED_FAILED_INFO.format(counter=index + 1, fail_info=str(fail_info))
 
-        util.print_done(str(finish_msg + '\n' + folder))
+        download_path = os.path.abspath(folder)
+        folder_msg = texts.DOWNLOAD_FINISHED_PATH_NOTICE.format(download_path=download_path)
+        util.print_done(str(finish_msg + folder_msg))

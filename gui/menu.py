@@ -1,5 +1,6 @@
 import tkinter as tk
 
+import texts
 from common import go_to_next_screen
 from models import PikaxGuiComponent
 
@@ -12,10 +13,10 @@ class MenuScreen(PikaxGuiComponent):
         self.grid_width = 1
 
         # create buttons
-        self.rank_button = self.make_button(text='Rank')
-        self.id_button = self.make_button(text='ID')
-        self.search_button = self.make_button(text='Search')
-        self.back_button = self.make_button(text='Back')
+        self.rank_button = self.make_button(text=texts.MENU_RANK)
+        self.id_button = self.make_button(text=texts.MENU_ID)
+        self.search_button = self.make_button(text=texts.MENU_SEARCH)
+        self.back_button = self.make_button(text=texts.MENU_BACK)
 
         self.rank_button_id = self.add_widget(widget=self.rank_button, row=3)
         self.id_button_id = self.add_widget(widget=self.id_button, row=4)
@@ -60,7 +61,6 @@ class MenuScreen(PikaxGuiComponent):
 
 def main():
     from pikaxhandler import PikaxHandler
-    import tkinter as tk
     root = tk.Tk()
     MenuScreen(root, pikax_handler=PikaxHandler())
     root.mainloop()

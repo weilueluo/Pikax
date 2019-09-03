@@ -3,8 +3,13 @@
 # for explaining https://oauth.secure.pixiv.net/auth/token
 #
 
+#
+# thanks @DaReadFreak for fixing login issue on 3 Sep 2019
+# in this commit https://github.com/DaRealFreak/pixivpy/commit/980c68b39a37743c0774b719e92e044977b146e0
+#
 
 import datetime
+import hashlib
 import time
 import urllib.parse
 
@@ -22,13 +27,13 @@ __all__ = ['AndroidAPIClient']
 class BaseClient:
     # This class provide auto-refreshing headers to use for making requests
     _auth_url = 'https://oauth.secure.pixiv.net/auth/token'
-    _headers = {
+    __headers = {
         'User-Agent': 'PixivAndroidApp/5.0.151 (Android 5.1.1; SM-N950N)',
         'App-OS': 'android',
         'App-OS-Version': '5.1.1',
         'App-Version': '5.0.151',
-        'Host': 'app-api.pixiv.net',
     }
+    _hash_secret = '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c'
 
     def __init__(self, username, password):
         self._client_id = 'MOBrBDS8blbauoSck0ZfDbtuzpyT'
@@ -36,7 +41,11 @@ class BaseClient:
         self._username = username
         self._password = password
         self._session = requests.Session()
-        self._headers = BaseClient._headers.copy()
+        self._headers = BaseClient.__headers.copy()
+
+        local_time = datetime.datetime.now().isoformat()
+        self._headers['X-Client-Time'] = local_time
+        self._headers['X-Client-Hash'] = hashlib.md5((local_time + self._hash_secret).encode('utf-8')).hexdigest()
 
         # set after login
         self._access_token = None
@@ -89,6 +98,7 @@ class BaseClient:
             req_type='post',
             session=self._session,
             data=data,
+            headers=self._headers
         ).json()
 
         self._access_token_start_time = time.time()
@@ -387,3 +397,34 @@ def main():
 
 if __name__ == '__main__':
     main()
+    #
+    # local_time = datetime.datetime.now().isoformat()
+    # hash_secret = '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c'
+    # url = 'https://oauth.secure.pixiv.net/auth/token'
+    # s = requests.Session()
+    # data = {
+    #     'client_id': 'MOBrBDS8blbauoSck0ZfDbtuzpyT',
+    #     'client_secret': 'lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj',
+    #     'grant_type': 'password',
+    #     'username': 'restorecyclebin@gmail.com',
+    #     'password': '123456',
+    #     'get_secure_url': True,
+    # }
+    # # headers = {
+    # #     'User-Agent': 'PixivAndroidApp/5.0.151 (Android 5.1.1; SM-N950N)',
+    # #     'App-OS': 'android',
+    # #     'App-OS-Version': '5.1.1',
+    # #     'App-Version': '5.0.151',
+    # #     'X-Client-Hash': hashlib.md5((local_time + hash_secret).encode('utf-8')).hexdigest(),
+    # #     'X-Client-Time': local_time
+    # # }
+    # headers = {'App-OS': 'android',
+    #            'App-OS-Version': '5.1.1',
+    #            'App-Version': '5.0.151',
+    #            'User-Agent': 'PixivAndroidApp/5.0.151 (Android 5.1.1; SM-N950N)',
+    #            'X-Client-Hash': hashlib.md5((local_time + hash_secret).encode('utf-8')).hexdigest(),
+    #            'X-Client-Time': local_time
+    #            }
+    # pprint(headers)
+    # res = util.req(req_type='post', url=url, session=s, data=data, headers=headers)
+    # print(res)

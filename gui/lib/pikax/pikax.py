@@ -99,7 +99,7 @@ class Pikax(PikaxInterface):
         util.print_done(f'number of ids: {len(ids)}')
         process_type = self._get_process_from_search(search_type)
         download_type = self._get_download_from_process(process_type)
-        success, fail = self._get_id_processor().process(ids, process_type=process_type)
+        success, fail = self.get_id_processor().process(ids, process_type=process_type)
         folder = settings.DEFAULT_SEARCH_FOLDER.format(keyword=keyword, search_type=search_type, match=match, sort=sort,
                                                        search_range=search_range, popularity=popularity, limit=limit)
         return DefaultPikaxResult(success, download_type=download_type, folder=folder)
@@ -128,7 +128,7 @@ class Pikax(PikaxInterface):
         util.print_done(f'number of ids: {len(ids)}')
         process_type = self._get_process_from_content(content)
         download_type = self._get_download_from_process(process_type)
-        success, fail = self._get_id_processor().process(ids, process_type=process_type)
+        success, fail = self.get_id_processor().process(ids, process_type=process_type)
         folder = settings.DEFAULT_RANK_FOLDER.format(limit=limit, date=date, content=content, rank_type=rank_type)
         return DefaultPikaxResult(success, download_type=download_type, folder=folder)
 
@@ -148,8 +148,6 @@ class Pikax(PikaxInterface):
             ill = Illust(illust_id=illust_id)
             self.downloader.download(pikax_result=DefaultPikaxResult([ill], download_type=params.DownloadType.ILLUST),
                                      folder=folder)
-            # import sys
-            # sys.stdout.write(f'{illust_id} downloaded')
 
     def visits(self, user_id: int) -> PikaxUserInterface:
         """
@@ -170,7 +168,7 @@ class Pikax(PikaxInterface):
         else:
             return self.default_client
 
-    def _get_id_processor(self):
+    def get_id_processor(self):
         return self.id_processor
 
     @staticmethod

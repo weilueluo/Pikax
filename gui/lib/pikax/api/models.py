@@ -4,6 +4,7 @@ import os
 from multiprocessing.dummy import Pool
 from typing import List, Tuple, Union, Type, Any
 
+import texts
 from .. import params, util
 from ..exceptions import ArtworkError
 
@@ -71,9 +72,9 @@ class Artwork:
     def likes(self): raise NotImplementedError
 
     class DownloadStatus(enum.Enum):
-        OK = '[OK]'
-        SKIPPED = '[skipped]'
-        FAILED = '<failed>'
+        OK = texts.DOWNLOAD_STATUS_OK
+        SKIPPED = texts.DOWNLOAD_STATUS_SKIPPED
+        FAILED = texts.DOWNLOAD_STATUS_FAILED
 
     # return download status, content, filename
     def __getitem__(self, index) -> Tuple[DownloadStatus, Any, str]: raise NotImplementedError
@@ -103,13 +104,13 @@ class BaseIDProcessor:
     def process(self, ids: List[int], process_type: params.ProcessType) -> Tuple[List[Artwork], List[int]]:
         if not params.ProcessType.is_valid(process_type):
             from ..exceptions import ProcessError
-            raise ProcessError(f'process type: {process_type} is not type of {params.ProcessType}')
+            raise ProcessError(texts.PROCESS_TYPE_ERROR.format(process_type=process_type, process_class=params.ProcessType))
 
         return self.type_to_function[process_type](ids)
 
     @staticmethod  # param cls is pass in as argument
     def _general_processor(cls: Type[Artwork], item_ids: List[int]) -> Tuple[List[Artwork], List[int]]:
-        util.log('Processing artwork ids', start=os.linesep, inform=True)
+        util.log(texts.PROCESS_ID_INITIALIZING, start=os.linesep, inform=True)
         total = len(item_ids)
         successes = []
         fails = []
@@ -123,6 +124,6 @@ class BaseIDProcessor:
 
         for index, item_id in enumerate(pool.imap_unordered(process_item, item_ids)):
             util.print_progress(index + 1, total)
-        msg = f'expected: {total} | success: {len(successes)} | failed: {len(fails)}'
+        msg = texts.PROCESS_FINISHED_MESSAGE.format(total=total, successes=len(successes), fails=len(fails))
         util.print_done(msg)
         return successes, fails

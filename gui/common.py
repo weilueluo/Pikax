@@ -1,5 +1,5 @@
-import glob
-import re
+import os
+import pickle
 import sys
 import tkinter as tk
 from multiprocessing import Process
@@ -122,3 +122,26 @@ def center(win):
     x = (win.winfo_screenwidth() // 2) - (width // 2)
     y = (win.winfo_screenheight() // 2) - (height // 2)
     win.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+
+
+def config_root(root, title, width, height):
+    root.geometry('{}x{}'.format(width, height))
+    root.configure(borderwidth=0, highlightthickness=0)
+    root.title(title)
+    root.resizable(False, False)
+    center(root)
+    root.protocol("WM_DELETE_WINDOW", root.destroy)
+
+
+def save_to_local(file_path, item):
+    with open(file_path, 'wb') as file:
+        pickle.dump(item, file, pickle.HIGHEST_PROTOCOL)
+
+
+def load_from_local(file_path):
+    with open(file_path, 'rb') as file:
+        return pickle.load(file)
+
+
+def remove_local_file(file_path):
+    os.remove(file_path)
