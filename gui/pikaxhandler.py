@@ -5,6 +5,7 @@ from lib.pikax.exceptions import PikaxException, ArtworkError
 from lib.pikax.items import LoginHandler
 from lib.pikax.pikax import Pikax
 from lib.pikax.result import DefaultPikaxResult
+from lib.pikax.util import trim_to_limit
 
 
 class PikaxHandler:
@@ -37,10 +38,25 @@ class PikaxHandler:
             import sys
             sys.stdout.write(f'Search & download failed, message:\n{e}')
 
-    def download_by_ids(self, illust_ids):
+    def download_by_illust_ids(self, illust_ids):
         try:
             artworks, fails = self.pikax.get_id_processor().process(ids=illust_ids, process_type=params.ProcessType.ILLUST)
             result = DefaultPikaxResult(artworks, download_type=params.DownloadType.ILLUST)
             self.pikax.download(result)
         except ArtworkError as e:
             sys.stdout.write(str(e) + '\n' + 'Likely due to Id does not exists')
+
+    def download_by_artist_id(self, artist_id, limit, content, folder):
+        try:
+            artist = self.pikax.visits(user_id=artist_id)
+
+            if content is params.ContentType.ILLUST:
+                result = artist.illusts(limit=limit)
+            elif content is params.ContentType.MANGA:
+                result = artist.mangas(limit=limit)
+            else:
+                result = artist.bookmarks(limit=limit)
+
+            self.pikax.download(result, folder=folder)
+        except PikaxException as e:
+            sys.stdout.write(str(e))

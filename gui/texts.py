@@ -31,17 +31,30 @@ LOGIN_REGISTER_BUTTON = 'Register'
 LOGIN_REMEMBER_TEXT = 'Remember Me'
 
 
-# ID screen
-ID_SCREEN_ID_OR_URL = 'Illustration(s) id or url'
-ID_SCREEN_DOWNLOAD = 'Download'
-ID_SCREEN_BACK = 'Back'
-ID_SCREEN_NO_ID_FOUND = 'No valid ID found in input\nshould be exactly 8 digits number'
+# Illustration screen
+ILLUSTRATION_ID_OR_URL = 'Illustration ID or URL (s)'
+ILLUSTRATION_DOWNLOAD = 'Download'
+ILLUSTRATION_BACK = 'Back'
+ILLUSTRATION_NO_ID_FOUND = 'No valid ID found in input\nshould be exactly 8 digits number'
+
+
+# Artist
+ARTIST_ID_OR_URL = 'Artist ID or URL'
+ARTIST_DOWNLOAD = 'Download'
+ARTIST_BACK = 'Back'
+ARTIST_CONTENT_SWITCH_VALUES = ['Illustrations', 'Mangas', 'Bookmarks']
+ARTIST_CONTENT_TEXT = 'Content'
+ARTIST_LIMIT_TEXT = 'Limit'
+ARTIST_DOWNLOAD_FOLDER = 'Download Folder'
+ARTIST_NO_ID_FOUND = 'No ID found in input\nShould contains a sequence of digits'
+ARTIST_AMBIGUOUS_ID_FOUND = 'Multiple sequence of digits found\nPlease provide 1 artist ID only'
 
 # menu screen
 MENU_RANK = 'Rank'
-MENU_ID = 'ID'
+MENU_ID = 'Illustration'
 MENU_SEARCH = 'Search'
 MENU_BACK = 'Back'
+MENU_ARTIST = 'Artist'
 
 # rank screen
 RANK_DATE = 'date'

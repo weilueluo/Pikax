@@ -155,6 +155,13 @@ class BookmarkType(PikaxEnum):
             raise KeyError(f'bookmark type: {bookmark_type} is not type of {cls}')
 
 
+# added for gui
+class ContentType(PikaxEnum):
+    ILLUST = enum.auto()
+    MANGA = enum.auto()
+    BOOKMARK = enum.auto()
+
+
 # for testing
 def main():
     assert Type.is_valid(Date.DATE_DESC) is False

@@ -20,15 +20,11 @@ class PikaxOptionMenu(tk.OptionMenu):
         return self.var.get().strip()
 
 
-class PikaxCheckBox(tk.Button):
-    def __init__(self, component, initial=False, text='', *args, **kwargs):
+class PikaxCheckButton(tk.Button):
+    def __init__(self, master, initial=False, text='', *args, **kwargs):
         self.checked = initial
         self.text = text
-        super().__init__(component.master,
-                         padx=component.button_padx,
-                         pady=component.button_pady,
-                         command=self.clicked,
-                         *args, **kwargs)
+        super().__init__(master=master, command=self.clicked, *args, **kwargs)
         self.set(value=self.checked)
 
     def set(self, value=False):
@@ -41,6 +37,27 @@ class PikaxCheckBox(tk.Button):
 
     def get(self):
         return self.checked
+
+
+class PikaxSwitchButton(tk.Button):
+    def __init__(self, master, values, default=None, *args, **kwargs):
+        if default is None:
+            default = values[0]
+
+        self.values = values
+        self.curr_value = default
+        self.curr_index = values.index(self.curr_value)
+        super().__init__(master=master, text=str(self.curr_value), command=self.clicked, *args, **kwargs)
+
+    def get_next_value(self):
+        self.curr_index = (self.curr_index + 1) % len(self.values)
+        return self.values[self.curr_index]
+
+    def get(self):
+        return self.values[self.curr_index]
+
+    def clicked(self, event=None):
+        self.configure(text=str(self.get_next_value()))
 
 
 class PikaxGuiComponent:
@@ -91,6 +108,7 @@ class PikaxGuiComponent:
         self.button_width = 10
         self.title_font_size = 12
         self.dropdown_width = 18
+        self.switch_button_width = 18
         self.button_padx = 10
         self.button_pady = 2
         self.text_padx = 10
@@ -307,13 +325,32 @@ class PikaxGuiComponent:
         )
         return text
 
-    def make_checkbox(self, initial=False, *args, **kwargs):
-        return PikaxCheckBox(component=self,
-                             initial=initial,
-                             bg=self.input_color,
-                             fg=self.display_text_color,
-                             activebackground=self.active_input_color,
-                             highlightthickness=0,
-                             borderwidth=0,
-                             *args, **kwargs)
+    def make_checkbutton(self, initial=False, *args, **kwargs):
+        return PikaxCheckButton(master=self.frame,
+                                initial=initial,
+                                bg=self.input_color,
+                                fg=self.display_text_color,
+                                activebackground=self.active_input_color,
+                                padx=self.button_padx,
+                                pady=self.button_pady,
+                                highlightthickness=0,
+                                borderwidth=0,
+                                *args, **kwargs)
 
+    def make_switchbutton(self, values, default=None, *args, **kwargs):
+        return PikaxSwitchButton(
+            master=self.frame,
+            values=values,
+            default=default,
+            bg=self.input_color,
+            fg=self.display_text_color,
+            padx=self.button_padx,
+            pady=self.button_pady,
+            activebackground=self.active_input_color,
+            highlightthickness=0,
+            borderwidth=0,
+            font=self.dropdown_font,
+            width=self.switch_button_width,
+            *args,
+            **kwargs
+        )

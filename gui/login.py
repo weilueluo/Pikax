@@ -55,7 +55,7 @@ class LoginScreen(PikaxGuiComponent):
         self.output_id = self.add_text(text='', row=26, column=4, columnspan=3, font=self.output_font)
 
         # add checkbox
-        self.remember_me_checkbox = self.make_checkbox(text=texts.LOGIN_REMEMBER_TEXT)
+        self.remember_me_checkbox = self.make_checkbutton(text=texts.LOGIN_REMEMBER_TEXT)
         self.remember_me_checkbox_id = self.add_widget(widget=self.remember_me_checkbox, row=24, column=5)
 
         self.config_texts([self.canvas_username, self.canvas_password, self.output_id])
@@ -104,8 +104,8 @@ class LoginScreen(PikaxGuiComponent):
             self.fill_username_and_password(username=str(account.username), password=str(account.password))
             self.login()
 
-    def make_entry(self):
-        entry = super().make_entry()
+    def make_entry(self, **kwargs):
+        entry = super().make_entry(**kwargs)
         entry.configure(width=27)
         return entry
 
@@ -142,7 +142,7 @@ class LoginScreen(PikaxGuiComponent):
         global _prev_checkbox
         _prev_checkbox = self.remember_me_checkbox.get()
         _prev_username = username
-        _CACHE_PASSWORD = password
+        _prev_password = password
         try:
             self.pikax_handler.login(username, password)
             if self.remember_me_checkbox.get():

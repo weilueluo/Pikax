@@ -14,18 +14,20 @@ class MenuScreen(PikaxGuiComponent):
 
         # create buttons
         self.rank_button = self.make_button(text=texts.MENU_RANK)
-        self.id_button = self.make_button(text=texts.MENU_ID)
         self.search_button = self.make_button(text=texts.MENU_SEARCH)
+        self.illustration_button = self.make_button(text=texts.MENU_ID)
+        self.artist_button = self.make_button(text=texts.MENU_ARTIST)
         self.back_button = self.make_button(text=texts.MENU_BACK)
 
-        self.rank_button_id = self.add_widget(widget=self.rank_button, row=3)
-        self.id_button_id = self.add_widget(widget=self.id_button, row=4)
-        self.search_button_id = self.add_widget(widget=self.search_button, row=5)
+        self.rank_button_id = self.add_widget(widget=self.rank_button, row=2)
+        self.search_button_id = self.add_widget(widget=self.search_button, row=3)
+        self.illustration_button_id = self.add_widget(widget=self.illustration_button, row=4)
+        self.artist_button_id = self.add_widget(widget=self.artist_button, row=5)
         self.back_button_id = self.add_widget(widget=self.back_button, row=7)
 
         self.buttons = [
             self.rank_button,
-            self.id_button,
+            self.illustration_button,
             self.search_button,
             self.back_button
         ]
@@ -37,14 +39,20 @@ class MenuScreen(PikaxGuiComponent):
     def config_buttons(self):
         self.search_button.configure(command=self.search_clicked)
         self.rank_button.configure(command=self.rank_clicked)
-        self.id_button.configure(command=self.id_clicked)
+        self.illustration_button.configure(command=self.id_clicked)
         self.back_button.configure(command=self.back_clicked)
+        self.artist_button.configure(command=self.artist_clicked)
         if not self.pikax_handler.logged:
+            self.artist_button.configure(state=tk.DISABLED)
             self.search_button.configure(state=tk.DISABLED)
 
+    def artist_clicked(self):
+        from artist import ArtistScreen
+        go_to_next_screen(src=self, dest=ArtistScreen)
+
     def id_clicked(self):
-        from id import IdScreen
-        go_to_next_screen(src=self, dest=IdScreen)
+        from illustration import IllustrationScreen
+        go_to_next_screen(src=self, dest=IllustrationScreen)
 
     def rank_clicked(self):
         from rank import RankScreen

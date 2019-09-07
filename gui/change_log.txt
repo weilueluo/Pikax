@@ -1,5 +1,9 @@
 Pikax GUI Change Log
 
+v0.1.4
+- Added support for downloading illusts/mangas/bookmarks of a specific user
+- Renamed ID Screen
+
 v0.1.3
 - Multi-IDs download
 - Remember me option
