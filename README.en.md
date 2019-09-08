@@ -5,7 +5,11 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ## GUI
 - [Change log](https://github.com/Redcxx/Pikax/blob/master/gui/change_log.txt)
 - Login with your Pixiv account or Guest login
-- Support download of Rankings, Search and url/id
+- Support download
+  - Rankings
+  - Searchings
+  - Any user's illustrations/bookmarks/mangas
+  - Any artwork
 - [Download here](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
 ## API
 ````
