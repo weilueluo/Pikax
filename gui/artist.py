@@ -17,7 +17,7 @@ class ArtistScreen(PikaxGuiComponent):
         self.grid_height = 18
         self.id_or_url_entry_width = 50
 
-        # id ro url input
+        # id or url input
         self.id_or_url_text_id = self.add_text(text=texts.ARTIST_ID_OR_URL, row=4, column=9, columnspan=2)
         self.id_or_url_input = self.make_entry()
         self.id_or_url_input_id = self.add_widget(widget=self.id_or_url_input, row=5, column=9, columnspan=2)

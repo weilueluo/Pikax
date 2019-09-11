@@ -22,7 +22,7 @@ class DownloadThread(Thread):
             self.output_area.see(0.0)
 
 
-# this class should be run in a different process
+# instance of this class should be created in a different process
 class DownloadWindow(PikaxGuiComponent):
 
     def __init__(self, target, args=(), kwargs=()):

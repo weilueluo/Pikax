@@ -5,7 +5,6 @@ from lib.pikax.exceptions import PikaxException, ArtworkError
 from lib.pikax.items import LoginHandler
 from lib.pikax.pikax import Pikax
 from lib.pikax.result import DefaultPikaxResult
-from lib.pikax.util import trim_to_limit
 
 
 class PikaxHandler:

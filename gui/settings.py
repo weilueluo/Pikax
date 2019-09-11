@@ -16,7 +16,6 @@ FILE_SUFFIX = '.pikaxdata'
 LOGIN_CREDENTIAL_FILE = 'login_credential' + FILE_SUFFIX
 
 
-
 #
 # Windows 10 Fonts
 #

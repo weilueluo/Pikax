@@ -9,64 +9,13 @@ import texts
 from common import crop_to_dimension, get_background_file_path
 
 
-class PikaxOptionMenu(tk.OptionMenu):
-
-    def __init__(self, master, default, *args, **kwargs):
-        self.var = tk.StringVar(master)
-        self.var.set(default)
-        super().__init__(master, self.var, *args, **kwargs)
-
-    def get(self):
-        return self.var.get().strip()
-
-
-class PikaxCheckButton(tk.Button):
-    def __init__(self, master, initial=False, text='', *args, **kwargs):
-        self.checked = initial
-        self.text = text
-        super().__init__(master=master, command=self.clicked, *args, **kwargs)
-        self.set(value=self.checked)
-
-    def set(self, value=False):
-        self.checked = value
-        text = texts.TICK + ' ' + self.text if self.checked else texts.CROSS + ' ' + self.text
-        self.configure(text=text)
-
-    def clicked(self, event=None):
-        self.set(value=not self.checked)
-
-    def get(self):
-        return self.checked
-
-
-class PikaxSwitchButton(tk.Button):
-    def __init__(self, master, values, default=None, *args, **kwargs):
-        if default is None:
-            default = values[0]
-
-        self.values = values
-        self.curr_value = default
-        self.curr_index = values.index(self.curr_value)
-        super().__init__(master=master, text=str(self.curr_value), command=self.clicked, *args, **kwargs)
-
-    def get_next_value(self):
-        self.curr_index = (self.curr_index + 1) % len(self.values)
-        return self.values[self.curr_index]
-
-    def get(self):
-        return self.values[self.curr_index]
-
-    def clicked(self, event=None):
-        self.configure(text=str(self.get_next_value()))
-
-
-class PikaxGuiComponent:
-
+# this class provide settings for all pikax gui component
+class PikaxBaseComponent:
     def __init__(self, master, pikax_handler):
         self.master = master
         self.frame = self.make_frame(borderwidth=0, highlightthickness=0)
         self.pikax_handler = pikax_handler
-        # this is important when opening another window, else winfo width & height will return 1
+        # this update is important when opening another different window, else winfo width & height will return 1
         self.master.update()
         self.width = self.master.winfo_width()
         self.height = self.master.winfo_height()
@@ -83,19 +32,16 @@ class PikaxGuiComponent:
         self.text_font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE,
                                    weight=font.BOLD)
         self.input_font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 2)
-        self.button_font = self.input_font
-        self.dropdown_font = self.input_font
         self.output_font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 4)
         self.canvas_artist_font = font.Font(family='Courier', size=10)
 
         # text colors
-        self.title_color = '#51abc2'
         self.display_text_color = '#51abc2'
+        self.title_color = '#51abc2'
         self.input_text_color = 'white'
         self.artist_name_color = '#1b5361'
 
         # button colors
-        self.button_color = '#1b5361'
         self.input_color = '#1b5361'
         self.active_input_color = '#0c313b'
         self.cursor_color = 'white'
@@ -105,14 +51,166 @@ class PikaxGuiComponent:
         self.grid_width = self.width
 
         # sizes
-        self.button_width = 10
         self.title_font_size = 12
-        self.dropdown_width = 18
-        self.switch_button_width = 18
-        self.button_padx = 10
-        self.button_pady = 2
         self.text_padx = 10
         self.text_pady = 10
+
+    def make_frame(self, *args, **kwargs):
+        return tk.Frame(master=self.master, *args, **kwargs)
+
+
+class PikaxButton(tk.Button):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.bg_color = '#1b5361'
+        self.fg_color = '#51abc2'
+        self.bg_hover_color = '#186b73'
+        self.fg_hover_color = '#2eccdb'
+        self.active_color = '#0c313b'
+        self.width = 10
+        self.padx = 10
+        self.pady = 2
+        self.font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 2)
+
+        self.configure(relief=tk.FLAT,
+                       padx=self.padx,
+                       pady=self.pady,
+                       borderwidth=0,
+                       highlightthickness=0,
+                       activebackground=self.active_color,
+                       bg=self.bg_color,
+                       fg=self.fg_color,
+                       width=self.width,
+                       font=self.font
+                       )
+
+        self.bind('<Enter>', lambda e: e.widget.configure(bg=self.bg_hover_color, fg=self.fg_hover_color))
+        self.bind('<Leave>', lambda e: e.widget.configure(bg=self.bg_color, fg=self.fg_color))
+
+
+class PikaxOptionMenu(tk.OptionMenu):
+
+    def __init__(self, master, default, *args, **kwargs):
+        self.var = tk.StringVar(master)
+        self.var.set(default)
+        super().__init__(master, self.var, *args, **kwargs)
+
+    def get(self):
+        return self.var.get().strip()
+
+
+class PikaxCheckButton(PikaxButton):
+    def __init__(self, master, initial=False, text='', *args, **kwargs):
+        super().__init__(master=master, command=self.clicked, *args, **kwargs)
+        self.checked = initial
+        self.text = text
+        self.set(value=self.checked)
+
+        self.padx = 20
+        self.font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 4)
+        self.configure(font=self.font, padx=self.padx)
+
+    def set(self, value=False):
+        self.checked = value
+        text = texts.TICK + ' ' + self.text if self.checked else texts.CROSS + ' ' + self.text
+        self.configure(text=text)
+
+    def clicked(self, event=None):
+        self.set(value=not self.checked)
+
+    def get(self):
+        return self.checked
+
+
+class PikaxSwitchButton(PikaxButton):
+    def __init__(self, master, values, default=None, *args, **kwargs):
+        if default is None:
+            default = values[0]
+
+        self.values = values
+        self.curr_value = default
+        self.curr_index = values.index(self.curr_value)
+        super().__init__(master=master, text=str(self.curr_value), command=self.clicked, *args, **kwargs)
+
+        self.width = 18
+        self.configure(width=self.width)
+
+    def get_next_value(self):
+        self.curr_index = (self.curr_index + 1) % len(self.values)
+        return self.values[self.curr_index]
+
+    def get(self):
+        return self.values[self.curr_index]
+
+    def clicked(self, event=None):
+        self.configure(text=str(self.get_next_value()))
+
+
+dropdown_counter = 0
+
+
+class PikaxDropdown(ttk.Combobox):
+
+    def __init__(self, master, default, choices, **kwargs):
+        global dropdown_counter
+        self.combo_style_name = f'custom{dropdown_counter}.TCombobox'
+        dropdown_counter += 1
+        self.combo_style = ttk.Style()
+        self.bg_color = '#1b5361'
+        self.fg_color = 'white'
+        self.bg_hover_color = '#186b73'
+        self.fg_hover_color = '#2eccdb'
+        self.width = 18
+        super().__init__(master=master, values=choices, style=self.combo_style_name)
+        self.set_style()
+
+        self.font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 2)
+        self.set(default)
+        self.configure(
+            width=self.width,
+            font=self.font,
+            state='readonly',
+            justify=tk.CENTER,
+            **kwargs
+        )
+        self.option_add('*TCombobox*Listbox.Justify', 'center')
+        self.bind('<Enter>', lambda _: self.hover_enter())
+        self.bind('<Leave>', lambda _: self.hover_leave())
+
+    def hover_enter(self):
+        self.combo_style.map(self.combo_style_name,
+                             fieldbackground=[('readonly', self.bg_hover_color)],
+                             selectbackground=[('readonly', self.fg_hover_color)]
+                             )
+
+    def hover_leave(self):
+        self.combo_style.map(self.combo_style_name,
+                             fieldbackground=[('readonly', self.bg_color)],
+                             selectbackground=[('readonly', self.fg_color)]
+                             )
+
+    def set_style(self):
+        self.combo_style.theme_use('classic')
+        self.combo_style.map(self.combo_style_name,
+                             selectbackground=[('readonly', self.bg_color)],
+                             fieldbackground=[('readonly', self.bg_color)],
+                             foreground=[('readonly', self.fg_color)],
+                             background=[('readonly', self.bg_color)],
+                             borderwidth=[('readonly', 0)],
+                             highlightthickness=[('readonly', 0)],
+                             width=[('readonly', self.width)],
+                             justify=[('readonly', tk.CENTER)]
+                             )
+        self.master.option_add('*TCombobox*Listbox.background', self.bg_color)
+        self.master.option_add('*TCombobox*Listbox.foreground', self.fg_color)
+        self.configure(state='readonly')
+
+
+class PikaxGuiComponent(PikaxBaseComponent):
+
+    def __init__(self, master, pikax_handler):
+
+        super().__init__(master=master, pikax_handler=pikax_handler)
 
         #
         # default operations
@@ -137,34 +235,13 @@ class PikaxGuiComponent:
             columnspan=2, font=self.canvas_artist_font,
             color=self.artist_name_color)
 
-        # set combobox style
-        combo_style = ttk.Style()
-        combo_style_name = 'combo_style'
-        if combo_style_name not in combo_style.theme_names():
-            combo_style.theme_create(combo_style_name, parent='classic',
-                                     settings={'TCombobox': {'configure': {
-                                         'selectbackground': self.input_color,
-                                         'fieldbackground': self.input_color,
-                                         'background': self.input_color,
-                                         'foreground': self.input_text_color,
-                                         'borderwidth': 0,
-                                         'highlightthickness': 0,
-                                         'width': self.dropdown_width,
-                                         'justify': tk.CENTER
-                                     }}},
-                                     )
-            # ATTENTION: this applies the new style 'combo_style' to all ttk.Combobox
-            combo_style.theme_use(combo_style_name)
-            self.master.option_add('*TCombobox*Listbox.background', self.input_color)
-            self.master.option_add('*TCombobox*Listbox.foreground', self.input_text_color)
-
     def destroy(self):
         self.frame.destroy()
 
     def get_cropped_image(self, image_path, focus=tk.CENTER):
         im = crop_to_dimension(Image.open(image_path), focus=focus, width_ratio=self.width, height_ratio=self.height)
         im = im.resize((self.width, self.height))
-        im = ImageTk.PhotoImage(image=im)
+        im = ImageTk.PhotoImage(master=self.frame, image=im)
         return im
 
     def set_canvas(self, image_path, focus):
@@ -257,39 +334,13 @@ class PikaxGuiComponent:
         webbrowser.open(settings.ISSUE_URL)
 
     def make_button(self, *args, **kwargs):
-        return tk.Button(master=self.frame,
-                         relief=tk.FLAT,
-                         padx=self.button_padx,
-                         pady=self.button_pady,
-                         borderwidth=0,
-                         highlightthickness=0,
-                         activebackground=self.active_input_color,
-                         bg=self.button_color,
-                         fg=self.display_text_color,
-                         width=self.button_width,
-                         font=self.button_font,
-                         *args,
-                         **kwargs
-                         )
+        return PikaxButton(master=self.frame, *args, **kwargs)
 
     def make_label(self, *args, **kwargs):
         return tk.Label(master=self.frame, *args, **kwargs)
 
-    def make_frame(self, *args, **kwargs):
-        return tk.Frame(master=self.master, *args, **kwargs)
-
     def make_dropdown(self, default, choices, **kwargs):
-        dropdown = ttk.Combobox(self.frame, values=choices)
-        dropdown.set(default)
-        dropdown.configure(
-            width=self.dropdown_width,
-            font=self.dropdown_font,
-            state='readonly',
-            justify=tk.CENTER,
-            **kwargs
-        )
-        dropdown.option_add('*TCombobox*Listbox.Justify', 'center')
-        return dropdown
+        return PikaxDropdown(master=self.frame, default=default, choices=choices, **kwargs)
 
     def make_entry(self, justify=tk.CENTER, *args, **kwargs):
         return tk.Entry(
@@ -326,31 +377,13 @@ class PikaxGuiComponent:
         return text
 
     def make_checkbutton(self, initial=False, *args, **kwargs):
-        return PikaxCheckButton(master=self.frame,
-                                initial=initial,
-                                bg=self.input_color,
-                                fg=self.display_text_color,
-                                activebackground=self.active_input_color,
-                                padx=self.button_padx,
-                                pady=self.button_pady,
-                                highlightthickness=0,
-                                borderwidth=0,
-                                *args, **kwargs)
+        return PikaxCheckButton(master=self.frame, initial=initial, *args, **kwargs)
 
     def make_switchbutton(self, values, default=None, *args, **kwargs):
         return PikaxSwitchButton(
             master=self.frame,
             values=values,
             default=default,
-            bg=self.input_color,
-            fg=self.display_text_color,
-            padx=self.button_padx,
-            pady=self.button_pady,
-            activebackground=self.active_input_color,
-            highlightthickness=0,
-            borderwidth=0,
-            font=self.dropdown_font,
-            width=self.switch_button_width,
             *args,
             **kwargs
         )
