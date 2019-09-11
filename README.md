@@ -5,7 +5,11 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 ## 图形界面版
 - [日志](https://github.com/Redcxx/Pikax/blob/master/gui/change_log.txt)
 - 用P站账号或游客登录即可
-- 支持下载排行榜，搜索，ID
+- 支持下载
+  - 排行榜
+  - 搜索
+  - 特定用户所有的插画、收藏、漫画
+  - 任意URL的插画、漫画
 - [下载](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
 ## 接口版
 ````
