@@ -3,6 +3,7 @@
 Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) mass downloading tool
 #### [Chinese ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.md)
 ## GUI
+> Does not provide support for using behind The Great FireWall, please use VPN or Airplane 
 - [Change log](https://github.com/Redcxx/Pikax/blob/master/gui/change_log.txt)
 - Login with your Pixiv account or Guest login
 - Support download
