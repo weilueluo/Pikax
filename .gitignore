@@ -3,7 +3,7 @@
 *.jpg
 *.html
 *.txt
-!gui/change_log.txt
+!gui/dist/change_log.txt
 *.gif
 *.toc
 gui/build/main/*
