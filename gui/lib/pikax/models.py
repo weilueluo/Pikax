@@ -1,6 +1,7 @@
 import datetime
 import functools
 import math
+import multiprocessing
 import operator
 import os
 from multiprocessing.dummy import Pool
@@ -364,36 +365,39 @@ class BaseDownloader:
 
         download_function = self.download_type_to_function[pikax_result.download_type]
         download_function = functools.partial(download_function, folder=folder)
-        artworks = pikax_result.artworks
-        successes = []
-        fails = []
-        skips = []
-        total_pages = sum(len(artwork) for artwork in artworks)
-        total_artworks = len(artworks)
-        curr_page = 0
-        curr_artwork = 0
-        pool = Pool()
-        util.log(texts.DOWNLOAD_INITIALIZING.format(total_pages=total_pages, total_artworks=total_artworks),
-                 start=os.linesep,
-                 inform=True)
+        # artworks = pikax_result.artworks
+        # successes = []
+        # fails = []
+        # skips = []
+        # total_pages = sum(len(artwork) for artwork in artworks)
+        # total_artworks = len(artworks)
+        # curr_page = 0
+        # curr_artwork = 0
+        # pool = multiprocessing.Pool(os.cpu_count())
+        # chunksize = int(total_pages / 8) if int(total_pages / 8) > 1 else 1
+        # util.log(texts.DOWNLOAD_INITIALIZING.format(total_pages=total_pages, total_artworks=total_artworks),
+        #          start=os.linesep,
+        #          inform=True)
+        # for download_details in pool.imap_unordered(download_function, artworks, chunksize=chunksize):
 
-        for download_details in pool.imap_unordered(download_function, artworks):
-            curr_artwork += 1
-            for download_detail in download_details:
-                curr_page += 1
-                if settings.MAX_PAGES_PER_ARTWORK and curr_page > settings.MAX_PAGES_PER_ARTWORK:
-                    break
-                status, msg = download_detail
-                info = str(msg) + ' ' + str(status.value)
-                if status is Artwork.DownloadStatus.OK:
-                    successes.append(msg)
-                elif status is Artwork.DownloadStatus.SKIPPED:
-                    skips.append(msg)
-                else:
-                    fails.append(msg)
-                info = f'{curr_artwork} / {total_artworks} ' \
-                       f'=> {math.ceil((curr_artwork / total_artworks) * 100)}% | ' + info
-                util.print_progress(curr_page, total_pages, msg=info)
+        from common import concurrent_download
+        successes, skips, fails = concurrent_download(target=download_function, pikax_result=pikax_result)
+        #     curr_artwork += 1
+        #     for download_detail in download_details:
+        #         curr_page += 1
+        #         if settings.MAX_PAGES_PER_ARTWORK and curr_page > settings.MAX_PAGES_PER_ARTWORK:
+        #             break
+        #         status, msg = download_detail
+        #         info = str(msg) + ' ' + str(status.value)
+        #         if status is Artwork.DownloadStatus.OK:
+        #             successes.append(msg)
+        #         elif status is Artwork.DownloadStatus.SKIPPED:
+        #             skips.append(msg)
+        #         else:
+        #             fails.append(msg)
+        #         info = f'{curr_artwork} / {total_artworks} ' \
+        #                f'=> {math.ceil((curr_artwork / total_artworks) * 100)}% | ' + info
+        #         util.print_progress(curr_page, total_pages, msg=info)
         util.print_done()
 
         finish_msg = ''

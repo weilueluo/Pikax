@@ -5,13 +5,14 @@ from tkinter import font
 import settings
 import texts
 from common import config_root
+import multiprocessing as mp
 from models import PikaxGuiComponent
 
 
 class DownloadThread(Thread):
 
     def __init__(self, target, args=(), kwargs=(), output_area=None, button=None):
-        super().__init__(target=target, args=args, kwargs=kwargs)
+        super().__init__(target=target, args=args, kwargs=kwargs, daemon=True)
         self.output_area = output_area
         self.button = button
 

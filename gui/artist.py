@@ -51,6 +51,7 @@ class ArtistScreen(PikaxGuiComponent):
         self.redirect_output_to(self.output_area_id, text_widget=False)
 
         # config & pack
+        self.inputs = [self.id_or_url_input, self.limit_entry, self.download_folder_entry, self.content_switchbutton]
         self.config()
         self.frame.pack_configure(expand=True)
         self.pack(self.frame)
@@ -59,8 +60,10 @@ class ArtistScreen(PikaxGuiComponent):
         self.id_or_url_input.configure(width=self.id_or_url_entry_width)
         self.back_button.configure(command=self.back_clicked)
         self.download_button.configure(command=self.download_clicked)
+        for input_widget in self.inputs:
+            input_widget.bind('<Return>', self.download_clicked)
 
-    def download_clicked(self):
+    def download_clicked(self, _=None):
         artist_id_search = re.findall(r'\d+', str(self.id_or_url_input.get()), re.S)
         limit = self.limit_entry.get().strip()
         if not limit:

@@ -1,5 +1,6 @@
 import datetime
 import enum
+import multiprocessing
 import os
 from multiprocessing.dummy import Pool
 from typing import List, Tuple, Union, Type, Any
@@ -114,7 +115,7 @@ class BaseIDProcessor:
         total = len(item_ids)
         successes = []
         fails = []
-        pool = Pool()
+        pool = Pool(os.cpu_count())
 
         def process_item(itemid):
             try:

@@ -321,7 +321,7 @@ def multiprocessing_(items, small_list_executor, results_saver=None):
         num_of_items_per_process = math.ceil(num_of_items / num_of_processes)
         if num_of_items_per_process < settings.MIN_ITEMS_PER_THREAD:
             num_of_processes -= 1
-            num_of_items_per_process = num_of_items  # if next condition failed, num_of_processes = 1
+            num_of_items_per_process = num_of_items  # if next condition failed, num_of_routine = 1
         else:
             break
 

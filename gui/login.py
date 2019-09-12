@@ -58,7 +58,6 @@ class LoginScreen(PikaxGuiComponent):
         self.remember_me_checkbox = self.make_checkbutton(text=texts.LOGIN_REMEMBER_TEXT)
         self.remember_me_checkbox_id = self.add_widget(widget=self.remember_me_checkbox, row=24, column=5)
 
-        self.config_texts([self.canvas_username, self.canvas_password, self.output_id])
         self.config_buttons()
         self.config_output()
         self.config_entries()
@@ -108,10 +107,6 @@ class LoginScreen(PikaxGuiComponent):
         entry = super().make_entry(**kwargs)
         entry.configure(width=27)
         return entry
-
-    def config_texts(self, texts):
-        for item in texts:
-            self.canvas.itemconfigure(item, fill=self.display_text_color)
 
     def config_output(self):
         self.redirect_output_to(self.output_id, text_widget=False)

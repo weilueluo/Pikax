@@ -30,6 +30,7 @@ _warn_enabled = settings.LOG_WARN
 
 __all__ = ['log', 'req', 'json_loads', 'trim_to_limit', 'clean_filename', 'print_json']
 
+
 # changed for gui
 def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,
         warn=False, normal=False):
@@ -240,6 +241,7 @@ def print_json(json_obj):
 
 def new_session():
     return requests.Session()
+
 
 # changed for gui
 class Printer(object):

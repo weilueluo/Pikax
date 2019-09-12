@@ -1,12 +1,18 @@
+import functools
+import math
+import multiprocessing as mp
 import os
 import pickle
 import sys
 import threading
 import tkinter as tk
-from multiprocessing import Process
+from multiprocessing import dummy
 from tkinter import END, NORMAL, DISABLED, Text, Entry, TclError
 
 import settings
+import texts
+from lib.pikax import util
+from lib.pikax.api.models import Artwork
 
 _screen_lock = threading.Lock()
 
@@ -24,7 +30,7 @@ def go_to_next_screen(src, dest):
 
 def download(target, args=(), kwargs=()):
     from download import DownloadWindow
-    Process(target=DownloadWindow, args=(target, args, kwargs)).start()
+    mp.Process(target=DownloadWindow, args=(target, args, kwargs)).start()
 
 
 def remove_invalid_chars(string):
@@ -33,10 +39,17 @@ def remove_invalid_chars(string):
 
 class StdoutTextWidgetRedirector:
     def __init__(self, text_component):
+        self.queue = mp.Queue()
         self.text_component = text_component
         self.text_component.tag_configure('center', justify=tk.CENTER)
+        threading.Thread(target=self.receiver, daemon=True).start()
 
-    def write(self, string, append=False):
+    def receiver(self):
+        while True:
+            item = self.queue.get()
+            self._write(*item)
+
+    def _write(self, string, append=False):
         try:
             string = remove_invalid_chars(string)
             self.text_component.configure(state=NORMAL)
@@ -54,8 +67,23 @@ class StdoutTextWidgetRedirector:
             else:
                 raise TypeError('Not text or entry')
             self.text_component.configure(state=DISABLED)
-        except TclError as e:  # should not happen
+        except TclError as e:
             sys.stderr.write(str(e))
+
+    def write(self, string, append=False):
+        self.queue.put((string, append))
+
+    def flush(self):
+        pass
+
+
+class StdoutPipeWriter:
+
+    def __init__(self, pipe):
+        self.pipe = pipe
+
+    def write(self, string):
+        self.pipe.put(string)
 
     def flush(self):
         pass
@@ -65,8 +93,18 @@ class StdoutCanvasTextRedirector:
     def __init__(self, canvas, text_id):
         self.text_id = text_id
         self.canvas = canvas
+        self.queue = mp.Queue()
+        threading.Thread(target=self.receiver, daemon=True).start()
+
+    def receiver(self):
+        while True:
+            string = self.queue.get()
+            self._write(string)
 
     def write(self, string):
+        self.queue.put(string)
+
+    def _write(self, string):
         try:
             self.canvas.itemconfigure(self.text_id, text=remove_invalid_chars(string))
         except TclError as e:
@@ -151,3 +189,137 @@ def load_from_local(file_path):
 
 def remove_local_file(file_path):
     os.remove(file_path)
+
+
+#
+# multiprocessing stuff below
+#
+def _get_num_of_processes():
+    num = os.cpu_count()
+    try:
+        if settings.MAX_PROCESSES and settings.MAX_PROCESSES > num:
+            return settings.MAX_PROCESSES
+        else:
+            return num
+    except AttributeError:
+        return num
+
+
+# total must be positive
+def _get_num_of_items_for_each_routine(total, num_of_routine):
+    if num_of_routine < 1:
+        return 1, total
+
+    num_of_item_for_each_process = int(total / num_of_routine) + 1 if num_of_routine > 1 else int(
+        total / num_of_routine)
+
+    if num_of_item_for_each_process < 1:
+        num_of_item_for_each_process = 1
+
+    try:
+        if settings.MIN_ITEMS_EACH_PROCESS and settings.MIN_ITEMS_EACH_PROCESS > num_of_item_for_each_process:
+            return _get_num_of_items_for_each_routine(total, num_of_routine=num_of_routine - 1)
+        else:
+            return num_of_routine, num_of_item_for_each_process
+    except AttributeError:
+        return num_of_routine, num_of_item_for_each_process
+
+
+def serial(target, items):
+    for item in items:
+        yield target(item)
+
+
+def threads(target, items):
+    num_of_threads = settings.THREADS_EACH_PROCESS if settings.THREADS_EACH_PROCESS else 4
+    pool = dummy.Pool(num_of_threads)
+    yield from pool.imap_unordered(target=serial, args=(target, items))
+
+
+# basically a copy of StdoutTextRedirector
+# rebuild in the new process from the old queue
+# to avoid pickling tk app as it is not possible
+class QueueWriter:
+    def __init__(self, queue):
+        self.queue = queue
+
+    def write(self, string, append=False):
+        self.queue.put((string, append))
+
+    def flush(self):
+        pass
+
+
+def download_func(items, target, curr_artwork, curr_page, total_artworks, total_pages, successes, fails, skips, queue):
+    import sys
+    sys.stdout = QueueWriter(queue)
+    for item in items:
+        download_details = target(item)
+        curr_artwork.value += 1
+        for download_detail in download_details:
+            curr_page.value += 1
+            status, msg = download_detail
+            info = str(msg) + ' ' + str(status.value)
+            if status is Artwork.DownloadStatus.OK:
+                successes.append(msg)
+            elif status is Artwork.DownloadStatus.SKIPPED:
+                skips.append(msg)
+            else:
+                fails.append(msg)
+            info = f'{curr_artwork.value} / {total_artworks} ' \
+                   f'=> {math.ceil((curr_artwork.value / total_artworks) * 100)}% | ' + info
+            util.print_progress(curr_page.value, total_pages, msg=info)
+
+
+def concurrent_download(target, pikax_result):
+    import sys
+    artworks = pikax_result.artworks
+    total_pages = sum(len(artwork) for artwork in artworks)
+    total_artworks = len(artworks)
+    manager = mp.Manager()
+    curr_artwork = manager.Value('i', 0)
+    curr_page = manager.Value('i', 0)
+    successes = manager.list()
+    fails = manager.list()
+    skips = manager.list()
+    num_of_processes, num_of_items_for_each_process = \
+        _get_num_of_items_for_each_routine(total_artworks,
+                                           num_of_routine=_get_num_of_processes())
+
+    partial_target = functools.partial(download_func,
+                                       target=target,
+                                       curr_artwork=curr_artwork,
+                                       curr_page=curr_page,
+                                       total_pages=total_pages,
+                                       total_artworks=total_artworks,
+                                       successes=successes,
+                                       fails=fails,
+                                       skips=skips,
+                                       queue=sys.stdout.queue
+                                       )
+
+    util.log(texts.DOWNLOAD_INITIALIZING.format(total_pages=total_pages, total_artworks=total_artworks),
+             start=os.linesep,
+             inform=True)
+
+    processes = []
+    for i in range(num_of_processes):
+        process = mp.Process(target=partial_target,
+                             kwargs={'items':
+                                         artworks[
+                                         i * num_of_items_for_each_process: (i + 1) * num_of_items_for_each_process]},
+                             daemon=True
+                             )
+        processes.append(process)
+
+    for process in processes:
+        process.start()
+
+    for process in processes:
+        process.join()
+
+    return successes, skips, fails
+
+
+if __name__ == '__main__':
+    print(_get_num_of_items_for_each_routine(11, num_of_routine=_get_num_of_processes()))

@@ -6,7 +6,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 > Does not provide support for using behind The Great FireWall, please use VPN or Airplane 
 - [Change log](https://github.com/Redcxx/Pikax/blob/master/gui/change_log.txt)
 - Login with your Pixiv account or Guest login
-- Support download
+- Support multiprocessing download
   - Rankings
   - Searchings
   - Any user's illustrations/bookmarks/mangas
@@ -32,7 +32,6 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   - mode, limit, date, content
 - Yours or others
   - illustrations, mangas, bookmarks
-- Multiprocessing & multithreading download
 
 
 ## Features incoming

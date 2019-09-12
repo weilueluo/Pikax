@@ -6,7 +6,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 > 不提供翻墙，请使用VPN或者飞机
 - [日志](https://github.com/Redcxx/Pikax/blob/master/gui/change_log.txt)
 - 用P站账号或游客登录即可
-- 支持下载
+- 支持多核下载
   - 排行榜
   - 搜索
   - 特定用户所有的插画、收藏、漫画
@@ -32,7 +32,6 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   - 日期，数量，模式，内容种类
 - 你的或者别人的
   - 插画，漫画，收藏
-- 多核多线程下载
 
 ## 在计划中的功能
 - 搜索画师

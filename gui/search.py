@@ -53,12 +53,28 @@ class SearchScreen(PikaxGuiComponent):
         self.back_button_id = self.add_widget(widget=self.back_button, column=5, row=7)
         self.search_and_download_button_id = self.add_widget(self.search_and_download_button, column=9, row=7)
 
+        # add output
+        self.output_id = self.add_text(text='', row=8, column=7, font=self.output_font)
+        self.redirect_output_to(self.output_id, text_widget=False)
+
         # config
+        self.config()
+
+    def config(self):
+        inputs = [
+            self.keyword_entry,
+            self.limit_entry,
+            self.match_dropdown,
+            self.sort_dropdown,
+            self.popularity_dropdown,
+            self.download_folder_entry,
+        ]
         self.config_buttons()
-        for widget in self.frame.children.values():
-            widget.bind('<Return>', self.search_and_download_clicked)
+        for input_widget in inputs:
+            input_widget.bind('<Return>', self.search_and_download_clicked)
         self.frame.pack_configure(expand=True)
         self.pack(self.frame)
+        inputs[0].focus_set()
 
     def config_buttons(self):
         self.search_and_download_button.configure(command=self.search_and_download_clicked)
@@ -70,7 +86,7 @@ class SearchScreen(PikaxGuiComponent):
     def back_clicked(self):
         go_to_next_screen(src=self, dest=MenuScreen)
 
-    def search_and_download_clicked(self):
+    def search_and_download_clicked(self, _=None):
         try:
             keyword = str(self.keyword_entry.get())
             if not keyword:

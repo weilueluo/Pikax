@@ -53,11 +53,21 @@ class RankScreen(PikaxGuiComponent):
         self.redirect_output_to(self.output_id, text_widget=False)
 
         # config
+        self.config()
+
+    def config(self):
+        inputs = [
+            self.date_entry,
+            self.limit_entry,
+            self.type_dropdown,
+            self.content_dropdown,
+            self.download_folder_entry
+        ]
         self.config_buttons()
-        for widget in self.frame.children.values():
-            widget.bind('<Return>', self.download_clicked)
-        self.date_entry.focus_set()
+        for input_widget in inputs:
+            input_widget.bind('<Return>', self.download_clicked)
         self.pack(self.frame, expand=True)
+        inputs[0].focus_set()
 
     def config_buttons(self):
         self.back_button.configure(command=self.back_clicked)
