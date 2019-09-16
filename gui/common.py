@@ -1,18 +1,12 @@
-import functools
-import math
 import multiprocessing as mp
 import os
 import pickle
 import sys
 import threading
 import tkinter as tk
-from multiprocessing import dummy
 from tkinter import END, NORMAL, DISABLED, Text, Entry, TclError
 
 import settings
-import texts
-from lib.pikax import util
-from lib.pikax.api.models import Artwork
 
 _screen_lock = threading.Lock()
 
@@ -45,9 +39,12 @@ class StdoutTextWidgetRedirector:
         threading.Thread(target=self.receiver, daemon=True).start()
 
     def receiver(self):
-        while True:
-            item = self.queue.get()
-            self._write(*item)
+        try:
+            while True:
+                item = self.queue.get()
+                self._write(*item)
+        except (EOFError, BrokenPipeError) as e:
+            sys.stderr.write(str(e))
 
     def _write(self, string, append=False):
         try:
@@ -225,17 +222,6 @@ def _get_num_of_items_for_each_routine(total, num_of_routine):
         return num_of_routine, num_of_item_for_each_process
 
 
-def serial(target, items):
-    for item in items:
-        yield target(item)
-
-
-def threads(target, items):
-    num_of_threads = settings.THREADS_EACH_PROCESS if settings.THREADS_EACH_PROCESS else 4
-    pool = dummy.Pool(num_of_threads)
-    yield from pool.imap_unordered(target=serial, args=(target, items))
-
-
 # basically a copy of StdoutTextRedirector
 # rebuild in the new process from the old queue
 # to avoid pickling tk app as it is not possible
@@ -250,64 +236,32 @@ class QueueWriter:
         pass
 
 
-def download_func(items, target, curr_artwork, curr_page, total_artworks, total_pages, successes, fails, skips, queue):
+def queue_downloader(target, queue, stdout_queue):
     import sys
-    sys.stdout = QueueWriter(queue)
-    for item in items:
-        download_details = target(item)
-        curr_artwork.value += 1
-        for download_detail in download_details:
-            curr_page.value += 1
-            status, msg = download_detail
-            info = str(msg) + ' ' + str(status.value)
-            if status is Artwork.DownloadStatus.OK:
-                successes.append(msg)
-            elif status is Artwork.DownloadStatus.SKIPPED:
-                skips.append(msg)
-            else:
-                fails.append(msg)
-            info = f'{curr_artwork.value} / {total_artworks} ' \
-                   f'=> {math.ceil((curr_artwork.value / total_artworks) * 100)}% | ' + info
-            util.print_progress(curr_page.value, total_pages, msg=info)
+    sys.stdout = QueueWriter(stdout_queue)
+    try:
+        while True:
+            item = queue.get()
+            if item is None:
+                break
+            target(item)
+    except (EOFError, BrokenPipeError) as e:
+        sys.stderr.write(str(e))
 
 
-def concurrent_download(target, pikax_result):
-    import sys
-    artworks = pikax_result.artworks
-    total_pages = sum(len(artwork) for artwork in artworks)
-    total_artworks = len(artworks)
-    manager = mp.Manager()
-    curr_artwork = manager.Value('i', 0)
-    curr_page = manager.Value('i', 0)
-    successes = manager.list()
-    fails = manager.list()
-    skips = manager.list()
-    num_of_processes, num_of_items_for_each_process = \
-        _get_num_of_items_for_each_routine(total_artworks,
-                                           num_of_routine=_get_num_of_processes())
+def concurrent_download(target, items):
+    num_of_processes = _get_num_of_processes()
 
-    partial_target = functools.partial(download_func,
-                                       target=target,
-                                       curr_artwork=curr_artwork,
-                                       curr_page=curr_page,
-                                       total_pages=total_pages,
-                                       total_artworks=total_artworks,
-                                       successes=successes,
-                                       fails=fails,
-                                       skips=skips,
-                                       queue=sys.stdout.queue
-                                       )
-
-    util.log(texts.DOWNLOAD_INITIALIZING.format(total_pages=total_pages, total_artworks=total_artworks),
-             start=os.linesep,
-             inform=True)
-
+    queue = mp.Queue(maxsize=num_of_processes)
     processes = []
+    stdout_queue = sys.stdout.queue
     for i in range(num_of_processes):
-        process = mp.Process(target=partial_target,
-                             kwargs={'items':
-                                         artworks[
-                                         i * num_of_items_for_each_process: (i + 1) * num_of_items_for_each_process]},
+        process = mp.Process(target=queue_downloader,
+                             kwargs={
+                                 'target': target,
+                                 'queue': queue,
+                                 'stdout_queue': stdout_queue
+                             },
                              daemon=True
                              )
         processes.append(process)
@@ -315,10 +269,14 @@ def concurrent_download(target, pikax_result):
     for process in processes:
         process.start()
 
+    for item in items:
+        queue.put(item)
+
+    for _ in range(num_of_processes):  # tell processes to stop, internal protocol
+        queue.put(None)
+
     for process in processes:
         process.join()
-
-    return successes, skips, fails
 
 
 if __name__ == '__main__':

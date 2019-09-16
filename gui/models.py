@@ -65,7 +65,7 @@ class PikaxCheckButton(PikaxButton):
         text = texts.TICK + ' ' + self.text if self.checked else texts.CROSS + ' ' + self.text
         self.configure(text=text)
 
-    def clicked(self, event=None):
+    def clicked(self, _=None):
         self.set(value=not self.checked)
 
     def get(self):
@@ -92,7 +92,7 @@ class PikaxSwitchButton(PikaxButton):
     def get(self):
         return self.values[self.curr_index]
 
-    def clicked(self, event=None):
+    def clicked(self, _=None):
         self.configure(text=str(self.get_next_value()))
 
 
@@ -209,7 +209,6 @@ class PikaxDropdown(ttk.Combobox):
         self.master.option_add('*TCombobox*Listbox.background', self.bg_color)
         self.master.option_add('*TCombobox*Listbox.foreground', self.fg_color)
         self.configure(state='readonly')
-
 
 
 class PikaxGuiComponent:

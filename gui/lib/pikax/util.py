@@ -34,40 +34,6 @@ __all__ = ['log', 'req', 'json_loads', 'trim_to_limit', 'clean_filename', 'print
 # changed for gui
 def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,
         warn=False, normal=False):
-    """Print according to params and settings.py
-
-    **Description**
-    settings.py's LOG_TYPE controls the overall behaviour of this function
-    eg. whether each type of log should be available
-    caller code controls the type of log
-    eg. whether the strings send to log should be type of inform
-    This function copied all params of python's print function, except flush is set to True,
-    and some custom parameters as shown below
-
-    **Parameters**
-    :param start:
-        the string to print at the start, preceding all other string, including inform & save 's prefix
-    :type start:
-        string
-
-    :param inform:
-        if this is True, a prefix ' >>>' is added at the front of the strings given, default False
-    :type inform:
-        boolean
-
-    :param error:
-        if this is True, a prefix ' !!!' is added at the front of the strings given, default False
-    :type error:
-        boolean
-
-    :param save:
-        if this is True, the strings given is also saved to LOG_FILE as specified in settings.py, default False
-    :type save:
-        boolean
-
-
-    """
-
     import sys
 
     line = ''.join(str(item) for item in objects)
@@ -298,8 +264,11 @@ class Printer(object):
 
     def print_done(self, msg=None):
         if msg:
-            log(f' [ done ] => {msg}', normal=True)
-        else:  # a float, time taken
+            if self.is_first_print:
+                log(f' [ done ] => {msg}', normal=True)
+            else:
+                log(' [ done ] => {0:.2f}s \n{msg}'.format(time.time() - self.start_time, msg=msg), normal=True)
+        else:
             if self.is_first_print:
                 log(' [ done ]', normal=True)
             else:

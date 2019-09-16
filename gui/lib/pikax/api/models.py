@@ -1,6 +1,5 @@
 import datetime
 import enum
-import multiprocessing
 import os
 from multiprocessing.dummy import Pool
 from typing import List, Tuple, Union, Type, Any
@@ -124,7 +123,7 @@ class BaseIDProcessor:
                 fails.append(itemid)
 
         for index, item_id in enumerate(pool.imap_unordered(process_item, item_ids)):
-            util.print_progress(index + 1, total)
+            util.print_progress(index + 1, total, msg='| ID Processing')
         msg = texts.PROCESS_FINISHED_MESSAGE.format(total=total, successes=len(successes), fails=len(fails))
         util.print_done(msg)
         return successes, fails

@@ -105,7 +105,7 @@ DOWNLOAD_STATUS_SKIPPED = '[skipped]'
 DOWNLOAD_STATUS_FAILED = '<failed>'
 
 PROCESS_ID_INITIALIZING = 'Processing artwork ids'
-PROCESS_FINISHED_MESSAGE = 'Expected: {total} | Success: {successes} | Failed: {fails}'
+PROCESS_FINISHED_MESSAGE = 'Expected: {total} | Success: {successes} | Failed: {fails}\nID Processing Finished'
 PROCESS_TYPE_ERROR = 'process type: {process_type} is not type of {process_class}'
 
 
