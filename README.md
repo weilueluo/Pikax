@@ -4,7 +4,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
 ## 图形界面版
 > 不提供翻墙，请使用VPN或者飞机
-- [日志](https://github.com/Redcxx/Pikax/blob/master/gui/change_log.txt)
+- [日志](https://github.com/Redcxx/Pikax/blob/master/gui/dist/change_log.txt)
 - 用P站账号或游客登录即可
 - 支持多核下载
   - 排行榜
