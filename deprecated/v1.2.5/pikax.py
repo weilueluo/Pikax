@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # XXX NOTE:
-#   Pikax is subject to reconstruct soon    
+#   Pikax is subject to reconstruct soon
 #   Viewing current progress should visits api or v2 folder
 
 """Contain classes for use
@@ -97,18 +97,18 @@ class Pikax:
         **Parameters**
         :param pixiv_result:
             the PixivResult Object which contains artworks to download
-        :type pixiv_result:
+        :rank_type pixiv_result:
             PixivResult or None
 
         :param artwork_id:
             the artwork id of the artwork to download
-        :type artwork_id:
+        :rank_type artwork_id:
             int or None
 
         :param folder:
             the folder used to save the download result, default folder in settings.py
             is used if not given
-        :type folder:
+        :rank_type folder:
             str or None
 
         **Returns**

@@ -1,12 +1,18 @@
-import os
 import sys
-import tkinter as tk
 
 import texts
-from common import go_to_next_screen, download
+from common import go_to_next_screen, download, clear_widget
 from lib.pikax.util import clean_filename
-from menu import MenuScreen
 from models import PikaxGuiComponent
+
+# for remembering previous
+_prev_keyword_text = None
+_prev_limit_text = None
+_prev_match_text = None
+_prev_sort_text = None
+_prev_popularity_text = None
+_prev_download_folder_text = None
+_prev_lang = None
 
 
 class SearchScreen(PikaxGuiComponent):
@@ -18,22 +24,22 @@ class SearchScreen(PikaxGuiComponent):
         self.grid_width = 15
 
         # labels
-        self.keyword_text_id = self.add_text(text=texts.SEARCH_KEYWORD, column=5, row=1)
-        self.limit_text_id = self.add_text(text=texts.SEARCH_LIMIT, column=5, row=2)
-        self.match_text_id = self.add_text(text=texts.SEARCH_MATCH, column=5, row=3)
-        self.sort_text_id = self.add_text(text=texts.SEARCH_SORT, column=5, row=4)
-        self.popularity_text_id = self.add_text(text=texts.SEARCH_POPULARITY, column=5, row=5)
-        self.download_folder_text_id = self.add_text(text=texts.SEARCH_DOWNLOAD_FOLDER, column=5, row=6)
+        self.keyword_text_id = self.add_text(text=texts.get('SEARCH_KEYWORD'), column=5, row=1)
+        self.limit_text_id = self.add_text(text=texts.get('SEARCH_LIMIT'), column=5, row=2)
+        self.match_text_id = self.add_text(text=texts.get('SEARCH_MATCH'), column=5, row=3)
+        self.sort_text_id = self.add_text(text=texts.get('SEARCH_SORT'), column=5, row=4)
+        self.popularity_text_id = self.add_text(text=texts.get('SEARCH_POPULARITY'), column=5, row=5)
+        self.download_folder_text_id = self.add_text(text=texts.get('SEARCH_DOWNLOAD_FOLDER'), column=5, row=6)
 
         # create inputs
         self.keyword_entry = self.make_entry()
         self.limit_entry = self.make_entry()
-        self.match_choices = texts.SEARCH_MATCH_CHOICES  # ['exact', 'partial', 'any']
+        self.match_choices = texts.get('SEARCH_MATCH_CHOICES')  # ['exact', 'partial', 'any']
         self.match_dropdown = self.make_dropdown(self.match_choices[1], self.match_choices)
-        self.sort_choices = texts.SEARCH_SORT_CHOICES  # ['date ascending', 'date descending']
+        self.sort_choices = texts.get('SEARCH_SORT_CHOICES')  # ['date ascending', 'date descending']
         self.sort_dropdown = self.make_dropdown(self.sort_choices[1], self.sort_choices)
         # ['any', '100', '500', '1000', '5000', '10000', '20000']
-        self.popularity_choices = texts.SEARCH_POPULARITY_CHOICES
+        self.popularity_choices = texts.get('SEARCH_POPULARITY_CHOICES')
         self.popularity_dropdown = self.make_dropdown(self.popularity_choices[0], self.popularity_choices)
         self.download_folder_entry = self.make_entry()
 
@@ -46,8 +52,8 @@ class SearchScreen(PikaxGuiComponent):
         self.download_folder_entry_id = self.add_widget(widget=self.download_folder_entry, column=9, row=6)
 
         # create buttons
-        self.search_and_download_button = self.make_button(text=texts.SEARCH_DOWNLOAD)
-        self.back_button = self.make_button(text=texts.SEARCH_BACK)
+        self.search_and_download_button = self.make_button(text=texts.get('SEARCH_DOWNLOAD'))
+        self.back_button = self.make_button(text=texts.get('SEARCH_BACK'))
 
         # add buttons
         self.back_button_id = self.add_widget(widget=self.back_button, column=5, row=7)
@@ -59,6 +65,45 @@ class SearchScreen(PikaxGuiComponent):
 
         # config
         self.config()
+        self.restore_prev()
+
+    def restore_prev(self):
+        global _prev_keyword_text
+        global _prev_limit_text
+        global _prev_match_text
+        global _prev_sort_text
+        global _prev_popularity_text
+        global _prev_download_folder_text
+        if _prev_keyword_text:
+            clear_widget(self.keyword_entry)
+            self.keyword_entry.insert(0, _prev_keyword_text)
+        if _prev_limit_text:
+            clear_widget(self.limit_entry)
+            self.limit_entry.insert(0, _prev_limit_text)
+        if _prev_match_text:
+            clear_widget(self.match_dropdown)
+            self.match_dropdown.set(texts.values_translate(key='SEARCH_MATCH_CHOICES',
+                                                           value=_prev_match_text,
+                                                           src_lang=_prev_lang,
+                                                           dest_lang=texts.LANG
+                                                           ))
+        if _prev_sort_text:
+            clear_widget(self.sort_dropdown)
+            self.sort_dropdown.set(texts.values_translate(key='SEARCH_SORT_CHOICES',
+                                                          value=_prev_sort_text,
+                                                          src_lang=_prev_lang,
+                                                          dest_lang=texts.LANG
+                                                          ))
+        if _prev_popularity_text:
+            clear_widget(self.popularity_dropdown)
+            self.popularity_dropdown.set(texts.values_translate(key='SEARCH_POPULARITY_CHOICES',
+                                                                value=_prev_popularity_text,
+                                                                src_lang=_prev_lang,
+                                                                dest_lang=texts.LANG
+                                                                ))
+        if _prev_download_folder_text:
+            clear_widget(self.download_folder_entry)
+            self.download_folder_entry.insert(0, _prev_download_folder_text)
 
     def config(self):
         inputs = [
@@ -83,31 +128,49 @@ class SearchScreen(PikaxGuiComponent):
     def destroy(self):
         self.frame.destroy()
 
+    def save_inputs(self):
+        global _prev_keyword_text
+        global _prev_limit_text
+        global _prev_match_text
+        global _prev_sort_text
+        global _prev_popularity_text
+        global _prev_download_folder_text
+        global _prev_lang
+        _prev_lang = texts.LANG
+        _prev_keyword_text = self.keyword_entry.get()
+        _prev_limit_text = self.limit_entry.get()
+        _prev_match_text = self.match_dropdown.get()
+        _prev_sort_text = self.sort_dropdown.get()
+        _prev_popularity_text = self.popularity_dropdown.get()
+        _prev_download_folder_text = self.download_folder_entry.get()
+
     def back_clicked(self):
+        from menu import MenuScreen
+        self.save_inputs()
         go_to_next_screen(src=self, dest=MenuScreen)
 
     def search_and_download_clicked(self, _=None):
         try:
             keyword = str(self.keyword_entry.get())
             if not keyword:
-                raise ValueError(texts.SEARCH_EMPTY_KEYWORD_ERROR)
+                raise ValueError(texts.get('SEARCH_EMPTY_KEYWORD_ERROR'))
 
             folder_input = str(self.download_folder_entry.get())
             if folder_input != clean_filename(folder_input):
-                raise ValueError(texts.SEARCH_INVALID_FOLDER_ERROR)
+                raise ValueError(texts.get('SEARCH_INVALID_FOLDER_ERROR'))
             folder = folder_input or None
 
             try:
                 limit_input = int(self.limit_entry.get()) if self.limit_entry.get() else None
             except ValueError:
-                raise ValueError(texts.SEARCH_LIMIT_ERROR)
+                raise ValueError(texts.get('SEARCH_LIMIT_ERROR'))
             match_input = str(self.match_dropdown.get())
             sort_input = str(self.sort_dropdown.get())
             popularity_input = str(self.popularity_dropdown.get())
             params = self.check_inputs(limit_input=limit_input, match_input=match_input, sort_input=sort_input,
                                        popularity_input=popularity_input)
         except (TypeError, ValueError) as e:
-            sys.stdout.write(texts.SEARCH_ERROR_MESSAGE.format(error_message=str(e)))
+            sys.stdout.write(texts.get('SEARCH_ERROR_MESSAGE').format(error_message=str(e)))
             return
 
         params['keyword'] = keyword

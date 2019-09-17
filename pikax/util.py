@@ -37,31 +37,31 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', info
 
     **Description**
     settings.py's LOG_TYPE controls the overall behaviour of this function
-    eg. whether each type of log should be available
-    caller code controls the type of log
-    eg. whether the strings send to log should be type of inform
+    eg. whether each rank_type of log should be available
+    caller code controls the rank_type of log
+    eg. whether the strings send to log should be rank_type of inform
     This function copied all params of python's print function, except flush is set to True,
     and some custom parameters as shown below
 
     **Parameters**
     :param start:
         the string to print at the start, preceding all other string, including inform & save 's prefix
-    :type start:
+    :rank_type start:
         string
 
     :param inform:
         if this is True, a prefix ' >>>' is added at the front of the strings given, default False
-    :type inform:
+    :rank_type inform:
         boolean
 
     :param error:
         if this is True, a prefix ' !!!' is added at the front of the strings given, default False
-    :type error:
+    :rank_type error:
         boolean
 
     :param save:
         if this is True, the strings given is also saved to LOG_FILE as specified in settings.py, default False
-    :type save:
+    :rank_type save:
         boolean
 
 
@@ -98,57 +98,57 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
     **Parameters**
     :param url:
         the url used for requesting
-    :type url:
+    :rank_type url:
         string
 
     :param req_type:
-        the type of requests to send, given string is converted to uppercase before checking, default get
-    :type req_type:
+        the rank_type of requests to send, given string is converted to uppercase before checking, default get
+    :rank_type req_type:
         string
 
     :param session:
         if this is given, session.get/post is used instead of requests.get/post, default None
-    :type session:
+    :rank_type session:
         requests.Session
 
     :param params:
         the parameters send along request, default None
-    :type params:
+    :rank_type params:
         same as params in requests library
 
     :param data:
         the data send along when post method is used, default None
-    :type data:
+    :rank_type data:
         same as data in requests library
 
     :param headers:
         the headers send along when requesting, default None
-    :type headers:
+    :rank_type headers:
         same as headers in requests library
 
     :param timeout:
         time out used when send requests, in seconds, default use settings.TIMEOUT
-    :type timeout:
+    :rank_type timeout:
         int
 
     :param err_msg:
         the error message used when requests.exceptions.RequestException is raised during requesting
-    :type err_msg:
+    :rank_type err_msg:
         string
 
     :param log_req:
         specify whether to log the details of this request, default True
-    :type log_req:
+    :rank_type log_req:
         boolean
 
     :param retries:
         number of retries if request fails, if not given, settings.MAX_RETRIES_FOR_REQUEST is used
-    :type retries:
+    :rank_type retries:
         int
 
     :param proxies:
         Proxies used for sending request, uses REQUEST_PROXIES in settings.py
-    :type proxies:
+    :rank_type proxies:
         dict
 
 
@@ -158,7 +158,7 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
 
 
     **Raises**
-    :raises ReqException: if all retries fails or invalid type is given
+    :raises ReqException: if all retries fails or invalid rank_type is given
 
     """
     req_type = req_type.upper()
@@ -175,7 +175,7 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
                     res = session.post(url=url, headers=headers, params=params, timeout=timeout, data=data,
                                        proxies=proxies)
                 else:
-                    raise ReqException('Request type error:', req_type)
+                    raise ReqException('Request rank_type error:', req_type)
             else:
                 if req_type == 'GET':
                     res = requests.get(url=url, headers=headers, params=params, timeout=timeout, proxies=proxies)
@@ -183,7 +183,7 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
                     res = requests.post(url=url, headers=headers, params=params, timeout=timeout, data=data,
                                         proxies=proxies)
                 else:
-                    raise ReqException('Request type error:', req_type)
+                    raise ReqException('Request rank_type error:', req_type)
 
             if log_req:
                 log(res.status_code)

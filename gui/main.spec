@@ -26,11 +26,11 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='main',
+          name='Pikax v0.1.6',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=False )
+          console=False)

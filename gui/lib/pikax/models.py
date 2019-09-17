@@ -163,7 +163,7 @@ class PikaxUserInterface:
                   bookmark_type: params.BookmarkType = params.BookmarkType.ILLUST_OR_MANGA) -> PikaxResult:
         """
         Return the bookmarks saved by this user on Pixiv
-        :param bookmark_type: The type of bookmark to return, must be enum of params.BookmarkType
+        :param bookmark_type: The rank_type of bookmark to return, must be enum of params.BookmarkType
         :param limit: Number of mangas to return
         :rtype: PikaxResult
         """
@@ -212,7 +212,7 @@ class PikaxPagesInterface:
         Perform search on Pixiv and returns the results
 
         :param keyword: the word to search
-        :param search_type: type of artwork to search
+        :param search_type: rank_type of artwork to search
         :param match: define how strict the keywords are matched against artworks
         :param sort: order of the search result
         :param search_range: the date offset from today, can be a datetime.timedelta object
@@ -235,7 +235,7 @@ class PikaxPagesInterface:
 
         :param limit: the number of artworks to return
         :param date: the date of ranking
-        :param content: the type of artwork to rank
+        :param content: the rank_type of artwork to rank
         :param rank_type: the mode for ranking, daily, monthly etc ...
         :return: an object implement PikaxResult
         :rtype: PikaxResult
@@ -256,7 +256,7 @@ class PikaxInterface(PikaxPagesInterface):
         Perform search on Pixiv and returns the results
 
         :param keyword: the word to search
-        :param search_type: type of artwork to search
+        :param search_type: rank_type of artwork to search
         :param match: define how strict the keywords are matched against artworks
         :param sort: order of the search result
         :param search_range: the date offset from today, can be a datetime.timedelta object
@@ -276,7 +276,7 @@ class PikaxInterface(PikaxPagesInterface):
 
         :param limit: the number of artworks to return
         :param date: the date of ranking
-        :param content: the type of artwork to rank
+        :param content: the rank_type of artwork to rank
         :param rank_type: the mode for ranking, daily, monthly etc ...
         :return: an object implement PikaxResult
         :rtype: PikaxResult
@@ -379,23 +379,23 @@ class BaseDownloader:
                                    skips=skips,
                                    )
 
-        util.log(texts.DOWNLOAD_INITIALIZING.format(total_pages=total_pages, total_artworks=total_artworks),
+        util.log(texts.get('DOWNLOAD_INITIALIZING').format(total_pages=total_pages, total_artworks=total_artworks),
                  start=os.linesep,
                  inform=True)
         concurrent_download(target=target, items=pikax_result.artworks)
         util.print_done()
 
         finish_msg = ''
-        finish_msg += texts.DOWNLOAD_FINISHED_SUCCESS_PAGES.format(successes=len(successes))
+        finish_msg += texts.get('DOWNLOAD_FINISHED_SUCCESS_PAGES').format(successes=len(successes))
 
-        finish_msg += texts.DOWNLOAD_FINISHED_SKIPPED_PAGES.format(skips=len(skips))
+        finish_msg += texts.get('DOWNLOAD_FINISHED_SKIPPED_PAGES').format(skips=len(skips))
         for index, skip_info in enumerate(skips):
-            finish_msg += texts.DOWNLOAD_FINISHED_SKIPPED_INFO.format(counter=index + 1, skip_info=str(skip_info))
+            finish_msg += texts.get('DOWNLOAD_FINISHED_SKIPPED_INFO').format(counter=index + 1, skip_info=str(skip_info))
 
-        finish_msg += texts.DOWNLOAD_FINISHED_FAILED_PAGES.format(fails=len(fails))
+        finish_msg += texts.get('DOWNLOAD_FINISHED_FAILED_PAGES').format(fails=len(fails))
         for index, fail_info in enumerate(fails):
-            finish_msg += texts.DOWNLOAD_FINISHED_FAILED_INFO.format(counter=index + 1, fail_info=str(fail_info))
+            finish_msg += texts.get('DOWNLOAD_FINISHED_FAILED_INFO').format(counter=index + 1, fail_info=str(fail_info))
 
         download_path = os.path.abspath(folder)
-        folder_msg = texts.DOWNLOAD_FINISHED_PATH_NOTICE.format(download_path=download_path)
+        folder_msg = texts.get('DOWNLOAD_FINISHED_PATH_NOTICE').format(download_path=download_path)
         util.print_done(str(finish_msg + folder_msg))

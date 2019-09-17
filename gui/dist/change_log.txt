@@ -1,5 +1,11 @@
 Pikax GUI Change Log
 
+v0.1.6 17 Sept 2019
+- Chinese language support
+- Optimize concurrent download
+- Fix disable button hover
+- Buttons disable when login
+
 v0.1.5 12 Sept 2019
 - Multi-core Download Support
 - Hover effect

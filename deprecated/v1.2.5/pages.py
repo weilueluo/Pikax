@@ -182,8 +182,8 @@ class SearchPage:
 
     def _set_general_params(self, type, dimension, match, order, mode):
         params = dict()
-        if type:  # default match all type
-            params['type'] = type
+        if type:  # default match all rank_type
+            params['rank_type'] = type
 
         if dimension:  # default match all ratios
             if dimension == 'horizontal':
@@ -243,23 +243,23 @@ class SearchPage:
         **Parameters**
         :param keyword:
             a space separated of tags, used for search
-        :type keyword:
+        :rank_type keyword:
              str
 
         :param limit:
             number of artworks is trimmed to this number if too many, may not be enough
-        :type limit:
+        :rank_type limit:
              int or None(default)
 
         :param type:
-            type of artworks,
+            rank_type of artworks,
             'illust' | 'manga', default any
-        :type type:
+        :rank_type type:
              str or None(default)
 
         :param dimension:
             dimension of the artworks, 'vertical' | 'horizontal' | 'square', default any
-        :type dimension:
+        :rank_type dimension:
              str or None(default)
 
         :param match:
@@ -267,7 +267,7 @@ class SearchPage:
             'strict_tag' matches when any keyword is same as a tag in the artwork
             'loose' matches when any keyword appears in title, description or tags of the artwork
             default matches when any keyword is part of a tag of the artwork
-        :type match:
+        :rank_type match:
              str or None(default)
 
         :param popularity:
@@ -278,14 +278,14 @@ class SearchPage:
             not add tag for random likes such as 342users入り
             when str 'popular' is given, it will search for all results with users入り tag in [20000, 10000, 5000, 1000, 500]
             note that 'popular' is the only string accepted
-        :type popularity:
+        :rank_type popularity:
             int or str or None(default)
 
         :param mode:
             'safe': no r18 content
             'r18': has r18 content, if user's r18 is not turn on, it will turn it on before search
             default: both, by user account settings
-        :type mode:
+        :rank_type mode:
             str or None
 
         **Returns**
@@ -397,13 +397,13 @@ class RankingPage:
         if content == 'illust':
             allowed = ['daily', 'weekly', 'monthly', 'rookie']
             if type not in allowed:
-                raise RankError('Illust content is only available for type in', allowed)
+                raise RankError('Illust content is only available for rank_type in', allowed)
         if mode == 'r18':
             if self._user == None:
                 raise RankError('Please login before retrieving r18 rankings')
             allowed = ['daily', 'weekly', 'male', 'female']
             if type not in allowed:
-                raise RankError('R18 mode is only available for type in', allowed)
+                raise RankError('R18 mode is only available for rank_type in', allowed)
 
     def _set_general_params(self, content, date, mode, type):
         params = dict()
@@ -460,14 +460,14 @@ class RankingPage:
 
         **Parameters**
         :param type:
-            type of ranking as in pixiv.net,
+            rank_type of ranking as in pixiv.net,
             'daily' | 'weekly' | 'monthly' | 'rookie' | 'original' | 'male' | 'female', default daily
-        :type type:
+        :rank_type type:
             str
 
         :param limit:
             number of artworks to return, may not be enough, default all
-        :type limit:
+        :rank_type limit:
             int or None
 
         :param date:
@@ -476,21 +476,21 @@ class RankingPage:
             eg. given '20190423' and mode daily will return the daily ranking of pixiv on 2019 April 23
             eg. given '20190312' and mode monthly will return the monthly ranking from 2019 Feb 12 to 2019 March 12
             default today
-        :type date:
+        :rank_type date:
             Datetime or str or None
 
         :param content:
-            type of artwork to return,
+            rank_type of artwork to return,
             'illust' | 'manga', default 'illust'
-        :type content:
+        :rank_type content:
             str
 
         :param mode:
-            type of search to use, this needs login
+            rank_type of search to use, this needs login
             'safe': no r18 content
             'r18': has r18 content
             default: 'safe'
-        :type mode:
+        :rank_type mode:
             str
 
         **Returns**

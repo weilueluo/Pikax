@@ -4,6 +4,7 @@ from typing import Tuple, Iterator
 
 import requests
 
+import texts
 from . import util
 from .api.models import Artwork
 from .models import BaseDownloader
@@ -12,7 +13,7 @@ from .models import BaseDownloader
 class DefaultDownloader(BaseDownloader):
     @staticmethod
     def download_illust(artwork: Artwork, folder: str = '') -> Iterator[Tuple[Artwork.DownloadStatus, str]]:
-        artwork_detail = 'Initialization Failed'
+        artwork_detail = texts.DOWNLOAD_INITIALIZE_FAILED
         folder = str(folder)
         if folder and not os.path.isdir(folder):
             os.mkdir(folder)

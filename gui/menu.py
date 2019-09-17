@@ -13,11 +13,11 @@ class MenuScreen(PikaxGuiComponent):
         self.grid_width = 1
 
         # create buttons
-        self.rank_button = self.make_button(text=texts.MENU_RANK)
-        self.search_button = self.make_button(text=texts.MENU_SEARCH)
-        self.illustration_button = self.make_button(text=texts.MENU_ID)
-        self.artist_button = self.make_button(text=texts.MENU_ARTIST)
-        self.back_button = self.make_button(text=texts.MENU_BACK)
+        self.rank_button = self.make_button(text=texts.get('MENU_RANK'))
+        self.search_button = self.make_button(text=texts.get('MENU_SEARCH'))
+        self.illustration_button = self.make_button(text=texts.get('MENU_ID'))
+        self.artist_button = self.make_button(text=texts.get('MENU_ARTIST'))
+        self.back_button = self.make_button(text=texts.get('MENU_BACK'))
 
         self.rank_button_id = self.add_widget(widget=self.rank_button, row=2)
         self.search_button_id = self.add_widget(widget=self.search_button, row=3)

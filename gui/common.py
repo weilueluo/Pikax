@@ -22,8 +22,39 @@ def go_to_next_screen(src, dest):
         src.destroy()  # destroy after creation to prevent black screen in the middle
 
 
+def refresh(cls_self):
+    global _screen_lock
+    if _screen_lock.locked():
+        return
+    with _screen_lock:
+        exec("""
+from menu import MenuScreen
+from login import LoginScreen
+from search import SearchScreen
+from rank import RankScreen
+from artist import ArtistScreen
+from illustration import IllustrationScreen
+        """)
+        exec(cls_self.__class__.__name__ + '(cls_self.master, cls_self.pikax_handler)')  # create new window
+        cls_self.destroy()  # destroy old window
+
+
+def clear_widget(widget):
+    if isinstance(widget, tk.Entry):
+        widget.delete(0, tk.END)
+    else:  # must be tk.Text
+        widget.delete(0.0, tk.END)
+
+
+def clear_widgets(widgets):
+    for widget in widgets:
+        clear_widget(widget)
+
+
 def download(target, args=(), kwargs=()):
     from download import DownloadWindow
+    import texts
+    kwargs['lang'] = texts.LANG  # manually remember language
     mp.Process(target=DownloadWindow, args=(target, args, kwargs)).start()
 
 
@@ -245,7 +276,7 @@ def queue_downloader(target, queue, stdout_queue):
             if item is None:
                 break
             target(item)
-    except (EOFError, BrokenPipeError) as e:
+    except (EOFError, BrokenPipeError, OSError) as e:
         sys.stderr.write(str(e))
 
 
@@ -272,7 +303,7 @@ def concurrent_download(target, items):
     for item in items:
         queue.put(item)
 
-    for _ in range(num_of_processes):  # tell processes to stop, internal protocol
+    for _ in range(num_of_processes):  # tell processes to stop
         queue.put(None)
 
     for process in processes:

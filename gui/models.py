@@ -6,20 +6,21 @@ from PIL import Image, ImageTk
 
 import settings
 import texts
-from common import crop_to_dimension, get_background_file_path
+from common import crop_to_dimension, get_background_file_path, refresh
 
 
 class PikaxButton(tk.Button):
+    bg_color = '#1b5361'
+    fg_color = '#51abc2'
+    bg_hover_color = '#186b73'
+    fg_hover_color = '#2eccdb'
+    active_color = '#0c313b'
+    width = 10
+    padx = 10
+    pady = 2
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.bg_color = '#1b5361'
-        self.fg_color = '#51abc2'
-        self.bg_hover_color = '#186b73'
-        self.fg_hover_color = '#2eccdb'
-        self.active_color = '#0c313b'
-        self.width = 10
-        self.padx = 10
-        self.pady = 2
         self.font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 2)
 
         self.configure(relief=tk.FLAT,
@@ -34,9 +35,15 @@ class PikaxButton(tk.Button):
                        font=self.font
                        )
 
-        self.bind('<Enter>', lambda e: e.widget.configure(bg=self.bg_hover_color, fg=self.fg_hover_color))
-        self.bind('<Leave>', lambda e: e.widget.configure(bg=self.bg_color, fg=self.fg_color))
+        self.bind('<Enter>', self.mouse_enter)
+        self.bind('<Leave>', self.mouse_leave)
 
+    def mouse_enter(self, _=None):
+        if self['state'] != tk.DISABLED:
+            self.configure(bg=self.bg_hover_color, fg=self.fg_hover_color)
+
+    def mouse_leave(self, _=None):
+        self.configure(bg=self.bg_color, fg=self.fg_color)
 
 class PikaxOptionMenu(tk.OptionMenu):
 
@@ -50,19 +57,20 @@ class PikaxOptionMenu(tk.OptionMenu):
 
 
 class PikaxCheckButton(PikaxButton):
+    padx = 20
+
     def __init__(self, master, initial=False, text='', *args, **kwargs):
         super().__init__(master=master, command=self.clicked, *args, **kwargs)
+        self.font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 4)
         self.checked = initial
         self.text = text
         self.set(value=self.checked)
 
-        self.padx = 20
-        self.font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 4)
         self.configure(font=self.font, padx=self.padx)
 
     def set(self, value=False):
         self.checked = value
-        text = texts.TICK + ' ' + self.text if self.checked else texts.CROSS + ' ' + self.text
+        text = texts.get('TICK') + ' ' + self.text if self.checked else texts.get('CROSS') + ' ' + self.text
         self.configure(text=text)
 
     def clicked(self, _=None):
@@ -73,16 +81,20 @@ class PikaxCheckButton(PikaxButton):
 
 
 class PikaxSwitchButton(PikaxButton):
+    width = 18
+
     def __init__(self, master, values, default=None, *args, **kwargs):
         if default is None:
             default = values[0]
 
         self.values = values
-        self.curr_value = default
-        self.curr_index = values.index(self.curr_value)
-        super().__init__(master=master, text=str(self.curr_value), command=self.clicked, *args, **kwargs)
+        try:
+            self.curr_index = values.index(default)
+        except ValueError:  # default not in values
+            self.curr_index = 0
+            default = values[0]
+        super().__init__(master=master, text=str(default), command=self.clicked, *args, **kwargs)
 
-        self.width = 18
         self.configure(width=self.width)
 
     def get_next_value(self):
@@ -92,19 +104,28 @@ class PikaxSwitchButton(PikaxButton):
     def get(self):
         return self.values[self.curr_index]
 
+    def set(self, value):
+        if value not in self.values:
+            raise AttributeError(
+                texts.get('MODELS_SWITCHBUTTON_INVALID_SET_VALUE').format(value=value, values=self.values))
+        self.curr_index = self.values.index(value)
+        self.configure(text=value)
+
     def clicked(self, _=None):
         self.configure(text=str(self.get_next_value()))
 
 
 class PikaxEntry(tk.Entry):
+    bg_color = '#1b5361'
+    fg_color = 'white'
+    select_bg_color = '#3b818c'
+    cursor_color = 'white'
+
     def __init__(self, master, *args, **kwargs):
         super().__init__(master=master, *args, **kwargs)
         self.justify = tk.CENTER
-        self.bg_color = '#1b5361'
-        self.fg_color = 'white'
-        self.select_bg_color = '#3b818c'
-        self.cursor_color = 'white'
         self.font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 2)
+
         self.configure(
             borderwidth=0,
             highlightthickness=0,
@@ -118,19 +139,20 @@ class PikaxEntry(tk.Entry):
 
 
 class PikaxText(tk.Text):
+    wrap = tk.WORD
+    height = 1
+    width = 80
+    padx = 10
+    pady = 10
+    bg_color = '#1b5361'
+    fg_color = 'white'
+    cursor_color = 'white'
+    select_bg_color = '#3b818c'
+
     def __init__(self, master, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
-        self.wrap = tk.WORD
-        self.height = 1
-        self.width = 80
-        self.padx = 10
-        self.pady = 10
-        self.state = tk.NORMAL
-        self.bg_color = '#1b5361'
-        self.fg_color = 'white'
-        self.cursor_color = 'white'
-        self.select_bg_color = '#3b818c'
         self.font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 4)
+        self.state = tk.NORMAL
 
         self.configure(
             borderwidth=0,
@@ -150,17 +172,18 @@ dropdown_counter = 0
 
 
 class PikaxDropdown(ttk.Combobox):
+    bg_color = '#1b5361'
+    fg_color = 'white'
+    bg_hover_color = '#186b73'
+    fg_hover_color = '#2eccdb'
+    width = 18
 
     def __init__(self, master, default, choices, **kwargs):
         global dropdown_counter
+        self.combo_style = ttk.Style()
         self.combo_style_name = f'custom{dropdown_counter}.TCombobox'
         dropdown_counter += 1
-        self.combo_style = ttk.Style()
-        self.bg_color = '#1b5361'
-        self.fg_color = 'white'
-        self.bg_hover_color = '#186b73'
-        self.fg_hover_color = '#2eccdb'
-        self.width = 18
+
         super().__init__(master=master, values=choices, style=self.combo_style_name)
         self.set_style()
 
@@ -238,8 +261,8 @@ class PikaxGuiComponent:
         self.title_font_size = 12
 
         # texts
-        self.issue_text = texts.MODELS_ISSUE_TEXT
-        self.title_text = texts.TITLE_TEXT
+        self.issue_text = texts.get('MODELS_ISSUE_TEXT')
+        self.title_text = texts.get('TITLE_TEXT')
 
         # font
         self.text_font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE,
@@ -263,15 +286,31 @@ class PikaxGuiComponent:
         self.issue_button_id = self.add_widget(widget=self.issue_button, row=self.grid_height - 30,
                                                column=self.grid_width - 75)
         self.issue_button.configure(command=self.issue_button_pressed)
+
+        # add language button
+        self.language_button = self.make_switchbutton(values=texts.LANGS, default=texts.LANG)
+        self.language_button.configure(width=PikaxButton.width)
+        self.language_button_id = self.add_widget(widget=self.language_button, row=self.grid_height - 30,
+                                                  column=self.grid_width - 250)
+        self.language_button.bind('<Button-1>', self.language_button_clicked, add='+')
+
         # add background artist reference
         self.artist_reference = self.add_text(
-            text=texts.MODELS_ARTIST_REFERENCE_TEXT.format(artist_name=settings.CANVAS_BACKGROUND_ARTIST_NAME),
+            text=texts.get('MODELS_ARTIST_REFERENCE_TEXT').format(artist_name=settings.CANVAS_BACKGROUND_ARTIST_NAME),
             row=self.grid_height - 26, column=100,
             columnspan=2, font=self.canvas_artist_font,
             color=self.artist_name_color)
 
+    def save_inputs(self):
+        pass
+
     def destroy(self):
         self.frame.destroy()
+
+    def language_button_clicked(self, _=None):
+        self.save_inputs()
+        texts.set_next_lang()
+        refresh(self)
 
     def make_frame(self, *args, **kwargs):
         return tk.Frame(master=self.master, *args, **kwargs)
@@ -328,15 +367,16 @@ class PikaxGuiComponent:
 
     def get_canvas_location(self, row, column, rowspan, columnspan):
         if row < 0 or row > self.grid_height:
-            raise ValueError(texts.MODELS_INVALID_ROW_ERROR.format(row=row, grid_height=self.grid_height))
+            raise ValueError(texts.get('MODELS_INVALID_ROW_ERROR').format(row=row, grid_height=self.grid_height))
         if column < 0 or column > self.grid_width:
-            raise ValueError(texts.MODELS_INVALID_COLUMN_ERROR.format(column=column, grid_width=self.grid_width))
+            raise ValueError(texts.get('MODELS_INVALID_COLUMN_ERROR').format(column=column, grid_width=self.grid_width))
         if row + rowspan < 0 or row + rowspan > self.grid_height:
             raise ValueError(
-                texts.MODELS_INVALID_ROWSPAN_ERROR.format(rowspan=rowspan, row=row, grid_height=self.grid_height))
+                texts.get('MODELS_INVALID_ROWSPAN_ERROR').format(rowspan=rowspan, row=row,
+                                                                 grid_height=self.grid_height))
         if column + columnspan < 0 or column + columnspan > self.grid_width:
-            raise ValueError(texts.MODELS_INVALID_COLUMNSPAN_ERROR.format(columnspan=columnspan, column=column,
-                                                                          grid_width=self.grid_width))
+            raise ValueError(texts.get('MODELS_INVALID_COLUMNSPAN_ERROR').format(columnspan=columnspan, column=column,
+                                                                                 grid_width=self.grid_width))
 
         row_height = self.height / self.grid_height
         column_width = self.width / self.grid_width

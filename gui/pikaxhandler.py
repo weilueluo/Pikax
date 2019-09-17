@@ -1,5 +1,6 @@
 import sys
 
+import texts
 from lib.pikax import params
 from lib.pikax.exceptions import PikaxException, ArtworkError
 from lib.pikax.items import LoginHandler
@@ -19,7 +20,7 @@ class PikaxHandler:
             self.pikax.android_client = client
             self.logged = True
         else:
-            raise PikaxException('Failed Login')
+            raise PikaxException(texts.get('PIKAX_FAILED_LOGIN'))
 
     def rank(self, rank_type, limit, date, content, folder):
         try:
@@ -27,7 +28,7 @@ class PikaxHandler:
             self.pikax.download(result, folder=folder)
         except PikaxException as e:
             import sys
-            sys.stdout.write(f'Rank & download failed, message:\n{e}')
+            sys.stdout.write(texts.get('PIKAX_RANK_FAILED').format(error=e))
 
     def search(self, keyword, limit, sort, match, popularity, folder):
         try:
@@ -35,7 +36,7 @@ class PikaxHandler:
             self.pikax.download(result, folder)
         except PikaxException as e:
             import sys
-            sys.stdout.write(f'Search & download failed, message:\n{e}')
+            sys.stdout.write(texts.get('PIKAX_SEARCH_FAILED').format(error=e))
 
     def download_by_illust_ids(self, illust_ids):
         try:
@@ -43,7 +44,7 @@ class PikaxHandler:
             result = DefaultPikaxResult(artworks, download_type=params.DownloadType.ILLUST)
             self.pikax.download(result)
         except ArtworkError as e:
-            sys.stdout.write(str(e) + '\n' + 'Likely due to Id does not exists')
+            sys.stdout.write(texts.get('PIKAX_ILLUST_ID_FAILED').format(error=e))
 
     def download_by_artist_id(self, artist_id, limit, content, folder):
         try:

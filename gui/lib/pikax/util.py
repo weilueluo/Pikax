@@ -18,6 +18,7 @@ import time
 
 import requests
 
+import texts
 from . import settings
 from .exceptions import ReqException
 
@@ -54,57 +55,57 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
     **Parameters**
     :param url:
         the url used for requesting
-    :type url:
+    :rank_type url:
         string
 
     :param req_type:
-        the type of requests to send, given string is converted to uppercase before checking, default get
-    :type req_type:
+        the rank_type of requests to send, given string is converted to uppercase before checking, default get
+    :rank_type req_type:
         string
 
     :param session:
         if this is given, session.get/post is used instead of requests.get/post, default None
-    :type session:
+    :rank_type session:
         requests.Session
 
     :param params:
         the parameters send along request, default None
-    :type params:
+    :rank_type params:
         same as params in requests library
 
     :param data:
         the data send along when post method is used, default None
-    :type data:
+    :rank_type data:
         same as data in requests library
 
     :param headers:
         the headers send along when requesting, default None
-    :type headers:
+    :rank_type headers:
         same as headers in requests library
 
     :param timeout:
         time out used when send requests, in seconds, default use settings.TIMEOUT
-    :type timeout:
+    :rank_type timeout:
         int
 
     :param err_msg:
         the error message used when requests.exceptions.RequestException is raised during requesting
-    :type err_msg:
+    :rank_type err_msg:
         string
 
     :param log_req:
         specify whether to log the details of this request, default True
-    :type log_req:
+    :rank_type log_req:
         boolean
 
     :param retries:
         number of retries if request fails, if not given, settings.MAX_RETRIES_FOR_REQUEST is used
-    :type retries:
+    :rank_type retries:
         int
 
     :param proxies:
         Proxies used for sending request, uses REQUEST_PROXIES in settings.py
-    :type proxies:
+    :rank_type proxies:
         dict
 
 
@@ -114,7 +115,7 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
 
 
     **Raises**
-    :raises ReqException: if all retries fails or invalid type is given
+    :raises ReqException: if all retries fails or invalid rank_type is given
 
     """
     req_type = req_type.upper()
@@ -132,7 +133,7 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
                     res = session.post(url=url, headers=headers, params=params, timeout=timeout, data=data,
                                        proxies=proxies)
                 else:
-                    raise ReqException('Request type error:', req_type)
+                    raise ReqException('Request rank_type error:', req_type)
             else:
                 if req_type == 'GET':
                     res = requests.get(url=url, headers=headers, params=params, timeout=timeout, proxies=proxies)
@@ -140,7 +141,7 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
                     res = requests.post(url=url, headers=headers, params=params, timeout=timeout, data=data,
                                         proxies=proxies)
                 else:
-                    raise ReqException('Request type error:', req_type)
+                    raise ReqException('Request rank_type error:', req_type)
 
             if log_req:
                 log(res.status_code)
@@ -221,7 +222,7 @@ class Printer(object):
         self.start_time = None
         self.last_printed_line = None
 
-    def print_progress(self, curr, total, msg=None):
+    def print_progress(self, curr, total, title=None, msg=None):
         curr_percent = math.floor(curr / total * 100)
         curr_time = time.time()
         if self.is_first_print:
@@ -250,8 +251,9 @@ class Printer(object):
         self.last_percent = curr_percent
 
         if est_time_left != 0.0:
-            progress_text = '{0} / {1} => {2}% | Time Left est. {3:.2f}s'.format(curr, total, curr_percent,
-                                                                                 est_time_left)
+            progress_text = '{0} / {1} => {2}% | {3} {4:.2f}{5}'.format(curr, total, curr_percent,
+                                                                        texts.get('TIME_LEFT_EST'),
+                                                                        est_time_left, texts.get('SECOND'))
         else:
             progress_text = '{0} / {1} => {2}% '.format(curr, total, curr_percent)
 
@@ -259,6 +261,8 @@ class Printer(object):
             progress_text = progress_text + ' | ' + str(msg)
 
         progress_text = '\n'.join(progress_text.split('|'))
+        if title:
+            progress_text = title + '\n\n' + progress_text
         log(progress_text, end='', start=settings.CLEAR_LINE, inform=True)
         self.last_printed_line = progress_text
 
@@ -267,12 +271,14 @@ class Printer(object):
             if self.is_first_print:
                 log(f' [ done ] => {msg}', normal=True)
             else:
-                log(' [ done ] => {0:.2f}s \n{msg}'.format(time.time() - self.start_time, msg=msg), normal=True)
+                log(' [ done ] => {0:.2f}{s} \n{msg}'.format(time.time() - self.start_time, msg=msg,
+                                                             s=texts.get('SECOND')),
+                    normal=True)
         else:
             if self.is_first_print:
                 log(' [ done ]', normal=True)
             else:
-                log(' [ done ] => {0:.2f}s'.format(time.time() - self.start_time), normal=True)
+                log(' [ done ] => {0:.2f}{s}'.format(time.time() - self.start_time, s=texts.get('SECOND')), normal=True)
         self.is_first_print = True
         self.start_time = None
         self.last_percent = None
@@ -285,9 +291,9 @@ class Printer(object):
 printer = Printer()
 
 
-def print_progress(curr, total, msg=None):
+def print_progress(curr, total, title=None, msg=None):
     global printer
-    printer.print_progress(curr, total, msg)
+    printer.print_progress(curr, total, title, msg)
 
 
 def print_done(msg=None):

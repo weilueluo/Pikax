@@ -79,7 +79,7 @@ class Pikax(PikaxInterface):
         Note that pixiv returns less result if not logged in
 
         :param keyword: the word to search
-        :param search_type: type of artwork to search
+        :param search_type: rank_type of artwork to search
         :param match: define how strict the keywords are matched against artworks
         :param sort: order of the search result
         :param search_range: the date offset from today, can be a datetime.timedelta object
@@ -89,7 +89,7 @@ class Pikax(PikaxInterface):
         :rtype: PikaxResult
         """
 
-        util.log(f'Searching {keyword} of type {search_type} with limit {limit}', inform=True)
+        util.log(f'Searching {keyword} of rank_type {search_type} with limit {limit}', inform=True)
 
         client = self._get_client()
         if popularity:
@@ -115,13 +115,13 @@ class Pikax(PikaxInterface):
 
         :param limit: the number of artworks to return
         :param date: the date of ranking
-        :param content: the type of artwork to rank
+        :param content: the rank_type of artwork to rank
         :param rank_type: the mode for ranking, daily, monthly etc ...
         :return: an object implement PikaxResult
         :rtype: PikaxResult
         """
 
-        util.log(f'Ranking date {date} of type {rank_type} and content {content} with limit {limit}', inform=True)
+        util.log(f'Ranking date {date} of rank_type {rank_type} and content {content} with limit {limit}', inform=True)
 
         client = self._get_client()
         ids = client.rank(rank_type=rank_type, content=content, date=date, limit=limit)

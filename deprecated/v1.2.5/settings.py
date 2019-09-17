@@ -62,7 +62,7 @@ USER_MANGAS_DOWNLOAD_FOLDER = '#{title}\'s  mangas'
 USER_ILLUSTS_DOWNLOAD_FOLDER = '#{title}\'s illusts'
 USER_BOOKMARKS_DOWNLOAD_FOLDER = '#{title}\'s bookmarks'
 USER_NOVELS_DOWNLOAD_FOLDER = '#{title}\'s novels'
-SEARCH_RESULTS_FOLDER = '#PixivSearch_{keyword}_{type}_{dimension}_{mode}_{popularity}_{limit}'
+SEARCH_RESULTS_FOLDER = '#PixivSearch_{keyword}_{rank_type}_{dimension}_{mode}_{popularity}_{limit}'
 RANK_RESULTS_FOLDER = '#PixivRanking-{mode}-{limit}-{content}-{date}'
 
 """
@@ -89,7 +89,7 @@ MAX_WHILE_TRUE_LOOP_EXCEPTIONS = 3
 Default request error message,
 when error message is not given as param to util.req
 """
-DEFAULT_REQUEST_ERROR_MSG = 'Exception while {type}'
+DEFAULT_REQUEST_ERROR_MSG = 'Exception while {rank_type}'
 
 """
 A artwork id may have multiple pages,

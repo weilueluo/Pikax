@@ -72,9 +72,9 @@ class Artwork:
     def likes(self): raise NotImplementedError
 
     class DownloadStatus(enum.Enum):
-        OK = texts.DOWNLOAD_STATUS_OK
-        SKIPPED = texts.DOWNLOAD_STATUS_SKIPPED
-        FAILED = texts.DOWNLOAD_STATUS_FAILED
+        OK = texts.get('DOWNLOAD_STATUS_OK')
+        SKIPPED = texts.get('DOWNLOAD_STATUS_SKIPPED')
+        FAILED = texts.get('DOWNLOAD_STATUS_FAILED')
 
     # return download status, content, filename
     def __getitem__(self, index) -> Tuple[DownloadStatus, Any, str]: raise NotImplementedError
@@ -104,13 +104,13 @@ class BaseIDProcessor:
     def process(self, ids: List[int], process_type: params.ProcessType) -> Tuple[List[Artwork], List[int]]:
         if not params.ProcessType.is_valid(process_type):
             from ..exceptions import ProcessError
-            raise ProcessError(texts.PROCESS_TYPE_ERROR.format(process_type=process_type, process_class=params.ProcessType))
+            raise ProcessError(texts.get('PROCESS_TYPE_ERROR').format(process_type=process_type, process_class=params.ProcessType))
 
         return self.type_to_function[process_type](ids)
 
     @staticmethod  # param cls is pass in as argument
     def _general_processor(cls: Type[Artwork], item_ids: List[int]) -> Tuple[List[Artwork], List[int]]:
-        util.log(texts.PROCESS_ID_INITIALIZING, start=os.linesep, inform=True)
+        util.log(texts.get('PROCESS_ID_INITIALIZING'), start=os.linesep, inform=True)
         total = len(item_ids)
         successes = []
         fails = []
@@ -123,7 +123,7 @@ class BaseIDProcessor:
                 fails.append(itemid)
 
         for index, item_id in enumerate(pool.imap_unordered(process_item, item_ids)):
-            util.print_progress(index + 1, total, msg='| ID Processing')
-        msg = texts.PROCESS_FINISHED_MESSAGE.format(total=total, successes=len(successes), fails=len(fails))
+            util.print_progress(index + 1, total, title=texts.get('PROCESS_ID_TITLE'))
+        msg = texts.get('PROCESS_FINISHED_MESSAGE').format(total=total, successes=len(successes), fails=len(fails))
         util.print_done(msg)
         return successes, fails

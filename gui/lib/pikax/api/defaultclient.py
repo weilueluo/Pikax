@@ -3,6 +3,7 @@ import re
 import time
 from typing import List, Union
 
+import texts
 from .models import APIPagesInterface, APIUserInterface, APIAccessInterface
 from .. import params, settings
 from .. import util
@@ -28,19 +29,19 @@ class DefaultIllustSearch:
     def _set_params(cls, search_type, dimension, match, sort, search_range):
 
         search_params = dict()
-        if search_type:  # default match all type
+        if search_type:  # default match all rank_type
             if not params.SearchType.is_valid(search_type):
-                search_params['type'] = search_type.value
+                search_params['rank_type'] = search_type.value
 
         if dimension:  # default match all ratios
             if params.Dimension.is_valid(dimension):
                 search_params['ratio'] = dimension.value
             else:
-                raise SearchError(f'dimension type: {dimension} is not type of {params.Dimension}')
+                raise SearchError(f'dimension rank_type: {dimension} is not rank_type of {params.Dimension}')
 
         if match:  # default match if contain tags
             if not params.Match.is_valid(match):
-                raise SearchError(f'match: {match} is not type of {params.Match}')
+                raise SearchError(f'match: {match} is not rank_type of {params.Match}')
 
             if match is params.Match.PARTIAL:  # this is default
                 pass
@@ -51,7 +52,7 @@ class DefaultIllustSearch:
 
         if sort:
             if not params.Sort.is_valid(sort):
-                raise SearchError(f'sort: {sort} is not type of {params.Sort}')
+                raise SearchError(f'sort: {sort} is not rank_type of {params.Sort}')
 
             if sort is params.Sort.DATE_DESC:
                 search_params['order'] = 'date_d'
@@ -66,7 +67,7 @@ class DefaultIllustSearch:
                 search_params['ecd'] = str(today)
                 search_params['scd'] = str(today - search_range)
             else:
-                raise SearchError(f'Invalid range type: {search_range}')
+                raise SearchError(f'Invalid range rank_type: {search_range}')
 
         return search_params
 
@@ -97,23 +98,23 @@ class DefaultIllustSearch:
         :param sort:
         :param keyword:
             a space separated of tags, used for search
-        :type keyword:
+        :rank_type keyword:
              str
 
         :param limit:
             number of artworks is trimmed to this number if too many, may not be enough
-        :type limit:
+        :rank_type limit:
              int or None(default)
 
         :param search_type:
-            type of artworks,
+            rank_type of artworks,
             'illust' | 'manga', default any
-        :type search_type:
+        :rank_type search_type:
              str or None(default)
 
         :param dimension:
             dimension of the artworks, 'vertical' | 'horizontal' | 'square', default any
-        :type dimension:
+        :rank_type dimension:
              str or None(default)
 
         :param match:
@@ -121,7 +122,7 @@ class DefaultIllustSearch:
             'strict_tag' matches when any keyword is same as a tag in the artwork
             'loose' matches when any keyword appears in title, description or tags of the artwork
             default matches when any keyword is part of a tag of the artwork
-        :type match:
+        :rank_type match:
              str or None(default)
 
         :param popularity:
@@ -133,7 +134,7 @@ class DefaultIllustSearch:
             when str 'popular' is given, it will search for all results with users入り tag in
             [20000, 10000, 5000, 1000, 500]
             note that 'popular' is the only string accepted
-        :type popularity:
+        :rank_type popularity:
             int or str or None(default)
 
         **Returns**
@@ -248,7 +249,7 @@ class DefaultRank:
         if content is params.Content.ILLUST:
             allowed = [params.RankType.DAILY, params.RankType.MONTHLY, params.RankType.WEEKLY, params.RankType.ROOKIE]
             if rank_type not in allowed:
-                raise RankError('Illust content is only available for type in', allowed)
+                raise RankError('Illust content is only available for rank_type in', allowed)
 
     @classmethod
     def _set_params(cls, content, date, rank_type):
@@ -260,13 +261,13 @@ class DefaultRank:
             if params.RankType.is_valid(rank_type):
                 rank_params['mode'] = rank_type.value
             else:
-                raise RankError(f'rank type: {rank_type} is not type of {params.RankType}')
+                raise RankError(f'rank rank_type: {rank_type} is not rank_type of {params.RankType}')
 
         if content:
             if params.Content.is_valid(content):
                 rank_params['content'] = content.value
             else:
-                raise RankError(f'content: {content} is not type of {params.Content}')
+                raise RankError(f'content: {content} is not rank_type of {params.Content}')
 
         if date:
             if isinstance(date, str):
@@ -285,6 +286,7 @@ class DefaultRank:
 
     @classmethod
     def _rank(cls, rank_params, limit):
+        import sys
         ids = []
         page_num = 0
         while True:
@@ -301,6 +303,9 @@ class DefaultRank:
                 break
             else:
                 ids += [content['illust_id'] for content in res['contents']]
+
+            limit_str = "/ " + str(limit) if limit else ""
+            sys.stdout.write(texts.get('API_ID_COLLECTED').format(ids_len=len(ids), limit_str=limit_str))
 
             # check if number of ids reached requirement
             if limit:
@@ -319,14 +324,14 @@ class DefaultRank:
 
         **Parameters**
         :param rank_type:
-            type of ranking as in pixiv.net,
+            rank_type of ranking as in pixiv.net,
             'daily' | 'weekly' | 'monthly' | 'rookie' | 'original' | 'male' | 'female', default daily
-        :type rank_type:
+        :rank_type rank_type:
             params.Rank
 
         :param limit:
             number of artworks to return, may not be enough, default all
-        :type limit:
+        :rank_type limit:
             int or None
 
         :param date:
@@ -335,13 +340,13 @@ class DefaultRank:
             eg. given '20190423' and mode daily will return the daily ranking of pixiv on 2019 April 23
             eg. given '20190312' and mode monthly will return the monthly ranking from 2019 Feb 12 to 2019 March 12
             default today
-        :type date:
+        :rank_type date:
             Datetime or str or None
 
         :param content:
-            type of artwork to return,
+            rank_type of artwork to return,
             'illust' | 'manga', default 'illust'
-        :type content:
+        :rank_type content:
             params.Content
 
         **Returns**
@@ -429,7 +434,7 @@ class DefaultAPIUser(APIUserInterface):
         **Parameters**
         :param limit:
             limit the amount of illustrations found, if exceed
-        :type limit:
+        :rank_type limit:
             int or None
 
         :return: the results of attempting to retrieve this user's uploaded illustrations
@@ -444,7 +449,7 @@ class DefaultAPIUser(APIUserInterface):
         **Parameters**
         :param limit:
             limit the amount of mangas found, if exceed
-        :type limit:
+        :rank_type limit:
             int or None
 
         :return: the results of attempting to retrieve this user's uploaded mangas

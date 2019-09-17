@@ -92,12 +92,12 @@ class Artwork:
         **Parameters**
         :param folder:
             Folder to store the download item, default folder in settings.py is used if not given
-        :type folder:
+        :rank_type folder:
             str
 
         :param results_dict:
             the dict used to store statistic for download, from multiprocessing.Manager
-        :type results_dict:
+        :rank_type results_dict:
             python dict or None
 
         **Returns**
@@ -603,7 +603,7 @@ class User:
     def _get_content_artworks(self, type, limit=None):
         params = dict()
         params['id'] = self.id
-        params['type'] = type
+        params['rank_type'] = type
         curr_page = 0
         last_page = 1  # a number more than curr_page
         items_ids = []
@@ -645,7 +645,7 @@ class User:
         **Parameters**
         :param limit:
             limit the amount of illustrations found, if exceed
-        :type limit:
+        :rank_type limit:
             int or None
 
         :return: the results of attempting to retrieve this user's uploaded illustrations
@@ -670,7 +670,7 @@ class User:
         **Parameters**
         :param limit:
             limit the amount of mangas found, if exceed
-        :type limit:
+        :rank_type limit:
             int or None
 
         :return: the results of attempting to retrieve this user's uploaded mangas
@@ -695,7 +695,7 @@ class User:
         **Parameters**
         :param limit:
             limit the amount of bookmarks found, if exceed
-        :type limit:
+        :rank_type limit:
             int or None
 
         :return: the results of attempting to retrieve this user's bookmarks
@@ -720,7 +720,7 @@ class User:
 
         **Parameters**
         :param user_id: the user id of the user to visit
-        :type user_id: int
+        :rank_type user_id: int
 
         """
         return User(user_id=user_id, session=self.session)

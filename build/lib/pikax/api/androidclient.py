@@ -134,7 +134,7 @@ class BaseClient:
 class FunctionalBaseClient(BaseClient):
     # This class provide utilities for the real job, e.g. search/accessing user ...
     _host = 'https://app-api.pixiv.net'
-    _search_url = _host + '/v1/search/{type}?'
+    _search_url = _host + '/v1/search/{rank_type}?'
     _following_url = _host + '/v1/user/following?'
     _illust_creation_url = _host + '/v1/user/illusts?'
     _collection_url = _host + '/v1/user/bookmarks/{collection_type}?'
@@ -149,7 +149,7 @@ class FunctionalBaseClient(BaseClient):
     def _get_search_start_url(cls, keyword, search_type, match, sort, search_range):
         cls._check_params(match=match, sort=sort, search_range=search_range)
         if search_type and not params.SearchType.is_valid(search_type):
-            raise BaseClientException(f'search type must be type of {params.SearchType}')
+            raise BaseClientException(f'search rank_type must be rank_type of {params.SearchType}')
         param = {'word': str(keyword), 'search_target': match.value, 'sort': sort.value}
 
         if search_range:
@@ -165,7 +165,7 @@ class FunctionalBaseClient(BaseClient):
     @classmethod
     def _get_bookmarks_start_url(cls, bookmark_type, req_params, tagged):
         if bookmark_type and not params.BookmarkType.is_valid(bookmark_type):
-            raise BaseClientException(f'bookmark type: {bookmark_type} is not type of {params.BookmarkType}')
+            raise BaseClientException(f'bookmark rank_type: {bookmark_type} is not rank_type of {params.BookmarkType}')
 
         if tagged:
             collection_url = cls._tagged_collection_url.format(collection_type=bookmark_type.value)
@@ -183,13 +183,13 @@ class FunctionalBaseClient(BaseClient):
     @staticmethod
     def _check_params(match=None, sort=None, search_range=None, restrict=None):
         if match and not params.Match.is_valid(match):
-            raise BaseClientException(f'match: {match} is not type of {params.Match}')
+            raise BaseClientException(f'match: {match} is not rank_type of {params.Match}')
         if sort and not params.Sort.is_valid(sort):
-            raise BaseClientException(f'sort: {sort} is not type of {params.Sort}')
+            raise BaseClientException(f'sort: {sort} is not rank_type of {params.Sort}')
         if search_range and not params.Range.is_valid(search_range):
-            raise BaseClientException(f'search_range: {search_range} is not type of {params.Range}')
+            raise BaseClientException(f'search_range: {search_range} is not rank_type of {params.Range}')
         if restrict and not params.Restrict.is_valid(restrict):
-            raise BaseClientException(f'restrict: {restrict} is not type of {params.Restrict}')
+            raise BaseClientException(f'restrict: {restrict} is not rank_type of {params.Restrict}')
 
     def req(self, url, req_params=None):
         return util.req(url=url, headers=self.headers, params=req_params)
@@ -226,11 +226,11 @@ class FunctionalBaseClient(BaseClient):
     def get_creations(self, creation_type, limit, user_id):
         if not params.CreationType.is_valid(creation_type):
             raise ClientException(
-                f'creation type must be type of {params.CreationType}')
+                f'creation rank_type must be rank_type of {params.CreationType}')
 
         req_params = {
             'user_id': int(user_id),
-            'type': creation_type.value
+            'rank_type': creation_type.value
         }
 
         start_url = self._get_creations_start_url(req_params=req_params)
@@ -290,7 +290,7 @@ class AndroidAPIClient(FunctionalBaseClient, DefaultAPIClient):
     def search(self, keyword='', search_type=params.SearchType.ILLUST_OR_MANGA, match=params.Match.PARTIAL,
                sort=params.Sort.DATE_DESC,
                search_range=None, limit=None):
-        # if params.user is passed in as type,
+        # if params.user is passed in as rank_type,
         # only keyword is considered
 
         start_url = self._get_search_start_url(keyword=keyword, search_type=search_type, match=match, sort=sort,
@@ -301,7 +301,7 @@ class AndroidAPIClient(FunctionalBaseClient, DefaultAPIClient):
         # if not ids:
         #     auto_complete_keyword = self._get_keyword_match(word=keyword)
         #     if auto_complete_keyword:
-        #         return self.search(keyword=auto_complete_keyword, type=type, match=match, sort=sort,
+        #         return self.search(keyword=auto_complete_keyword, rank_type=rank_type, match=match, sort=sort,
         #                            range=range, limit=limit, r18=r18, r18g=r18g)
 
         return ids

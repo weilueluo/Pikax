@@ -170,9 +170,9 @@ class BookmarkHandler:
         if limit and not isinstance(limit, int):
             raise APIUserError(f'bookmark limit is not int or None')
         if bookmark_type and not params.BookmarkType.is_valid(bookmark_type):
-            raise APIUserError(f'Invalid bookmark type: {bookmark_type}, must be type of {params.BookmarkType}')
+            raise APIUserError(f'Invalid bookmark rank_type: {bookmark_type}, must be rank_type of {params.BookmarkType}')
         if restrict and not params.Restrict.is_valid(restrict):
-            raise APIUserError(f'Invalid restrict: {restrict}, must be type of {params.Restrict}')
+            raise APIUserError(f'Invalid restrict: {restrict}, must be rank_type of {params.Restrict}')
 
     @classmethod
     def _set_params(cls, bookmark_type, restrict, user_id):
@@ -226,7 +226,7 @@ class CreationHandler:
     def mangas(cls, user_id, session, limit):
         req_params = dict()
         req_params['id'] = user_id
-        req_params['type'] = 'manga'
+        req_params['rank_type'] = 'manga'
         curr_page = 0
         last_page = 1  # a number more than curr_page
         manga_ids = []
