@@ -1,5 +1,9 @@
 Pikax GUI Change Log
 
+v0.1.7 [not released yet]
+- Make credential file content not human readable
+- Remember language option
+
 v0.1.6 17 Sept 2019
 - Chinese language support
 - Optimize concurrent download

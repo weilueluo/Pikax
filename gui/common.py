@@ -7,6 +7,7 @@ import tkinter as tk
 from tkinter import END, NORMAL, DISABLED, Text, Entry, TclError
 
 import settings
+import texts
 
 _screen_lock = threading.Lock()
 
@@ -35,8 +36,11 @@ from rank import RankScreen
 from artist import ArtistScreen
 from illustration import IllustrationScreen
         """)
-        exec(cls_self.__class__.__name__ + '(cls_self.master, cls_self.pikax_handler)')  # create new window
+        exec(f"""
+new_screen = {cls_self.__class__.__name__}(cls_self.master, cls_self.pikax_handler)
+        """, locals())
         cls_self.destroy()  # destroy old window
+        return locals()['new_screen']
 
 
 def clear_widget(widget):
@@ -210,13 +214,48 @@ def save_to_local(file_path, item):
         pickle.dump(item, file, pickle.HIGHEST_PROTOCOL)
 
 
-def load_from_local(file_path):
-    with open(file_path, 'rb') as file:
-        return pickle.load(file)
-
-
 def remove_local_file(file_path):
     os.remove(file_path)
+
+
+# return none and remove file if failed to load else return loaded content
+def load_from_local(file_path):
+    try:
+        with open(file_path, 'rb') as file:
+            return pickle.load(file)
+    except pickle.UnpicklingError as e:
+        sys.stdout.write(texts.get('FILE_CORRUPTED').format(file=file_path, msg=str(e)))
+        remove_local_file(file_path)
+        return None
+
+
+def restore_language_if_saved(login_screen):
+    if not os.path.isfile(settings.LANGUAGE_FILE):
+        return login_screen
+    lang = load_from_local(settings.LANGUAGE_FILE)
+    if not lang:  # corrupted
+        return login_screen
+    import texts
+    languages_available = texts.LANGS
+    if lang in languages_available:
+        texts.LANG = lang
+        return refresh(login_screen)
+    else:  # corrupted
+        remove_local_file(settings.LANGUAGE_FILE)
+        return login_screen
+
+
+def save_language():
+    import texts
+    save_to_local(settings.LANGUAGE_FILE, texts.LANG)
+
+
+def make_unreadable_when_serialized(string):
+    return [ord(c) for c in string]
+
+
+def make_readable_from_unreadable(arr):
+    return [chr(i) for i in arr]
 
 
 #

@@ -14,6 +14,7 @@ PIXIV_REGISTER_URL = 'https://accounts.pixiv.net/signup'
 # files
 FILE_SUFFIX = '.pikaxdata'
 LOGIN_CREDENTIAL_FILE = 'login_credential' + FILE_SUFFIX
+LANGUAGE_FILE = 'language' + FILE_SUFFIX
 
 MAX_PROCESSES = None
 MIN_ITEMS_EACH_PROCESS = 10

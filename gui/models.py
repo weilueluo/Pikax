@@ -6,7 +6,7 @@ from PIL import Image, ImageTk
 
 import settings
 import texts
-from common import crop_to_dimension, get_background_file_path, refresh
+from common import crop_to_dimension, get_background_file_path, refresh, save_language
 
 
 class PikaxButton(tk.Button):
@@ -44,6 +44,7 @@ class PikaxButton(tk.Button):
 
     def mouse_leave(self, _=None):
         self.configure(bg=self.bg_color, fg=self.fg_color)
+
 
 class PikaxOptionMenu(tk.OptionMenu):
 
@@ -310,6 +311,7 @@ class PikaxGuiComponent:
     def language_button_clicked(self, _=None):
         self.save_inputs()
         texts.set_next_lang()
+        save_language()
         refresh(self)
 
     def make_frame(self, *args, **kwargs):

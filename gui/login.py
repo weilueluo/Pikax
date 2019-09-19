@@ -12,7 +12,6 @@ from lib.pikax.exceptions import PikaxException
 from menu import MenuScreen
 from models import PikaxGuiComponent
 
-_first_time = True
 _prev_username = ''
 _prev_password = ''
 _prev_checkbox = None
@@ -71,11 +70,6 @@ class LoginScreen(PikaxGuiComponent):
 
         self.restore_previous()
 
-        global _first_time
-        if _first_time:
-            self.login_if_credential_exists()
-            _first_time = False
-
     def restore_previous(self):
         global _prev_username
         global _prev_password
@@ -98,9 +92,18 @@ class LoginScreen(PikaxGuiComponent):
         credential_file = settings.LOGIN_CREDENTIAL_FILE
         if os.path.isfile(credential_file):
             account = load_from_local(credential_file)
+
+            if not account:
+                return
+
             self.clear_username_and_password()
-            self.fill_username_and_password(username=str(account.username), password=str(account.password))
-            self.login()
+            try:
+                self.fill_username_and_password(username=str(account.username), password=str(account.password))
+                self.login()
+            except AttributeError:
+                # using old credential file, self.username has changed to be a property
+                # and internal renamed to self._username
+                remove_local_file(credential_file)
 
     def make_entry(self, **kwargs):
         entry = super().make_entry(**kwargs)

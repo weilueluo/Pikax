@@ -27,6 +27,7 @@ def values_translate(key, value, src_lang, dest_lang):
     dest_dropdown = globs[key][dest_lang]
     return dest_dropdown[index]
 
+
 #
 # General
 #
@@ -61,6 +62,10 @@ TICK = {
     '中文': '\u2714'
 }
 
+FILE_CORRUPTED = {
+    'English': '{file} is corrupted, removed\nmessage: {msg}',
+    '中文': '{file} 损坏，已删除\n消息: {msg}'
+}
 #
 # Models
 #

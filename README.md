@@ -11,6 +11,9 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   - 搜索
   - 特定用户所有的插画、收藏、漫画
   - 任意URL的插画、漫画
+- 语言支持
+  - 英文 （默认）
+  - 中文
 - [下载](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
 ## 接口版
 ````

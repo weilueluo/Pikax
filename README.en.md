@@ -11,6 +11,9 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   - Searchings
   - Any user's illustrations/bookmarks/mangas
   - Any artwork
+- Language avaiable
+  - English (default)
+  - Chinese
 - [Download here](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
 ## API
 ````
