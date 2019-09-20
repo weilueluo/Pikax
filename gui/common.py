@@ -1,3 +1,4 @@
+import math
 import multiprocessing as mp
 import os
 import pickle
@@ -250,12 +251,23 @@ def save_language():
     save_to_local(settings.LANGUAGE_FILE, texts.LANG)
 
 
+KEY = 1046527  # this is a prime number https://en.wikipedia.org/wiki/List_of_prime_numbers#Lists_of_primes_by_type
+
+
 def make_unreadable_when_serialized(string):
-    return [ord(c) for c in string]
+    global KEY
+    enc = []
+    for i in range(len(string)):
+        enc.append(int(ord(string[i]) * (i + 1 + KEY)))
+    return enc
 
 
 def make_readable_from_unreadable(arr):
-    return [chr(i) for i in arr]
+    global KEY
+    dec = ''
+    for i in range(len(arr)):
+        dec += chr(int(arr[i] / (i + 1 + KEY)))
+    return dec
 
 
 #
@@ -350,4 +362,7 @@ def concurrent_download(target, items):
 
 
 if __name__ == '__main__':
-    print(_get_num_of_items_for_each_routine(11, num_of_routine=_get_num_of_processes()))
+    s = make_unreadable_when_serialized('username')
+    sys.stderr.write(str(s))
+    k = make_readable_from_unreadable(s)
+    sys.stderr.write(str(k))

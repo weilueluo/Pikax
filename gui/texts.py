@@ -17,7 +17,10 @@ def set_next_lang():
 
 
 def get(key):
-    return globals()[key][LANG]
+    try:
+        return globals()[key][LANG]
+    except AttributeError as e:
+        return f'Internal Error: {e}'
 
 
 def values_translate(key, value, src_lang, dest_lang):
@@ -66,6 +69,7 @@ FILE_CORRUPTED = {
     'English': '{file} is corrupted, removed\nmessage: {msg}',
     '中文': '{file} 损坏，已删除\n消息: {msg}'
 }
+
 #
 # Models
 #
@@ -139,6 +143,19 @@ LOGIN_REGISTER_BUTTON = {
 LOGIN_REMEMBER_TEXT = {
     'English': 'Remember Me',
     '中文': '记住我'
+}
+
+#
+# Account
+#
+ACCOUNT_USERNAME_CORRUPTED = {
+    'English': 'username corrupted',
+    '中文': '用户名损坏'
+}
+
+ACCOUNT_PASSWORD_CORRUPTED = {
+    'English': 'password corrupted',
+    '中文': '密码损坏'
 }
 
 #

@@ -93,7 +93,7 @@ class LoginScreen(PikaxGuiComponent):
         if os.path.isfile(credential_file):
             account = load_from_local(credential_file)
 
-            if not account:
+            if not account:  # corrupted
                 return
 
             self.clear_username_and_password()

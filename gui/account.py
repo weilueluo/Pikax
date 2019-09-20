@@ -1,3 +1,4 @@
+import texts
 from common import make_readable_from_unreadable, make_unreadable_when_serialized
 
 
@@ -8,11 +9,17 @@ class Account:
 
     @property
     def username(self):
-        return ''.join(make_readable_from_unreadable(self._username))
+        try:
+            return make_readable_from_unreadable(self._username)
+        except ValueError:
+            raise AttributeError(texts.get('ACCOUNT_USERNAME_CORRUPTED'))
 
     @property
     def password(self):
-        return ''.join(make_readable_from_unreadable(self._password))
+        try:
+            return make_readable_from_unreadable(self._password)
+        except ValueError:
+            raise AttributeError(texts.get('ACCOUNT_PASSWORD_CORRUPTED'))
 
 
 def main():
