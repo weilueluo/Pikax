@@ -1,6 +1,6 @@
 Pikax GUI Change Log
 
-v0.1.7 [not released yet]
+v0.1.7 23 Sept 2019
 - Make credential file content not human readable
 - Remember language option
 
