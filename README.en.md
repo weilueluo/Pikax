@@ -15,7 +15,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   - English (default)
   - Chinese
 - [Download here](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
-## API
+## API (not so recommended)
 ````
   # the current v2 is not compatiable with v1, please upgrade carefully, deprecated folder contains v1's source code
   pip install Pikax # current release
