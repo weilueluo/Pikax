@@ -15,7 +15,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   - 英文 （默认）
   - 中文
 - [下载](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
-## 接口版
+## 接口版 (不太建议使用)
 ````
   # 当前的v2跟v1不兼容，v1用户谨慎更新，deprecated文件夹有v1的源码
   pip install Pikax # 当前的发布
