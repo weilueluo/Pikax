@@ -3,7 +3,6 @@
 Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.net/)\[P站\]批量下载工具。
 #### [English ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.en.md)
 ## 图形界面版
-> 为了宣扬民族核心价值观，此应用仅提供多核单线程下载 <br>
 > 不提供翻墙，请使用VPN或者飞机
 - [日志](https://github.com/Redcxx/Pikax/blob/master/gui/dist/change_log.txt)
 - 用P站账号或游客登录即可
