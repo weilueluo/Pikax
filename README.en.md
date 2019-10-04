@@ -3,7 +3,6 @@
 Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) mass downloading tool
 #### [Chinese ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.md)
 ## GUI
-> To prevent block, this App provide multi-core download but single threaded <br>
 > Does not provide support for using behind The Great FireWall, please use VPN or Airplane 
 - [Change log](https://github.com/Redcxx/Pikax/blob/master/gui/dist/change_log.txt)
 - Login with your Pixiv account or Guest login
