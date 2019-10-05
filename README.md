@@ -14,7 +14,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 - 语言支持
   - 英文 （默认）
   - 中文
-- [下载](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
+- [下载](https://github.com/Redcxx/Pikax/blob/master/gui/dist/latest)
 ## 接口版
 > 为了宣扬民族核心价值观，本接口仅提供单核多线程下载
 ````
