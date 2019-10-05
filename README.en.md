@@ -14,7 +14,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 - Language avaiable
   - English (default)
   - Chinese
-- [Download here](https://github.com/Redcxx/Pikax/blob/master/gui/dist)
+- [Download here](https://github.com/Redcxx/Pikax/blob/master/gui/dist/latest)
 ## API
 > To prevent block, this api provide multi-threading download but single-core
 ````
