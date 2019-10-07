@@ -318,9 +318,10 @@ class QueueWriter:
         pass
 
 
-def queue_downloader(target, queue, stdout_queue):
+def queue_downloader(target, queue, stdout_queue, lang):
     import sys
     sys.stdout = QueueWriter(stdout_queue)
+    texts.LANG = lang
     try:
         while True:
             item = queue.get()
@@ -342,7 +343,8 @@ def concurrent_download(target, items):
                              kwargs={
                                  'target': target,
                                  'queue': queue,
-                                 'stdout_queue': stdout_queue
+                                 'stdout_queue': stdout_queue,
+                                 'lang': texts.LANG
                              },
                              daemon=True
                              )

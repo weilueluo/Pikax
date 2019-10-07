@@ -1,6 +1,7 @@
 import enum
 import os
 
+import texts
 from .exceptions import LoginError
 from .api.androidclient import AndroidAPIClient
 from .api.webclient import WebAPIClient
@@ -30,16 +31,17 @@ class LoginHandler:
             util.log(f'web login failed: {e}')
             return self.LoginStatus.LOG_OUT, DefaultAPIClient()
 
+    # changed for gui
     def android_login(self, username=None, password=None):
         if username and password:
             self.username = username
             self.password = password
 
         try:
-            util.log('Attempting Android Login ...')
+            util.log(texts.get('ANDROID_LOGGING_TEXT'))
             return self.LoginStatus.ANDROID, AndroidAPIClient(self.username, self.password)
         except LoginError as e:
-            util.log(f'android login failed: {e}')
+            util.log(texts.get('ANDROID_LOGIN_FAILED').format(e))
             return self.LoginStatus.LOG_OUT, DefaultAPIClient()
 
     def login(self, username=None, password=None):

@@ -145,6 +145,16 @@ LOGIN_REMEMBER_TEXT = {
     '中文': '记住我'
 }
 
+ANDROID_LOGGING_TEXT = {
+    'English': 'Attempting Android Login ...',
+    '中文': '正在尝试安卓登录 。。。'
+}
+
+ANDROID_LOGIN_FAILED = {
+    'English': 'android login failed: {e}',
+    '中文': '安卓登录失败：{e}'
+}
+
 #
 # Account
 #
@@ -503,6 +513,11 @@ PROCESS_FINISHED_MESSAGE = {
 PROCESS_TYPE_ERROR = {
     'English': 'process rank_type: {process_type} is not rank_type of {process_class}',
     '中文': '排行榜种类: {process_type} 并不是 {process_class} 的一员'
+}
+
+BY = {
+    'English': 'by',
+    '中文': '来自'
 }
 
 #

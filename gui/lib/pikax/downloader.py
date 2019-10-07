@@ -23,7 +23,7 @@ class DefaultDownloader(BaseDownloader):
                 page_num_search = re.search(r'\d{8}_p(\d*)', url)
                 page_num = page_num_search.group(1) if page_num_search else -1
                 filename = os.path.join(util.clean_filename(str(folder)), util.clean_filename(str(filename)))
-                artwork_detail = f'[{str(artwork.title)}] p{page_num} by [{str(artwork.author)}]'
+                artwork_detail = f'[{str(artwork.title)}] p{page_num} {texts.get("BY")} [{str(artwork.author)}]'
                 if status is Artwork.DownloadStatus.OK:
 
                     if os.path.isfile(filename):
