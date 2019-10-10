@@ -7,14 +7,13 @@ assignees: ''
 
 ---
 
-**Describe the bug**
-A description of what the bug is.
+**Describe the bug/描述你遇到的问题**
 
-**To Reproduce**
-Steps to reproduce the behavior:
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**How to reproduce the behaviour/如何复现你遇到的问题**
 
-**Additional context**
-Add any other context about the problem here.
+
+**What was your expected behavior/你所期望的解决办法**
+
+
+**Additional context/额外信息**
