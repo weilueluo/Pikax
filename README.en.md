@@ -22,6 +22,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 ````
 git clone https://github.com/Redcxx/Pikax.git
 cd Pikax/gui
+# change main.spec according to needs
 pyinstaller main.spec
 cd dist
 ls  
