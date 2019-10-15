@@ -22,10 +22,11 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 ````
 git clone https://github.com/Redcxx/Pikax.git
 cd Pikax/gui
-pyinstaller main.spec
+# 按需求修改 main.spec
+pyinstaller main.spec 
 cd dist
 ls  
-# you should find a executable called Pikax x.x.x
+# 应有可执行文件 Pikax x.x.x
 ````
 ## 接口版
 > 为了宣扬民族核心价值观，本接口仅提供单核多线程下载
