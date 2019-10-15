@@ -1,6 +1,7 @@
 Pikax GUI Change Log
 
 v0.1.8 [not release yet]
+- Added ability to filter likes for artists
 - Fix minor language issue
 
 v0.1.7 23 Sept 2019
