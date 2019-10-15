@@ -1,7 +1,7 @@
 import sys
 
 import texts
-from lib.pikax import params
+from lib.pikax import params, util
 from lib.pikax.exceptions import PikaxException, ArtworkError
 from lib.pikax.items import LoginHandler
 from lib.pikax.pikax import Pikax
@@ -46,16 +46,26 @@ class PikaxHandler:
         except ArtworkError as e:
             sys.stdout.write(texts.get('PIKAX_ILLUST_ID_FAILED').format(error=e))
 
-    def download_by_artist_id(self, artist_id, limit, content, folder):
+    def download_by_artist_id(self, artist_id, limit, content, folder, likes):
         try:
             artist = self.pikax.visits(user_id=artist_id)
 
-            if content is params.ContentType.ILLUST:
-                result = artist.illusts(limit=limit)
-            elif content is params.ContentType.MANGA:
-                result = artist.mangas(limit=limit)
+            if not likes:  # we can use limit param
+                if content is params.ContentType.ILLUST:
+                    result = artist.illusts(limit=limit)
+                elif content is params.ContentType.MANGA:
+                    result = artist.mangas(limit=limit)
+                else:
+                    result = artist.bookmarks(limit=limit)
             else:
-                result = artist.bookmarks(limit=limit)
+                if content is params.ContentType.ILLUST:
+                    result = artist.illusts()
+                elif content is params.ContentType.MANGA:
+                    result = artist.mangas()
+                else:
+                    result = artist.bookmarks()
+
+                result = (result.likes > likes).renew_artworks(util.trim_to_limit(result.likes > likes, limit))
 
             self.pikax.download(result, folder=folder)
         except PikaxException as e:

@@ -243,6 +243,11 @@ ARTIST_AMBIGUOUS_ID_FOUND = {
     '中文': '找到多串数字\n请只提供一个画师的ID'
 }
 
+ARTIST_LIKES_TEXT = {
+    'English': 'Likes Above',
+    '中文': '赞大于'
+}
+
 #
 # Menu Screen
 #
@@ -573,4 +578,23 @@ TIME_LEFT_EST = {
 SECOND = {
     'English': 's',
     '中文': '秒'
+}
+
+#
+# Utilities
+#
+
+UTIL_TRIMMED = {
+    'English': 'Trimmed',
+    '中文': '裁'
+}
+
+UTIL_ITEMS = {
+    'English': 'items',
+    '中文': '物品'
+}
+
+UTIL_TRIM_NUM_ITEMS_LESS_THAN_LIMIT_ERROR = {
+    'English': 'Number of items are less than limit:',
+    '中文': '物品数量小于限额'
 }

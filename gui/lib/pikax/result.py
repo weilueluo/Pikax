@@ -10,6 +10,10 @@ class DefaultPikaxResult(PikaxResult):
         super().__init__(artworks, download_type, folder)
         self.allow_mix_types = [params.DownloadType.MANGA, params.DownloadType.ILLUST]
 
+    # workaround for gui to change artworks in PikaxResult
+    def renew_artworks(self, new_artworks):
+        return DefaultPikaxResult(new_artworks, download_type=self.download_type, folder=self.folder)
+
     def result_maker(self, artworks, download_type, folder):
         return DefaultPikaxResult(artworks, download_type, folder)
 

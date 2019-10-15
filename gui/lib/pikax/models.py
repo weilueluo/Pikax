@@ -4,7 +4,6 @@ import math
 import multiprocessing as mp
 import operator
 import os
-from importlib import reload
 from typing import Union, List, Tuple, Iterator
 
 import texts
@@ -137,6 +136,10 @@ class PikaxResult:
     @property
     def download_type(self) -> params.DownloadType:
         return self._download_type
+
+    # workaround for gui to change artwork using the same download type and folder
+    def renew_artworks(self, param):
+        raise NotImplementedError
 
 
 class PikaxUserInterface:
@@ -326,7 +329,6 @@ class BaseDownloader:
             params.DownloadType.MANGA: self.download_manga,
         }
 
-
     def download_func(self, item, target, curr_artwork, curr_page, total_artworks, total_pages, successes, fails,
                       skips):
         download_details = target(item)
@@ -391,7 +393,8 @@ class BaseDownloader:
 
         finish_msg += texts.get('DOWNLOAD_FINISHED_SKIPPED_PAGES').format(skips=len(skips))
         for index, skip_info in enumerate(skips):
-            finish_msg += texts.get('DOWNLOAD_FINISHED_SKIPPED_INFO').format(counter=index + 1, skip_info=str(skip_info))
+            finish_msg += texts.get('DOWNLOAD_FINISHED_SKIPPED_INFO').format(counter=index + 1,
+                                                                             skip_info=str(skip_info))
 
         finish_msg += texts.get('DOWNLOAD_FINISHED_FAILED_PAGES').format(fails=len(fails))
         for index, fail_info in enumerate(fails):

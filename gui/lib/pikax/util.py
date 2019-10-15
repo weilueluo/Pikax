@@ -190,9 +190,12 @@ def trim_to_limit(items, limit):
 
             if num_of_items > limit:
                 items = items[:limit]
-                log('Trimmed', num_of_items, 'items =>', limit, 'items')
+                log(f'{texts.get("UTIL_TRIMMED")} {num_of_items} {texts.get("UTIL_ITEMS")} '
+                    f'=> {limit} {texts.get("UTIL_ITEMS")}')
+                # log('Trimmed', num_of_items, 'items =>', limit, 'items')
             else:
-                log('Number of items are less than limit:', num_of_items, '<', limit, inform=True, save=True)
+                log(f'{texts.get("UTIL_TRIM_NUM_ITEMS_LESS_THAN_LIMIT_ERROR")} {num_of_items} < {limit}')
+                # log('Number of items are less than limit:', num_of_items, '<', limit, inform=True, save=True)
     return items
 
 
