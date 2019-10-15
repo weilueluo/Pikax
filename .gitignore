@@ -1,7 +1,6 @@
 *.json
 *.png
 *.jpg
-!gui/assets/*
 *.html
 *.txt
 !gui/dist/change_log.txt
