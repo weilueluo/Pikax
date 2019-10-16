@@ -16,6 +16,18 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   - English (default)
   - Chinese
 - [Download here](https://github.com/Redcxx/Pikax/blob/master/gui/dist/latest)
+### Building from source（for non-windows user）
+> require [pyinstaller](https://www.pyinstaller.org) <br>
+> `pip install pyinstaller`
+````
+git clone https://github.com/Redcxx/Pikax.git
+cd Pikax/gui
+# change main.spec according to needs
+pyinstaller main.spec
+cd dist
+ls  
+# you should find a executable called Pikax x.x.x
+````
 ## API
 > To prevent block, this api provide multi-threading download but single-core
 ````
