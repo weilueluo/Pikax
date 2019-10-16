@@ -2,7 +2,7 @@ import tkinter as tk
 import webbrowser
 from tkinter import font, ttk
 
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageEnhance
 
 import settings
 import texts
@@ -238,7 +238,6 @@ class PikaxDropdown(ttk.Combobox):
 class PikaxGuiComponent:
 
     def __init__(self, master, pikax_handler):
-
         self.master = master
         self.frame = self.make_frame(borderwidth=0, highlightthickness=0)
         self.pikax_handler = pikax_handler
@@ -323,7 +322,7 @@ class PikaxGuiComponent:
         im = ImageTk.PhotoImage(master=self.frame, image=im)
         return im
 
-    def set_canvas(self, image_path, focus):
+    def set_canvas(self, image_path, focus=tk.CENTER):
         im = self.get_cropped_image(image_path=image_path, focus=focus)
         background = self.make_fullscreen_canvas()
         background.create_image((0, 0), image=im, anchor=tk.NW)

@@ -219,8 +219,8 @@ ARTIST_CONTENT_SWITCH_VALUES = {
 }
 
 ARTIST_CONTENT_TEXT = {
-    'English': 'Content',
-    '中文': '内容'
+    'English': 'Type',
+    '中文': '类型'
 }
 
 ARTIST_LIMIT_TEXT = {
