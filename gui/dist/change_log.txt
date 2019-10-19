@@ -1,8 +1,8 @@
 Pikax GUI Change Log
 
-v0.1.8 [not release yet]
+v0.1.8 20 Oct 2019
 - Added ability to filter likes for artists
-- Workaround flashing when changing frame
+- Workaround avoid flashing when changing frame
 - Fix minor language issue
 - Fix window shows up before configuring
 

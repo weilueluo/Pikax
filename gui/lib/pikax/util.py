@@ -272,16 +272,17 @@ class Printer(object):
     def print_done(self, msg=None):
         if msg:
             if self.is_first_print:
-                log(f' [ done ] => {msg}', normal=True)
+                log(f' [ {texts.get("DONE")} ] => {msg}', normal=True)
             else:
-                log(' [ done ] => {0:.2f}{s} \n{msg}'.format(time.time() - self.start_time, msg=msg,
-                                                             s=texts.get('SECOND')),
+                log(' [ {done} ] => {0:.2f}{s} \n{msg}'.format(time.time() - self.start_time, msg=msg,
+                                                               s=texts.get('SECOND'), done=texts.get("DONE")),
                     normal=True)
         else:
             if self.is_first_print:
-                log(' [ done ]', normal=True)
+                log(f' [ {texts.get("DONE")} ]', normal=True)
             else:
-                log(' [ done ] => {0:.2f}{s}'.format(time.time() - self.start_time, s=texts.get('SECOND')), normal=True)
+                log(' [ {done} ] => {0:.2f}{s}'.format(time.time() - self.start_time, s=texts.get('SECOND'),
+                                                       done=texts.get("DONE")), normal=True)
         self.is_first_print = True
         self.start_time = None
         self.last_percent = None

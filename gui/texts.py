@@ -70,6 +70,11 @@ FILE_CORRUPTED = {
     '中文': '{file} 损坏，已删除\n消息: {msg}'
 }
 
+DONE = {
+    'English': 'Done',
+    '中文': '完成'
+}
+
 #
 # Models
 #
@@ -146,8 +151,8 @@ LOGIN_REMEMBER_TEXT = {
 }
 
 ANDROID_LOGGING_TEXT = {
-    'English': 'Attempting Android Login ...',
-    '中文': '正在尝试安卓登录 。。。'
+    'English': 'Attempting Login ...',
+    '中文': '正在尝试登录 。。。'
 }
 
 ANDROID_LOGIN_FAILED = {

@@ -311,7 +311,7 @@ class PikaxGuiComponent:
         self.save_inputs()
         texts.set_next_lang()
         save_language()
-        refresh(self)
+        self.refresh = refresh(self)
 
     def make_frame(self, *args, **kwargs):
         return tk.Frame(master=self.master, *args, **kwargs)

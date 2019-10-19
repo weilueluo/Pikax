@@ -118,7 +118,7 @@ class PikaxResult:
             folder = util.clean_filename(str(self.outer_self.folder) + '_' + operator_name + '_' + str(value))
             result = self.result_maker(artworks=new_artworks, folder=folder)
 
-            util.log(f'[ done ] {old_len} => {new_len}', inform=True)
+            util.log(f'[ {texts.get("DONE")} ] {old_len} => {new_len}', inform=True)
             return result
 
     @property
