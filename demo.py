@@ -60,7 +60,7 @@ def main():
     # download_daily_rankings_example()
     # download_search_example()
     # download_own_bookmarks_example()
-    download_other_user_items_example()
+    # download_other_user_items_example()
     # download_by_artwork_id_example()
     # download_with_filter_example()
     # download_with_filter_example2()

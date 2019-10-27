@@ -404,9 +404,8 @@ class DefaultAPIUser(APIUserInterface):
         except ReqException as e:
             util.log(str(e), error=True, save=True)
             raise UserError('Failed to load user information')
-
         # save user information, not used yet, for filter in the future
-        data = data['user_details']
+        data = data['body']['user_details']
         self._id = data['user_id']
         self._account = data['user_account']
         self._name = data['user_name']

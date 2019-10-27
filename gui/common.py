@@ -11,35 +11,6 @@ import texts
 
 _screen_lock = threading.Lock()
 
-_fade_delay = 10  # ms
-
-
-def fade_in_slightly(screen):
-    alpha = screen.attributes('-alpha')
-    if alpha == 1.0:
-        return
-    alpha = min(alpha + 0.1, 1.0)
-    screen.attributes('-alpha', alpha)
-
-
-def fade_out_slightly(screen):
-    alpha = screen.attributes('-alpha')
-    if alpha == 0.0:
-        return
-    alpha = max(alpha - 0.1, 0.0)
-    screen.attributes('-alpha', alpha)
-
-
-def fade_switch(old, new):
-    global _fade_delay
-    new.attributes('-alpha', 0.0)  # make it transparent first
-    if new.attributes('-alpha') == 1.0 and old.attributes('-alpha') == 0.0:
-        old.destroy()
-        return
-    fade_out_slightly(old)
-    fade_in_slightly(new)
-    old.after(_fade_delay, fade_switch)
-
 
 def go_to_next_screen(src, dest):
     global _screen_lock
@@ -48,8 +19,7 @@ def go_to_next_screen(src, dest):
     with _screen_lock:
         pikax_handler = src.pikax_handler
         master = src.frame.master
-        new_screen = dest(master, pikax_handler)  # create new screen
-        # fade_switch(src, new_screen)
+        dest(master, pikax_handler)  # create new screen
         src.destroy()  # destroy old screen
 
 

@@ -147,6 +147,7 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
                 log(res.status_code)
 
             # check if request result is normal
+
             if res:
                 if res.status_code < 400:
                     if settings.DELAY_PER_REQUEST:

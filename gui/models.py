@@ -353,7 +353,7 @@ class PikaxGuiComponent:
 
     def make_fullscreen_canvas(self):
         return tk.Canvas(self.frame, borderwidth=0, highlightthickness=0,
-                         height=self.height, width=self.width)
+                         height=self.height, width=self.width, bg=settings.DEFAULT_BACKGROUND_COLOR)
 
     def redirect_output_to(self, text_component, text_widget=True, canvas=None):
         import sys
