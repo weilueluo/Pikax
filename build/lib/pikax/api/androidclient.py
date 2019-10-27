@@ -39,7 +39,7 @@ class BaseClient:
         self._session = requests.Session()
         self._headers = BaseClient.__headers.copy()
 
-        local_time = datetime.datetime.now().isoformat()
+        local_time = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S+00:00')
         self._headers['X-Client-Time'] = local_time
         self._headers['X-Client-Hash'] = hashlib.md5((local_time + self._hash_secret).encode('utf-8')).hexdigest()
 

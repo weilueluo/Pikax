@@ -20,8 +20,12 @@ class BaseClient:
         self.cookies_file = settings.COOKIES_FILE
 
     def _check_is_logged(self):
-        status_json = util.req(url=self._login_check_url, session=self._session).json()
-        return status_json['body']['user_status']['is_logged_in']
+        try:
+            status_json = util.req(url=self._login_check_url, session=self._session).json()
+            return status_json['body']['user_status']['is_logged_in']
+        except ReqException:
+            util.log('Checking Failed')
+            return False
 
     def _save_cookies(self):
 
