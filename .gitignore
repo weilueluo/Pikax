@@ -22,3 +22,10 @@ _*demo
 _*
 cookies.data
 */*.pikaxdata
+build/*
+deprecated/*
+pikax.egg-info
+setup.py
+dist/*
+gui/build/*
+gui/dist/Pikax*
