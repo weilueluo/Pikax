@@ -23,10 +23,9 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 git clone https://github.com/Redcxx/Pikax.git
 cd Pikax/gui
 # 按需求修改 main.spec
-pyinstaller main.spec 
+pyinstaller main.py
 cd dist
-ls  
-# 应有可执行文件 Pikax x.x.x
+ls
 ````
 ## 接口版
 > 为了宣扬民族核心价值观，本接口仅提供单核多线程下载
@@ -56,7 +55,6 @@ ls
 - 。。。
 - 有人再做吧，我自己够用了owo
 ## 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
-### [命令行展示](https://github.com/Redcxx/Pikax/blob/master/demo.gif)
 ### 下载当日排行榜前50的插画
 ````
   from pikax.pikax import Pikax
