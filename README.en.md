@@ -12,7 +12,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   - Searchings
   - Any user's illustrations/bookmarks/mangas
   - Any artwork
-- Language avaiable
+- Language available
   - English (default)
   - Chinese
 - [Download here](https://github.com/Redcxx/Pikax/blob/master/gui/dist/latest)
@@ -23,10 +23,9 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 git clone https://github.com/Redcxx/Pikax.git
 cd Pikax/gui
 # change main.spec according to needs
-pyinstaller main.spec
+pyinstaller main.py
 cd dist
-ls  
-# you should find a executable called Pikax x.x.x
+ls
 ````
 ## API
 > To prevent block, this api provide multi-threading download but single-core
@@ -57,7 +56,6 @@ ls
 - ...
 - Tell me!
 ## Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
-### [Commandline Demo](https://github.com/Redcxx/Pikax/blob/master/demo.gif)
 ### Download today's top 50 illustration
 ```
   from pikax.pikax import Pikax
