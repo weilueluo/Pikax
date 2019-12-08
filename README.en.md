@@ -30,8 +30,7 @@ ls
 ## API
 > To prevent block, this api provide multi-threading download but single-core
 ````
-  # the current v2 is not compatiable with v1, please upgrade carefully, deprecated folder contains v1's source code
-  pip install Pikax # current release
+  pip install Pikax
 ````
 ---
 ## Requirements
@@ -132,8 +131,4 @@ ls
 ### visits[models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py) for more operations
 ### For customization visits [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
 ---
-## Note to v1 users
- - I removed some functions such as configure r18 settings and dimension options for search, this is because in order to solve the login issue, I had to use an Android login entry point which does not support as much functionalities as the web logged user does. So in order to provide a consistent interface, I decided to remove them. Although I had found a way to solve the login issue of web, but it require a lot time to implement the technique and it requires a extra dependency, I am still a student and need to study ... I will try to fix them in the future when I am free, no guarantee though ...
- - Instead of using string as parameters now I created params.py which contains enums covering almost all input parameters
- - A brand new download printing is introduced for better ux, instead of popping out skips in the process, they will pop out together at the end, and now it has a est. time left
  ## You can reach me by [email](mailto:weilue.luo@student.manchester.ac.uk)
