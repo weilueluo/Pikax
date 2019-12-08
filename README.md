@@ -30,8 +30,7 @@ ls
 ## 接口版
 > 为了宣扬民族核心价值观，本接口仅提供单核多线程下载
 ````
-  # 当前的v2跟v1不兼容，v1用户谨慎更新，deprecated文件夹有v1的源码
-  pip install Pikax # 当前的发布
+  pip install Pikax
 ````
 ---
 ## 需要
@@ -131,9 +130,5 @@ ls
 ### 更多操作请参考[models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py)
 ### 个性化设置请前往[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
 ---
-## 致v1用户
- - 我移除了一部分功能比如自动设置r18和尺寸搜索设置，这是因为为了解决登录问题我模拟了他们在安卓应用上的登录，但是手机应用有些设定是不支持的，比如我刚刚说的那两个，为了有一个统一的接口我决定移除他们。虽然我已经找到了解决的办法但是这个办法需要我大量的精力和时间去实现并且要求额外的依赖，而我只是一个可怜的学生因此只可能在以后有空的时候做一下，不过不能保证真的会做。。。
- - 现在基本上所有输入的参数都可以在params.py的找到，里面几乎涵盖了所有参数的枚举
- - 更棒的打印，现在跳过的画作只会在下载后显示，而且加入了剩余时间的估算
 
  ## 联系我可发邮件到[这里](mailto:weilue.luo@student.manchester.ac.uk)
