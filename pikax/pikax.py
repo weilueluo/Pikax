@@ -104,7 +104,7 @@ class Pikax(PikaxInterface):
                                                        search_range=search_range, popularity=popularity, limit=limit)
         return DefaultPikaxResult(success, download_type=download_type, folder=folder)
 
-    def rank(self, limit: int = datetime.datetime,
+    def rank(self, limit: int = None,
              date: Union[str, datetime.datetime] = format(datetime.datetime.today(), '%Y%m%d'),
              content: params.Content = params.Content.ILLUST,
              rank_type: params.RankType = params.RankType.DAILY) \

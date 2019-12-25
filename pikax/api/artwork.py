@@ -47,6 +47,8 @@ class Illust(Artwork):
     def config(self):
         try:
             illust_data = util.req(req_type='get', url=self._details_url, log_req=False).json()
+            from pprint import pprint
+            pprint(illust_data)
             illust_data = illust_data['body']
 
             # properties
@@ -56,6 +58,7 @@ class Illust(Artwork):
             self._title = illust_data['illustTitle']
             self._author = illust_data['userName']
             self._tags = [item['tag'] for item in illust_data['tags']['tags']]
+
 
             self.__original_url_template = illust_data['urls']['original']
             self.__original_url_template = re.sub(r'(?<=_p)\d', '{page_num}', self.__original_url_template)
@@ -135,7 +138,7 @@ def test():
     from .. import settings
     client = AndroidAPIClient(settings.username, settings.password)
     user = client.visits(user_id=2957827)
-    illust_ids = user.illusts(limit=15)
+    illust_ids = user.illusts(limit=1)
     artworks = [Illust(illust_id) for illust_id in illust_ids]
     for artwork in artworks:
         artwork.config()
