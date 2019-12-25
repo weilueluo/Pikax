@@ -30,6 +30,9 @@ _warn_enabled = settings.LOG_WARN
 
 __all__ = ['log', 'req', 'json_loads', 'trim_to_limit', 'clean_filename', 'print_json']
 
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,
         warn=False, normal=False):
@@ -87,7 +90,7 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', info
 # send request using requests, raise ReqException if fails all retries
 def req(url, req_type='get', session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS,
         timeout=settings.TIMEOUT, err_msg=None, log_req=settings.LOG_REQUEST, retries=settings.MAX_RETRIES_FOR_REQUEST,
-        proxies=settings.REQUEST_PROXIES):
+        proxies=settings.REQUEST_PROXIES, verify=True):
     """Send requests according to given parameters using requests library
 
     **Description**
@@ -151,6 +154,10 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
     :rank_type proxies:
         dict
 
+    :param verify:
+        Whether to verify ssl certificate or not
+
+
 
     **Returns**
     :return: respond of the request
@@ -170,20 +177,22 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
             # try send request according to parameters
             if session:
                 if req_type == 'GET':
-                    res = session.get(url=url, headers=headers, params=params, timeout=timeout, proxies=proxies)
+                    res = session.get(url=url, headers=headers, params=params, timeout=timeout, proxies=proxies,
+                                      verify=verify)
                 elif req_type == 'POST':
                     res = session.post(url=url, headers=headers, params=params, timeout=timeout, data=data,
-                                       proxies=proxies)
+                                       proxies=proxies, verify=verify)
                 else:
-                    raise ReqException('Request rank_type error:', req_type)
+                    raise ReqException('Request req_type error:', req_type)
             else:
                 if req_type == 'GET':
-                    res = requests.get(url=url, headers=headers, params=params, timeout=timeout, proxies=proxies)
+                    res = requests.get(url=url, headers=headers, params=params, timeout=timeout, proxies=proxies,
+                                       verify=verify)
                 elif req_type == 'POST':
                     res = requests.post(url=url, headers=headers, params=params, timeout=timeout, data=data,
-                                        proxies=proxies)
+                                        proxies=proxies, verify=verify)
                 else:
-                    raise ReqException('Request rank_type error:', req_type)
+                    raise ReqException('Request req_type error:', req_type)
 
             if log_req:
                 log(res.status_code)
@@ -203,10 +212,10 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
             log('Reason:', str(e), save=True, inform=True)
         except requests.exceptions.RequestException as e:
             if err_msg:
-                log('RequestException:', err_msg, save=True)
+                log('RequestException:', err_msg, save=True, inform=True)
             else:
-                log(settings.DEFAULT_REQUEST_ERROR_MSG.format(type=req_type), save=True)
-            log('Reason:', str(e), 'Retries:', curr_retries, save=True)
+                log(settings.DEFAULT_REQUEST_ERROR_MSG.format(type=req_type), save=True, inform=True)
+            log('Reason:', str(e), 'Retries:', curr_retries, save=True, inform=True)
 
         curr_retries += 1
         time.sleep(0.5)  # dont retry again too fast

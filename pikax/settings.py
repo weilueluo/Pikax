@@ -78,7 +78,7 @@ MAX_WHILE_TRUE_LOOP_EXCEPTIONS = 3
 Default request error message,
 when error message is not given as param to util.req
 """
-DEFAULT_REQUEST_ERROR_MSG = 'Exception while {rank_type}'
+DEFAULT_REQUEST_ERROR_MSG = 'Exception while {type}'
 
 """
 A artwork id may have multiple pages,

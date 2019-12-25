@@ -73,4 +73,15 @@ def main():
 
 
 if __name__ == '__main__':
+    url = 'https://i.pximg.net/img-original/img/2019/11/23/20/19/39/77954646_p0.jpg'
+    headers = {
+        'referer': 'https://www.pixiv.net/'
+    }
+    filename = 'test_pic.jpg'
+    with requests.get(url=url, headers=headers) as r:
+        r.raise_for_status()
+        with open(filename, 'wb') as file:
+            for chunk in r.iter_content(chunk_size=1024):
+                file.write(chunk)
+
     main()

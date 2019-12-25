@@ -27,7 +27,7 @@ class BaseClient:
         'User-Agent': 'PixivAndroidApp/5.0.151 (Android 5.1.1; SM-N950N)',
         'App-OS': 'android',
         'App-OS-Version': '5.1.1',
-        'App-Version': '5.0.151',
+        'App-Version': '5.0.171',
     }
     _hash_secret = '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c'
 
@@ -134,7 +134,7 @@ class BaseClient:
 class FunctionalBaseClient(BaseClient):
     # This class provide utilities for the real job, e.g. search/accessing user ...
     _host = 'https://app-api.pixiv.net'
-    _search_url = _host + '/v1/search/{rank_type}?'
+    _search_url = _host + '/v1/search/{type}?'
     _following_url = _host + '/v1/user/following?'
     _illust_creation_url = _host + '/v1/user/illusts?'
     _collection_url = _host + '/v1/user/bookmarks/{collection_type}?'
@@ -357,7 +357,7 @@ def test():
     ids = client.search(keyword='arknights', limit=234, sort=params.Sort.DATE_DESC,
                         search_type=params.SearchType.ILLUST_OR_MANGA,
                         match=params.Match.EXACT,
-                        search_range=params.Range.A_MONTH)
+                        search_range=params.Range.A_YEAR)
     assert len(ids) == 234
 
     ids = client.rank(rank_type=params.RankType.ROOKIE, date=datetime.date.today(), content=params.Content.MANGA)
@@ -365,10 +365,10 @@ def test():
 
     user_id = 38088
     user = client.visits(user_id=user_id)
-    user_illust_ids = user.illusts()
+    user_illust_ids = user.illusts(limit=108)
     assert len(user_illust_ids) == 108, len(user_illust_ids)
 
-    user_manga_ids = user.mangas()
+    user_manga_ids = user.mangas(limit=2)
     assert len(user_manga_ids) == 2, len(user_manga_ids)
 
     print('Successfully tested Android Client')

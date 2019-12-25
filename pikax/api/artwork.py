@@ -28,6 +28,7 @@ class Illust(Artwork):
         self._title = None
         self._author = None
         self._likes = None
+        self._tags = None
 
         # iterator use, set after generate download data is called
         self.__download_urls = None
@@ -54,6 +55,7 @@ class Illust(Artwork):
             self._likes = illust_data['likeCount']
             self._title = illust_data['illustTitle']
             self._author = illust_data['userName']
+            self._tags = [item['tag'] for item in illust_data['tags']['tags']]
 
             self.__original_url_template = illust_data['urls']['original']
             self.__original_url_template = re.sub(r'(?<=_p)\d', '{page_num}', self.__original_url_template)
@@ -96,6 +98,10 @@ class Illust(Artwork):
         return len(self.__download_urls)
 
     @property
+    def tags(self):
+        return self._tags
+
+    @property
     def bookmarks(self):
         return self._bookmarks
 
@@ -135,6 +141,7 @@ def test():
         artwork.config()
         for status, content, filename in artwork:
             print(status, filename)
+        print(artwork.tags)
 
     print('Successfully tested Illust Artwork')
 
