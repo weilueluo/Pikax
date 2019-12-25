@@ -47,8 +47,6 @@ class Illust(Artwork):
     def config(self):
         try:
             illust_data = util.req(req_type='get', url=self._details_url, log_req=False).json()
-            from pprint import pprint
-            pprint(illust_data)
             illust_data = illust_data['body']
 
             # properties
