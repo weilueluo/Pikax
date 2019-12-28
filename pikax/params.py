@@ -25,6 +25,18 @@ class Type(PikaxEnum):
         return cls._member_to_container_map.value[key]
 
 
+class InternType(PikaxEnum):
+    FOLLOWINGS = 'followings'
+
+    _member_to_container_map = {
+        'FOLLOWINGS': 'user_previews'
+    }
+
+    @classmethod
+    def get_response_container_name(cls, key):
+        return cls._member_to_container_map.value[key]
+
+
 class Match(PikaxEnum):
     # illusts and novel match
     EXACT = 'exact_match_for_tags'

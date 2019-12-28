@@ -260,13 +260,13 @@ class DefaultRank:
             if params.RankType.is_valid(rank_type):
                 rank_params['mode'] = rank_type.value
             else:
-                raise RankError(f'rank rank_type: {rank_type} is not rank_type of {params.RankType}')
+                raise RankError(f'rank rank_type: {rank_type} is not value of {params.RankType}')
 
         if content:
             if params.Content.is_valid(content):
                 rank_params['content'] = content.value
             else:
-                raise RankError(f'content: {content} is not rank_type of {params.Content}')
+                raise RankError(f'content: {content} is not value of {params.Content}')
 
         if date:
             if isinstance(date, str):

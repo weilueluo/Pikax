@@ -94,7 +94,7 @@ class BaseClient:
             req_type='post',
             session=self._session,
             data=data,
-            headers=self._headers
+            headers=self._headers,
         ).json()
 
         self._access_token_start_time = time.time()
@@ -183,13 +183,13 @@ class FunctionalBaseClient(BaseClient):
     @staticmethod
     def _check_params(match=None, sort=None, search_range=None, restrict=None):
         if match and not params.Match.is_valid(match):
-            raise BaseClientException(f'match: {match} is not rank_type of {params.Match}')
+            raise BaseClientException(f'match: {match} is not match of {params.Match}')
         if sort and not params.Sort.is_valid(sort):
-            raise BaseClientException(f'sort: {sort} is not rank_type of {params.Sort}')
+            raise BaseClientException(f'sort: {sort} is not sort of {params.Sort}')
         if search_range and not params.Range.is_valid(search_range):
-            raise BaseClientException(f'search_range: {search_range} is not rank_type of {params.Range}')
+            raise BaseClientException(f'search_range: {search_range} is not range of {params.Range}')
         if restrict and not params.Restrict.is_valid(restrict):
-            raise BaseClientException(f'restrict: {restrict} is not rank_type of {params.Restrict}')
+            raise BaseClientException(f'restrict: {restrict} is not restrict of {params.Restrict}')
 
     def req(self, url, req_params=None):
         return util.req(url=url, headers=self.headers, params=req_params)
@@ -235,6 +235,18 @@ class FunctionalBaseClient(BaseClient):
 
         start_url = self._get_creations_start_url(req_params=req_params)
         return self._get_ids(start_url, limit=limit, id_type=creation_type)
+
+    def get_followings(self, user_id, limit=None, restrict=params.Restrict.PUBLIC):
+        self._check_params(restrict=restrict)
+
+        req_params = {
+            'user_id': int(user_id),
+            'restrict': restrict.value
+        }
+
+        encoded_params = urllib.parse.urlencode(req_params)
+        start_url = self._following_url + encoded_params
+        return self._get_ids(start_url, limit=limit, id_type=params.Type.USER)
 
 
 class AndroidAPIClient(FunctionalBaseClient, DefaultAPIClient):
@@ -324,6 +336,11 @@ class AndroidAPIClient(FunctionalBaseClient, DefaultAPIClient):
     def visits(self, user_id):
         return AndroidAPIClient.User(self, user_id)
 
+    def followings(self, user_id=None, limit=None, restrict=params.Restrict.PUBLIC):
+        if user_id is None:
+            user_id = self.id
+        return self.get_followings(user_id=user_id, limit=limit, restrict=restrict)
+
     @property
     def account(self):
         return self._account
@@ -343,6 +360,9 @@ def test():
     print('Testing AndroidClient')
 
     client = AndroidAPIClient(settings.username, settings.password)
+
+    ids = client.followings(user_id=18526689, limit=50)
+    assert len(ids) == 50, len(ids)
 
     ids = client.search(keyword='arknights', limit=242, sort=params.Sort.DATE_DESC, match=params.Match.ANY,
                         search_range=params.Range.A_YEAR)
@@ -393,4 +413,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
