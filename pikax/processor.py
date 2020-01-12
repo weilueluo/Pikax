@@ -2,6 +2,8 @@ from .api.artwork import Illust
 from .api.models import BaseIDProcessor
 
 
+__all__ = ['DefaultIDProcessor']
+
 class DefaultIDProcessor(BaseIDProcessor):
 
     def __init__(self):

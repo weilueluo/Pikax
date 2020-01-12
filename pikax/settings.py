@@ -46,6 +46,7 @@ LOG_TYPE
 LOG_STD = True
 LOG_INFORM = True
 LOG_WARN = True
+LOG_NORMAL = True
 LOG_SAVE = False
 
 """

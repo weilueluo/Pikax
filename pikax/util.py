@@ -27,6 +27,7 @@ _std_enabled = settings.LOG_STD
 _inform_enabled = settings.LOG_INFORM
 _save_enabled = settings.LOG_SAVE
 _warn_enabled = settings.LOG_WARN
+_normal_enabled = settings.LOG_NORMAL
 
 __all__ = ['log', 'req', 'json_loads', 'trim_to_limit', 'clean_filename', 'print_json']
 
@@ -70,11 +71,12 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', info
 
     """
 
-    if normal:
+    global _std_enabled, _inform_enabled, _save_enabled, _warn_enabled, _normal_enabled
+
+    if _normal_enabled and normal:
         print(start, *objects, sep=sep, end=end, file=file, flush=flush)
         return
 
-    global _std_enabled, _inform_enabled, _save_enabled, _warn_enabled
     if _inform_enabled and inform:
         print(start, '>>>', *objects, sep=sep, end=end, file=file, flush=flush)
     if _save_enabled and save:
@@ -241,7 +243,7 @@ def trim_to_limit(items, limit):
 
             if num_of_items > limit:
                 items = items[:limit]
-                log('Trimmed', num_of_items, 'items =>', limit, 'items')
+                log('Trimmed', num_of_items, 'items =>', limit, 'items', inform=True)
             else:
                 log('Number of items are less than limit:', num_of_items, '<', limit, inform=True, save=True)
     return items

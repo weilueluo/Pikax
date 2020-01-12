@@ -4,6 +4,8 @@ from .processor import DefaultIDProcessor
 from .exceptions import PikaxUserError
 from .result import DefaultPikaxResult, PikaxResult
 
+__all__ = ['DefaultPikaxUser']
+
 
 class DefaultPikaxUser(PikaxUserInterface):
 

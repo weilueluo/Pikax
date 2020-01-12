@@ -1,6 +1,8 @@
-from .exceptions import PikaxResultError
 from .api.models import Artwork
+from .exceptions import PikaxResultError
 from .models import PikaxResult
+
+__all__ = ['DefaultPikaxResult']
 
 
 class DefaultPikaxResult(PikaxResult):

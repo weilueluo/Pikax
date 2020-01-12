@@ -4,9 +4,11 @@ from typing import Tuple, Iterator
 
 import requests
 
-from .models import BaseDownloader
 from . import util
 from .api.models import Artwork
+from .models import BaseDownloader
+
+__all__ = ['DefaultDownloader']
 
 
 class DefaultDownloader(BaseDownloader):

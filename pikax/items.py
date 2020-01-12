@@ -1,11 +1,13 @@
 import enum
 import os
 
-from .exceptions import LoginError
-from .api.androidclient import AndroidAPIClient
-from .api.webclient import WebAPIClient
-from .api.defaultclient import DefaultAPIClient
 from . import util
+from .api.androidclient import AndroidAPIClient
+from .api.defaultclient import DefaultAPIClient
+from .api.webclient import WebAPIClient
+from .exceptions import LoginError
+
+__all__ = ['LoginHandler']
 
 
 class LoginHandler:
@@ -80,6 +82,7 @@ def main():
     assert status is LoginHandler.LoginStatus.ANDROID
 
     print('Successfully tested login handler')
+
 
 if __name__ == '__main__':
     main()

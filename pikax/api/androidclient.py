@@ -54,7 +54,6 @@ class BaseClient:
         self._name = None
 
         # not used
-        self._device_token = None
         self.mail = None
         self.is_auth_mail = None
 
@@ -102,7 +101,6 @@ class BaseClient:
         self._refresh_token = res['response']['refresh_token']
         self._token_type = res['response']['token_type']
         self._access_token_time_out = int(res['response']['expires_in'])  # time out for refresh token in seconds
-        self._device_token = res['response']['device_token']
         self._headers.update({'Authorization': f'{self._token_type.title()} {self._access_token}'})
 
         return res
