@@ -20,8 +20,8 @@ _*demo
 .*
 .idea/*
 _*
-!pikax.__init__.py
-!pikax.api.__init__.py
+!pikax/__init__.py
+!pikax/api/__init__.py
 cookies.data
 */*.pikaxdata
 build/*
