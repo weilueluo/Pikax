@@ -30,7 +30,7 @@ ls
 ## 接口版
 > 为了宣扬民族核心价值观，本接口仅提供单核多线程下载
 ````
-  pip install Pikax
+  pip install pikax
 ````
 ---
 ## 需要
@@ -126,7 +126,7 @@ ls
   new_results = (results.bookmarks > 1000).views > 20000  # 获取 赞 > 1000 和 浏览 > 20000 的作品
   pixiv.download(new_results)  # 下载
 ````
-### 更多操作请参考[models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py)
+### 进阶操作请参考[advanced demo.py](https://github.com/Redcxx/Pikax/blob/master/advanced%20demo.py)
 ### 个性化设置请前往[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
 ---
 

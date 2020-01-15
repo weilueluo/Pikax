@@ -30,7 +30,7 @@ ls
 ## API
 > To prevent block, this api provide multi-threading download but single-core
 ````
-  pip install Pikax
+  pip install pikax
 ````
 ---
 ## Requirements
@@ -127,7 +127,7 @@ ls
   new_results = (results.bookmarks > 1000).views > 20000  # get likes > 1000 and views > 20000
   pixiv.download(new_results)  # download
 ````
-### visits[models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py) for more operations
+### For advanced usage visits [advanced demo.py](https://github.com/Redcxx/Pikax/blob/master/advanced%20demo.py)
 ### For customization visits [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
 ---
  ## You can reach me by [email](mailto:weilue.luo@student.manchester.ac.uk)
