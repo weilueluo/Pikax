@@ -1,4 +1,4 @@
-from pikax.pikax import Pikax, settings, params
+from pikax import Pikax, settings, params
 
 
 def download_daily_rankings_example():
@@ -62,7 +62,7 @@ def main():
     # download_own_bookmarks_example()
     # download_other_user_items_example()
     # download_by_artwork_id_example()
-    # download_with_filter_example()
+    download_with_filter_example()
     # download_with_filter_example2()
 
 

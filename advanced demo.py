@@ -9,11 +9,7 @@
 
 from importlib import reload
 
-import pikax.settings as settings
-from pikax import util
-import pikax
-from pikax.api.artwork import Illust
-from pikax.api.androidclient import AndroidAPIClient
+from pikax import *
 import multiprocessing as mp
 from tqdm import tqdm
 import os
@@ -94,18 +90,18 @@ def download_id(item):
                 for chunk in req.iter_content(1024):
                     file.write(chunk)
 
-    except (pikax.exceptions.ArtworkError, requests.RequestException, OSError):
+    except (ArtworkError, requests.RequestException, OSError):
         tqdm.write(f'{id_} failed')
 
 
 # In[4]:
 
 # the max artwork to download
-search_limit = 3000
+search_limit = 1000
 # the download like filter
-like_threshold = 50
+like_threshold = 10
 # number of worker to use
-num_workers = 8
+num_workers = 4
 # download path
 path = 'images_data/data/{name}'
 # tqdm setting
