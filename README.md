@@ -23,7 +23,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 git clone https://github.com/Redcxx/Pikax.git
 cd Pikax/gui
 # 按需求修改 main.spec
-pyinstaller main.py
+pyinstaller main.spec
 cd dist
 ls
 ````
@@ -56,7 +56,7 @@ ls
 ## 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 ### 下载当日排行榜前50的插画
 ````
-  from pikax.pikax import Pikax
+  from pikax import Pikax
 
   pixiv = Pikax()
   results = pixiv.rank(limit=50)
@@ -64,7 +64,7 @@ ls
 ````
 ### 搜索并下载arknights相关，赞数约1000的50张插画
 ````
-  from pikax.pikax import Pikax, settings, params
+  from pikax import Pikax, settings, params
 
   pixiv = Pikax(settings.username, settings.password)
   results = pixiv.search(keyword='arknights', limit=50, popularity=1000, match=params.Match.PARTIAL)
@@ -72,7 +72,7 @@ ls
 ````
 ### 下载用户的作品 （需要登录，[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)有临时的账号）
 ````
-  from pikax.pikax import Pikax, settings, params
+  from pikax import Pikax, settings, params
 
   # 自己的
   pixiv = Pikax()
@@ -81,7 +81,6 @@ ls
   pixiv.download(bookmarks)  # 下载
 
   # 任何用户
-  pixiv = Pikax()
   pixiv = Pikax(settings.username, settings.password)
   other_user = pixiv.visits(user_id=201323)  # 输入id得到用户
 
@@ -97,7 +96,7 @@ ls
 
 ### 用作品id下载
 ````
-  from pikax.pikax import Pikax
+  from pikax import Pikax
 
   pixiv = Pikax()
   pixiv.download(illust_id=75608670)
@@ -108,7 +107,7 @@ ls
 ## 更多操作
 ### 下载排行榜前50且收藏高于1000的作品
 ````
-  from pikax.pikax import Pikax
+  from pikax import Pikax
 
   pixiv = Pikax()
   results = pixiv.rank(limit=50)  # 排行榜前50
@@ -119,7 +118,7 @@ ls
 
 ### 搜索'初音'相关的200个收藏约1000的作品并筛选出其中赞大于1000且浏览量大于20000的作品
 ````
-  from pikax.pikax import Pikax, settings
+  from pikax import Pikax, settings
 
   pixiv = Pikax(settings.username, settings.password)
   results = pixiv.search(keyword='初音', limit=200, popularity=1000)  # 搜索

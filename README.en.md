@@ -23,7 +23,7 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
 git clone https://github.com/Redcxx/Pikax.git
 cd Pikax/gui
 # change main.spec according to needs
-pyinstaller main.py
+pyinstaller main.spec
 cd dist
 ls
 ````
@@ -57,7 +57,7 @@ ls
 ## Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 ### Download today's top 50 illustration
 ```
-  from pikax.pikax import Pikax
+  from pikax import Pikax
 
   pixiv = Pikax()
   results = pixiv.rank(limit=50)
@@ -65,7 +65,7 @@ ls
 ```
 ### Search and download 50 arknights related illustrations with 1000 likes (approx)
 ```
-  from pikax.pikax import Pikax, settings, params
+  from pikax import Pikax, settings, params
 
   pixiv = Pikax(settings.username, settings.password)
   results = pixiv.search(keyword='arknights', limit=50, popularity=1000, match=params.Match.PARTIAL)
@@ -73,7 +73,7 @@ ls
 ```
 ### Download user's artworks (required username and password [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py) contains a temp account)
 ```
-  from pikax.pikax import Pikax, settings, params
+  from pikax import Pikax, settings, params
 
   # yours
   pixiv = Pikax()
@@ -82,7 +82,6 @@ ls
   pixiv.download(bookmarks)  # download
 
   # any user
-  pixiv = Pikax()
   pixiv = Pikax(settings.username, settings.password)
   other_user = pixiv.visits(user_id=201323)  # get user from id
 
@@ -97,7 +96,7 @@ ls
 ```
 ### download by id
 ````
-  from pikax.pikax import Pikax
+  from pikax import Pikax
 
   pixiv = Pikax()
   pixiv.download(illust_id=75608670)
@@ -108,7 +107,7 @@ ls
 ## More operations
 ### download top 50 of daily ranking and remove artworks with likes <= 1000
 ````
-  from pikax.pikax import Pikax
+  from pikax import Pikax
 
   pixiv = Pikax()
   results = pixiv.rank(limit=50)  # top 50 ranking
@@ -120,7 +119,7 @@ ls
 ### download 200 '初音' related, around 1000 bookmarks r18 artworks
 ### remove artworks with likes >= 1000 and views < 50000
 ````
-  from pikax.pikax import Pikax, settings
+  from pikax import Pikax, settings
 
   pixiv = Pikax(settings.username, settings.password)
   results = pixiv.search(keyword='初音', limit=200, popularity=1000)  # search
