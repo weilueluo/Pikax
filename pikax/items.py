@@ -50,18 +50,18 @@ class LoginHandler:
             self.password = password
 
         try:
-            util.log('Attempting Web Login ...')
+            util.log('Attempting Android Login ...')
 
-            client = WebAPIClient(self.username, self.password)
-            login_status = self.LoginStatus.PC
+            client = AndroidAPIClient(self.username, self.password)
+            login_status = self.LoginStatus.ANDROID
 
         except LoginError as e:
-            util.log(f'Web Login failed: {e}')
+            util.log(f'Android Login failed: {e}')
             try:
-                util.log('Attempting Android Login ...')
+                util.log('Attempting Web Login ...')
 
-                client = AndroidAPIClient(self.username, self.password)
-                login_status = self.LoginStatus.ANDROID
+                client = WebAPIClient(self.username, self.password)
+                login_status = self.LoginStatus.PC
 
             except LoginError as e:
                 util.log(f'Android Login failed: {e}')
