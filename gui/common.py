@@ -6,6 +6,8 @@ import threading
 import tkinter as tk
 from tkinter import END, NORMAL, DISABLED, Text, Entry, TclError
 
+from PIL import Image, ImageTk
+
 import settings
 import texts
 
@@ -20,7 +22,8 @@ def go_to_next_screen(src, dest):
         pikax_handler = src.pikax_handler
         master = src.frame.master
         dest(master, pikax_handler)  # create new screen
-        src.destroy()  # destroy old screen
+        # destroy old screen
+        src.destroy()
 
 
 def refresh(cls_self):
@@ -144,6 +147,33 @@ class StdoutCanvasTextRedirector:
 
     def flush(self):
         pass
+
+
+# an attempt to avoid flashing when creating new frame, failed, may be removed in the future
+path_to_im = dict()
+
+
+def open_image(path, use_cache=True):
+    global path_to_im
+    if path in path_to_im and use_cache:
+        return path_to_im[path]
+    im = Image.open(path)
+    im.path = path
+    path_to_im[path] = im
+    return im
+
+
+# an attempt to avoid flashing when creating new frame, failed, may be removed in the future
+im_to_tk_im = dict()
+
+
+def get_tk_image(master, im, path, use_cache=True):
+    global im_to_tk_im
+    if path in im_to_tk_im and use_cache:
+        return im_to_tk_im[path]
+    tk_im = ImageTk.PhotoImage(master=master, image=im)
+    im_to_tk_im[path] = tk_im
+    return tk_im
 
 
 def crop_to_dimension(im, width_ratio, height_ratio, focus=tk.CENTER):

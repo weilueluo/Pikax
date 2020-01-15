@@ -2,11 +2,11 @@ import tkinter as tk
 import webbrowser
 from tkinter import font, ttk
 
-from PIL import Image, ImageTk, ImageEnhance
+from PIL import Image, ImageTk
 
 import settings
 import texts
-from common import crop_to_dimension, get_background_file_path, refresh, save_language
+from common import crop_to_dimension, get_background_file_path, refresh, save_language, open_image, get_tk_image
 
 
 class PikaxButton(tk.Button):
@@ -240,6 +240,9 @@ class PikaxGuiComponent:
     def __init__(self, master, pikax_handler):
         self.master = master
         self.frame = self.make_frame(borderwidth=0, highlightthickness=0)
+        if 'frames' not in master.__dict__:
+            master.frames = dict()
+        master.frames[self.__class__.__name__] = self.frame
         self.pikax_handler = pikax_handler
         # this update is important when opening another different window, else winfo width & height will return 1
         self.master.update()
@@ -301,6 +304,13 @@ class PikaxGuiComponent:
             columnspan=2, font=self.canvas_artist_font,
             color=self.artist_name_color)
 
+    def show_frame(self, name):
+        if name in self.master.frames:
+            frame = self.master.frames[name]
+            frame.tkraise()
+            import sys
+            sys.stderr.write('hi')
+
     def save_inputs(self):
         pass
 
@@ -317,9 +327,9 @@ class PikaxGuiComponent:
         return tk.Frame(master=self.master, *args, **kwargs)
 
     def get_cropped_image(self, image_path, focus=tk.CENTER):
-        im = crop_to_dimension(Image.open(image_path), focus=focus, width_ratio=self.width, height_ratio=self.height)
+        im = crop_to_dimension(open_image(image_path), focus=focus, width_ratio=self.width, height_ratio=self.height)
         im = im.resize((self.width, self.height))
-        im = ImageTk.PhotoImage(master=self.frame, image=im)
+        im = get_tk_image(self.frame, im, image_path)
         return im
 
     def set_canvas(self, image_path, focus=tk.CENTER):
@@ -336,16 +346,8 @@ class PikaxGuiComponent:
         return text
 
     @staticmethod
-    def grid(component, row=None, column=None, rowspan=None, columnspan=None, *args, **kwargs):
-        if row:
-            component.grid_configure(row=int(row))
-        if column:
-            component.grid_configure(column=int(column))
-        if rowspan:
-            component.grid_configure(rowspan=int(rowspan))
-        if columnspan:
-            component.grid_configure(columnspan=int(columnspan))
-        component.grid(*args, **kwargs)
+    def grid(component, row=0, column=0, rowspan=1, columnspan=1, sticky='nsew', *args, **kwargs):
+        component.grid(row=row, column=column, rowspan=rowspan, columnspan=columnspan, sticky=sticky, *args, **kwargs)
 
     @staticmethod
     def pack(component, *args, **kwargs):

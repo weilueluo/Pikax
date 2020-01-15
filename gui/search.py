@@ -117,8 +117,7 @@ class SearchScreen(PikaxGuiComponent):
         self.config_buttons()
         for input_widget in inputs:
             input_widget.bind('<Return>', self.search_and_download_clicked)
-        self.frame.pack_configure(expand=True)
-        self.pack(self.frame)
+        self.grid(self.frame)
         inputs[0].focus_set()
 
     def config_buttons(self):

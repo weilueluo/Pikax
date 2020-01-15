@@ -60,7 +60,7 @@ class DownloadWindow(PikaxGuiComponent):
         # remove language button, not in use
         self.language_button.destroy()
         self.config()
-        self.pack(self.frame)
+        self.grid(self.frame)
         self.window.grab_set()
         self.download_thread = DownloadThread(target=target, args=args, kwargs=kwargs, output_area=self.display_area,
                                               button=self.cancel_button, end_height=self.end_display_area_height)

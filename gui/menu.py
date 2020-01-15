@@ -33,8 +33,7 @@ class MenuScreen(PikaxGuiComponent):
         ]
 
         self.config_buttons()
-        self.frame.pack_configure(expand=True)
-        self.pack(self.frame)
+        self.grid(self.frame)
 
     def config_buttons(self):
         self.search_button.configure(command=self.search_clicked)

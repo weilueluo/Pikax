@@ -61,7 +61,7 @@ class LoginScreen(PikaxGuiComponent):
         self.config_output()
         self.config_entries()
 
-        self.pack(self.frame, expand=True)
+        self.grid(self.frame)
         self.username_entry.focus_set()
 
         #

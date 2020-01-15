@@ -67,8 +67,7 @@ class ArtistScreen(PikaxGuiComponent):
         self.inputs = [self.id_or_url_input, self.limit_entry, self.download_folder_entry, self.content_switchbutton]
         self.config()
         self.restore_prev()
-        self.frame.pack_configure(expand=True)
-        self.pack(self.frame)
+        self.grid(self.frame)
 
     def restore_prev(self):
         global _prev_id_or_url

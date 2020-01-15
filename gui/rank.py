@@ -63,7 +63,7 @@ class RankScreen(PikaxGuiComponent):
         # config
         self.config()
         self.restore_prev()
-        self.pack(self.frame, expand=True)
+        self.grid(self.frame)
 
     def restore_prev(self):
         global _prev_date_entry
