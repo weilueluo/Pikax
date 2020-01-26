@@ -74,7 +74,7 @@ class StdoutTextWidgetRedirector:
         self.queue = mp.Queue()
         self.text_component = text_component
         self.text_component.tag_configure('center', justify=tk.CENTER)
-        threading.Thread(target=self.receiver, daemon=True).start()
+        threading.Thread(target=self.receiver).start()
 
     def receiver(self):
         try:
@@ -129,7 +129,7 @@ class StdoutCanvasTextRedirector:
         self.text_id = text_id
         self.canvas = canvas
         self.queue = mp.Queue()
-        threading.Thread(target=self.receiver, daemon=True).start()
+        threading.Thread(target=self.receiver).start()
 
     def receiver(self):
         while True:
@@ -376,8 +376,7 @@ def concurrent_download(target, items):
                                  'queue': queue,
                                  'stdout_queue': stdout_queue,
                                  'lang': texts.LANG
-                             },
-                             daemon=True
+                             }
                              )
         processes.append(process)
 

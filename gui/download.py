@@ -11,7 +11,7 @@ from models import PikaxGuiComponent
 class DownloadThread(Thread):
 
     def __init__(self, target, args=(), kwargs=(), output_area=None, button=None, end_height=None):
-        super().__init__(target=target, args=args, kwargs=kwargs, daemon=True)
+        super().__init__(target=target, args=args, kwargs=kwargs)
         self.output_area = output_area
         self.button = button
         self.end_height = end_height
