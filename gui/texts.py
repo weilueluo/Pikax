@@ -75,6 +75,11 @@ DONE = {
     '中文': '完成'
 }
 
+LIMIT_CHOICES = {
+    'English': ['pages limit', 'artworks limit'],
+    '中文': ['页数限额', '作品限额']
+}
+
 #
 # Models
 #
@@ -121,8 +126,8 @@ MODELS_SWITCHBUTTON_INVALID_SET_VALUE = {
 
 
 LOGIN_USERNAME = {
-    'English': 'pixiv username',
-    '中文': 'Pixiv 用户名'
+    'English': 'pixiv email/username',
+    '中文': 'Pixiv 邮箱/用户名'
 }
 
 LOGIN_PASSWORD = {

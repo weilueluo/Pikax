@@ -96,6 +96,11 @@ class PikaxSwitchButton(PikaxButton):
             default = values[0]
         super().__init__(master=master, text=str(default), command=self.clicked, *args, **kwargs)
 
+        if 'width' in kwargs:
+            self.width = kwargs['width']
+        else:
+            self.width = PikaxSwitchButton.width
+
         self.configure(width=self.width)
 
     def get_next_value(self):
@@ -437,3 +442,9 @@ class PikaxGuiComponent:
             *args,
             **kwargs
         )
+
+    # common stuff
+    def make_limit_text_entry(self):
+        limit_choices = texts.get('LIMIT_CHOICES')
+        limit_text_entry = self.make_switchbutton(limit_choices, default=limit_choices[0], width=PikaxButton.width)
+        return limit_text_entry

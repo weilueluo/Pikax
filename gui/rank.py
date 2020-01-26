@@ -5,7 +5,7 @@ import texts
 from common import go_to_next_screen, download, clear_widget
 from lib.pikax import params
 from lib.pikax.util import clean_filename
-from models import PikaxGuiComponent
+from models import PikaxGuiComponent, PikaxButton
 
 # for remembering previous inputs
 _prev_date_entry = None
@@ -14,6 +14,7 @@ _prev_type_dropdown = None
 _prev_content_dropdown = None
 _prev_download_folder_entry = None
 _prev_lang = None
+_prev_pages_limit = None
 
 
 class RankScreen(PikaxGuiComponent):
@@ -26,7 +27,8 @@ class RankScreen(PikaxGuiComponent):
 
         # texts
         self.date_text_id = self.add_text(text=texts.get('RANK_DATE'), row=2, column=5)
-        self.limit_text_id = self.add_text(text=texts.get('RANK_LIMIT'), row=3, column=5)
+        self.limit_text_entry = self.make_limit_text_entry()
+        self.limit_text_entry_id = self.add_widget(widget=self.limit_text_entry, row=3, column=5)
         self.type_text_id = self.add_text(text=texts.get('RANK_TYPE'), row=4, column=5)
         self.content_text_id = self.add_text(text=texts.get('RANK_CONTENT'), row=5, column=5)
         self.download_folder_text_id = self.add_text(text=texts.get('RANK_DOWNLOAD_FOLDER'), row=6, column=5)
@@ -71,6 +73,7 @@ class RankScreen(PikaxGuiComponent):
         global _prev_type_dropdown
         global _prev_content_dropdown
         global _prev_download_folder_entry
+        global _prev_pages_limit
         if _prev_date_entry:
             clear_widget(self.date_entry)
             self.date_entry.insert(0, _prev_date_entry)
@@ -82,6 +85,9 @@ class RankScreen(PikaxGuiComponent):
                                                           src_lang=_prev_lang, dest_lang=texts.LANG))
         if _prev_content_dropdown:
             self.content_dropdown.set(texts.values_translate(key='RANK_CONTENT_TYPES', value=_prev_content_dropdown,
+                                                             src_lang=_prev_lang, dest_lang=texts.LANG))
+        if _prev_pages_limit:
+            self.limit_text_entry.set(texts.values_translate(key='LIMIT_CHOICES', value=_prev_pages_limit,
                                                              src_lang=_prev_lang, dest_lang=texts.LANG))
         if _prev_download_folder_entry:
             clear_widget(self.download_folder_entry)
@@ -104,7 +110,7 @@ class RankScreen(PikaxGuiComponent):
         self.back_button.configure(command=self.back_clicked)
         self.download_button.configure(command=self.download_clicked)
 
-    def check_input(self, limit, date, rank_type, content):
+    def check_input(self, limit, date, rank_type, content, limit_type):
         try:
             if limit:
                 limit = int(limit)
@@ -118,17 +124,19 @@ class RankScreen(PikaxGuiComponent):
             raise ValueError(texts.get('RANK_DATE_ERROR'))
 
         #  ['daily', 'weekly', 'monthly', 'rookie']
-        if rank_type == self.rank_types[2]:
+        rank_types = texts.get('RANK_TYPES')
+        if rank_type == rank_types[2]:
             rank_type = params.RankType.MONTHLY
-        elif rank_type == self.rank_types[1]:
+        elif rank_type == rank_types[1]:
             rank_type = params.RankType.WEEKLY
-        elif rank_type == self.rank_types[3]:
+        elif rank_type == rank_types[3]:
             rank_type = params.RankType.ROOKIE
         else:  # daily
             rank_type = params.RankType.DAILY
 
         # ['illustration', 'manga']
-        if content == self.content_types[1]:
+        content_types = texts.get('RANK_CONTENT_TYPES')
+        if content == content_types[1]:
             content = params.Content.MANGA
         else:  # illustration
             content = params.Content.ILLUST
@@ -137,7 +145,9 @@ class RankScreen(PikaxGuiComponent):
             'limit': limit,
             'date': date,
             'content': content,
-            'rank_type': rank_type
+            'rank_type': rank_type,
+            # ['pages limit', 'artworks limit']
+            'pages_limit': limit_type == texts.get('LIMIT_CHOICES')[0]
         }
 
     def download_clicked(self, _=None):
@@ -145,6 +155,7 @@ class RankScreen(PikaxGuiComponent):
         date_input = self.date_entry.get()
         type_input = self.type_dropdown.get()
         content_input = self.content_dropdown.get()
+        limit_type = self.limit_text_entry.get()
         folder = self.download_folder_entry.get()
         try:
             if folder:
@@ -155,7 +166,7 @@ class RankScreen(PikaxGuiComponent):
                 folder = None
 
             rank_params = self.check_input(limit=limit_input, date=date_input, rank_type=type_input,
-                                           content=content_input)
+                                           content=content_input, limit_type=limit_type)
             rank_params['folder'] = folder
             download(target=self.pikax_handler.rank, kwargs=rank_params)
 
@@ -170,6 +181,8 @@ class RankScreen(PikaxGuiComponent):
         global _prev_content_dropdown
         global _prev_download_folder_entry
         global _prev_lang
+        global _prev_pages_limit
+        _prev_pages_limit = self.limit_text_entry.get()
         _prev_date_entry = self.date_entry.get()
         _prev_limit_entry = self.limit_entry.get()
         _prev_type_dropdown = self.type_dropdown.get()

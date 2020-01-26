@@ -13,6 +13,7 @@ _prev_sort_text = None
 _prev_popularity_text = None
 _prev_download_folder_text = None
 _prev_lang = None
+_prev_pages_limit = None
 
 
 class SearchScreen(PikaxGuiComponent):
@@ -25,7 +26,8 @@ class SearchScreen(PikaxGuiComponent):
 
         # labels
         self.keyword_text_id = self.add_text(text=texts.get('SEARCH_KEYWORD'), column=5, row=1)
-        self.limit_text_id = self.add_text(text=texts.get('SEARCH_LIMIT'), column=5, row=2)
+        self.limit_text_entry = self.make_limit_text_entry()
+        self.limit_text_entry_id = self.add_widget(widget=self.limit_text_entry, column=5, row=2)
         self.match_text_id = self.add_text(text=texts.get('SEARCH_MATCH'), column=5, row=3)
         self.sort_text_id = self.add_text(text=texts.get('SEARCH_SORT'), column=5, row=4)
         self.popularity_text_id = self.add_text(text=texts.get('SEARCH_POPULARITY'), column=5, row=5)
@@ -74,6 +76,7 @@ class SearchScreen(PikaxGuiComponent):
         global _prev_sort_text
         global _prev_popularity_text
         global _prev_download_folder_text
+        global _prev_pages_limit
         if _prev_keyword_text:
             clear_widget(self.keyword_entry)
             self.keyword_entry.insert(0, _prev_keyword_text)
@@ -105,6 +108,10 @@ class SearchScreen(PikaxGuiComponent):
             clear_widget(self.download_folder_entry)
             self.download_folder_entry.insert(0, _prev_download_folder_text)
 
+        if _prev_pages_limit:
+            self.limit_text_entry.set(texts.values_translate(key='LIMIT_CHOICES', value=_prev_pages_limit,
+                                                             src_lang=_prev_lang, dest_lang=texts.LANG))
+
     def config(self):
         inputs = [
             self.keyword_entry,
@@ -135,6 +142,8 @@ class SearchScreen(PikaxGuiComponent):
         global _prev_popularity_text
         global _prev_download_folder_text
         global _prev_lang
+        global _prev_pages_limit
+        _prev_pages_limit = self.limit_text_entry.get()
         _prev_lang = texts.LANG
         _prev_keyword_text = self.keyword_entry.get()
         _prev_limit_text = self.limit_entry.get()
@@ -166,8 +175,9 @@ class SearchScreen(PikaxGuiComponent):
             match_input = str(self.match_dropdown.get())
             sort_input = str(self.sort_dropdown.get())
             popularity_input = str(self.popularity_dropdown.get())
+            limit_type_input = str(self.limit_text_entry.get())
             params = self.check_inputs(limit_input=limit_input, match_input=match_input, sort_input=sort_input,
-                                       popularity_input=popularity_input)
+                                       popularity_input=popularity_input, limit_type_input=limit_type_input)
         except (TypeError, ValueError) as e:
             sys.stdout.write(texts.get('SEARCH_ERROR_MESSAGE').format(error_message=str(e)))
             return
@@ -176,7 +186,7 @@ class SearchScreen(PikaxGuiComponent):
         params['folder'] = folder
         download(target=self.pikax_handler.search, kwargs=params)
 
-    def check_inputs(self, limit_input, match_input, sort_input, popularity_input):
+    def check_inputs(self, limit_input, match_input, sort_input, popularity_input, limit_type_input):
         from lib.pikax import params
         # ['exact', 'partial', 'any'] match choices
         # ['date ascending', 'date descending'] sort
@@ -208,7 +218,9 @@ class SearchScreen(PikaxGuiComponent):
             'limit': limit,
             'sort': sort,
             'match': match,
-            'popularity': popularity
+            'popularity': popularity,
+            # ['pages limit', 'artworks limit']
+            'pages_limit': limit_type_input == texts.get('LIMIT_CHOICES')[0]
         }
 
 

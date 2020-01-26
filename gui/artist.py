@@ -13,6 +13,7 @@ _prev_limit = None
 _prev_download_folder = None
 _prev_lang = None
 _prev_likes = None
+_prev_pages_limit = None
 
 
 class ArtistScreen(PikaxGuiComponent):
@@ -42,7 +43,8 @@ class ArtistScreen(PikaxGuiComponent):
         self.likes_entry_id = self.add_widget(widget=self.likes_entry, row=8, column=12)
 
         # limit
-        self.limit_text_id = self.add_text(text=texts.get('ARTIST_LIMIT_TEXT'), row=10, column=7)
+        self.limit_text_entry = self.make_limit_text_entry()
+        self.limit_text_entry_id = self.add_widget(widget=self.limit_text_entry, row=10, column=7)
         self.limit_entry = self.make_entry()
         self.limit_entry_id = self.add_widget(widget=self.limit_entry, row=10, column=12)
 
@@ -76,6 +78,10 @@ class ArtistScreen(PikaxGuiComponent):
         global _prev_download_folder
         global _prev_lang
         global _prev_likes
+        global _prev_pages_limit
+        if _prev_pages_limit:
+            self.limit_text_entry.set(texts.values_translate(key='LIMIT_CHOICES', value=_prev_pages_limit,
+                                                             src_lang=_prev_lang, dest_lang=texts.LANG))
         if _prev_id_or_url:
             clear_widget(self.id_or_url_input)
             self.id_or_url_input.insert(0, str(_prev_id_or_url))
@@ -139,6 +145,8 @@ class ArtistScreen(PikaxGuiComponent):
                 'limit': limit,
                 'content': content,
                 'likes': likes_more_than,
+                # ['pages limit', 'artworks limit']
+                'pages_limit': texts.get('LIMIT_CHOICES')[0] == self.limit_text_entry.get()
             }
 
     def download_clicked(self, _=None):
@@ -155,6 +163,8 @@ class ArtistScreen(PikaxGuiComponent):
         global _prev_download_folder
         global _prev_lang
         global _prev_likes
+        global _prev_pages_limit
+        _prev_pages_limit = self.limit_text_entry.get()
         _prev_lang = texts.LANG
         _prev_id_or_url = self.id_or_url_input.get()
         _prev_content_switchbutton = self.content_switchbutton.get()

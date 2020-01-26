@@ -1,7 +1,7 @@
 import sys
 
 import texts
-from lib.pikax import params, util
+from lib.pikax import params, util, settings
 from lib.pikax.exceptions import PikaxException, ArtworkError
 from lib.pikax.items import LoginHandler
 from lib.pikax.pikax import Pikax
@@ -22,18 +22,28 @@ class PikaxHandler:
         else:
             raise PikaxException(texts.get('PIKAX_FAILED_LOGIN'))
 
-    def rank(self, rank_type, limit, date, content, folder):
+    def rank(self, rank_type, limit, date, content, folder, pages_limit):
         try:
+            if pages_limit:
+                old_limit = settings.MAX_PAGES_PER_ARTWORK
+                settings.MAX_PAGES_PER_ARTWORK = 1
             result = self.pikax.rank(rank_type=rank_type, limit=limit, date=date, content=content)
             self.pikax.download(result, folder=folder)
+            if pages_limit:
+                settings.MAX_PAGES_PER_ARTWORK = old_limit
         except PikaxException as e:
             import sys
             sys.stdout.write(texts.get('PIKAX_RANK_FAILED').format(error=e))
 
-    def search(self, keyword, limit, sort, match, popularity, folder):
+    def search(self, keyword, limit, sort, match, popularity, folder, pages_limit):
         try:
+            if pages_limit:
+                old_limit = settings.MAX_PAGES_PER_ARTWORK
+                settings.MAX_PAGES_PER_ARTWORK = 1
             result = self.pikax.search(keyword=keyword, limit=limit, sort=sort, match=match, popularity=popularity)
             self.pikax.download(result, folder)
+            if pages_limit:
+                settings.MAX_PAGES_PER_ARTWORK = old_limit
         except PikaxException as e:
             import sys
             sys.stdout.write(texts.get('PIKAX_SEARCH_FAILED').format(error=e))
@@ -46,8 +56,12 @@ class PikaxHandler:
         except ArtworkError as e:
             sys.stdout.write(texts.get('PIKAX_ILLUST_ID_FAILED').format(error=e))
 
-    def download_by_artist_id(self, artist_id, limit, content, folder, likes):
+    def download_by_artist_id(self, artist_id, limit, content, folder, likes, pages_limit):
         try:
+            if pages_limit:
+                old_limit = settings.MAX_PAGES_PER_ARTWORK
+                settings.MAX_PAGES_PER_ARTWORK = 1
+
             artist = self.pikax.visits(user_id=artist_id)
 
             if not likes:  # we can use limit param
@@ -68,5 +82,9 @@ class PikaxHandler:
                 result = (result.likes > likes).renew_artworks(util.trim_to_limit(result.likes > likes, limit))
 
             self.pikax.download(result, folder=folder)
+
+            if pages_limit:
+                settings.MAX_PAGES_PER_ARTWORK = old_limit
+
         except PikaxException as e:
             sys.stdout.write(str(e))

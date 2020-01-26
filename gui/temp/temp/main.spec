@@ -15,23 +15,20 @@ a = Analysis(['main.py'],
              win_private_assemblies=False,
              cipher=block_cipher,
              noarchive=False)
+
+a.datas += [('assets/images/background.jpg', './assets/images/background.jpg', 'DATA')]
+
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
+
 exe = EXE(pyz,
           a.scripts,
-          [],
-          exclude_binaries=True,
-          name='main',
+          a.binaries,
+          a.zipfiles,
+          a.datas,
+          name='Pikax 0.1.10',
           debug=False,
-          bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True )
-coll = COLLECT(exe,
-               a.binaries,
-               a.zipfiles,
-               a.datas,
-               strip=False,
-               upx=True,
-               upx_exclude=[],
-               name='main')
+          runtime_tmpdir=None,
+          console=False)
