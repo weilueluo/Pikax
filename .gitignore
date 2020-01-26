@@ -7,7 +7,7 @@
 *.gif
 *.toc
 gui/build/main/*
-gui/temp
+gui/temp/*
 *__pycache__*
 pikax/*__pycache__*
 pikax/api/*__pycache__*
