@@ -6,7 +6,7 @@
 !gui/dist/change_log.txt
 *.gif
 *.toc
-gui/build/main/*
+gui/build/*
 gui/temp/*
 *__pycache__*
 pikax/*__pycache__*
@@ -30,5 +30,5 @@ deprecated/*
 pikax.egg-info
 setup.py
 dist/*
-gui/build/*
 gui/dist/Pikax*
+image_data/*
