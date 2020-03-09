@@ -1,18 +1,15 @@
 
 @echo off
-set build_dir="build"
+set build_dir="build_debug"
 
 
 echo PIKAX BUILD
 echo.
 echo Build starting in current directory: %cd%
-echo Using Build Directory: %build_dir%
+echo Using Build debug Directory: %build_dir%
 echo.
 
 call :run "Checking build directory ... " "if exist %build_dir% ( start """" /wait cmd /c ""echo Build directory %build_dir% exists, please remove the folder first!&echo(&pause"" exit)"
-
-REM require virtualenv
-call :run "Installing virtual environment package ... " "pip install virtualenv" 
 
 call :run "Creating virtual environment ... " "virtualenv %build_dir%" 
 
@@ -24,7 +21,7 @@ call :run "Activating virtual environment ... " "cd %build_dir%/Scripts && call 
 
 call :run "Installing required dependencies ... " "cd .. && pip install -r requirements.txt"
 
-call :run "Building executable using pyinstaller ..." "pyinstaller main.spec"
+call :run "Building executable using pyinstaller ..." "pyinstaller debug.spec"
 
 call :success
 
@@ -44,6 +41,6 @@ echo.Build Successful
 goto :end 0
 
 :end
-echo.Build Finished in diretory: %build_dir%
+echo.Build Debug Finished in diretory: %build_dir%
 PAUSE
 exit /b %~1
