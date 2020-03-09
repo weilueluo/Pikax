@@ -8,7 +8,7 @@ import settings
 import texts
 from account import Account
 from common import go_to_next_screen, load_from_local, save_to_local, remove_local_file, clear_widgets
-from lib.pikax.exceptions import PikaxException
+from pikax import PikaxException
 from menu import MenuScreen
 from models import PikaxGuiComponent
 

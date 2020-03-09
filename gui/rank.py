@@ -3,8 +3,8 @@ from datetime import date
 
 import texts
 from common import go_to_next_screen, download, clear_widget
-from lib.pikax import params
-from lib.pikax.util import clean_filename
+from pikax import params
+from pikax.util import clean_filename
 from models import PikaxGuiComponent, PikaxButton
 
 # for remembering previous inputs

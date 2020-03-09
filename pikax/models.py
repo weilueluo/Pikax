@@ -138,6 +138,10 @@ class PikaxResult:
     def download_type(self) -> params.DownloadType:
         return self._download_type
 
+    # workaround for gui to change artwork using the same download type and folder
+    def renew_artworks(self, param):
+        raise NotImplementedError
+
 
 class PikaxUserInterface:
     """

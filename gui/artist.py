@@ -3,7 +3,7 @@ import sys
 
 import texts
 from common import go_to_next_screen, download, clear_widget
-from lib.pikax import params
+from pikax import params
 from models import PikaxGuiComponent
 
 # for remembering previous inputs
@@ -132,9 +132,9 @@ class ArtistScreen(PikaxGuiComponent):
             # ['Illustrations', 'Mangas', 'Bookmarks']
             content_input = self.content_switchbutton.get()
             if content_input == self.content_switch_values[0]:
-                content = params.ContentType.ILLUST
+                content = params.Content.ILLUST
             elif content_input == self.content_switch_values[1]:
-                content = params.ContentType.MANGA
+                content = params.Content.MANGA
             else:
                 content = params.ContentType.BOOKMARK
 

@@ -2,7 +2,7 @@ import sys
 
 import texts
 from common import go_to_next_screen, download, clear_widget
-from lib.pikax.util import clean_filename
+from pikax.util import clean_filename
 from models import PikaxGuiComponent
 
 # for remembering previous
@@ -187,7 +187,7 @@ class SearchScreen(PikaxGuiComponent):
         download(target=self.pikax_handler.search, kwargs=params)
 
     def check_inputs(self, limit_input, match_input, sort_input, popularity_input, limit_type_input):
-        from lib.pikax import params
+        from pikax import params
         # ['exact', 'partial', 'any'] match choices
         # ['date ascending', 'date descending'] sort
         # ['any', '100', '500', '1000', '5000', '10000', '20000'] popularity

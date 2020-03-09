@@ -1,3 +1,5 @@
+from . import params
+
 from .api.models import Artwork
 from .exceptions import PikaxResultError
 from .models import PikaxResult
@@ -9,12 +11,20 @@ class DefaultPikaxResult(PikaxResult):
 
     def __init__(self, artworks, download_type, folder=''):
         super().__init__(artworks, download_type, folder)
+        self.allow_mix_types = [params.DownloadType.MANGA, params.DownloadType.ILLUST]
+
+    # workaround for gui to change artworks in PikaxResult
+    def renew_artworks(self, new_artworks):
+        return DefaultPikaxResult(new_artworks, download_type=self.download_type, folder=self.folder)
 
     def result_maker(self, artworks, download_type, folder):
         return DefaultPikaxResult(artworks, download_type, folder)
 
     def __add__(self, other: 'PikaxResult') -> 'PikaxResult':
-        if self._download_type is not other.download_type:
+
+        if self._download_type is not other.download_type \
+                and (other.download_type not in self.allow_mix_types
+                     or self._download_type not in self.allow_mix_types):
             raise PikaxResultError(
                 f'PikaxResults are in different type: {self._download_type} and {other.download_type}')
         new_artworks = list(set(self.artworks + other.artworks))
@@ -22,7 +32,9 @@ class DefaultPikaxResult(PikaxResult):
         return DefaultPikaxResult(artworks=new_artworks, download_type=self._download_type, folder=new_folder)
 
     def __sub__(self, other: 'PikaxResult') -> 'PikaxResult':
-        if self._download_type is not other.download_type:
+        if self._download_type is not other.download_type \
+                and (other.download_type not in self.allow_mix_types
+                     or self._download_type not in self.allow_mix_types):
             raise PikaxResultError(
                 f'PikaxResults are in different type: {self._download_type} and {other.download_type}')
         new_artworks = [artwork for artwork in self.artworks if artwork not in other.artworks]

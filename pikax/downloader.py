@@ -38,6 +38,9 @@ class DefaultDownloader(BaseDownloader):
                                 file.write(chunk)
                     yield Artwork.DownloadStatus.OK, artwork_detail
 
+                else:
+                    yield Artwork.DownloadStatus.FAILED, artwork_detail
+
         except requests.RequestException as e:
             yield Artwork.DownloadStatus.FAILED, artwork_detail + f': {e}'
 

@@ -7,6 +7,7 @@ from typing import List, Tuple, Union, Type, Any
 from .. import params, util
 from ..exceptions import ArtworkError
 
+__all__ = ['APIAccessInterface', 'APIPagesInterface', 'APIUserInterface', 'Artwork', 'BaseIDProcessor']
 
 class APIUserInterface:
 

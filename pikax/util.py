@@ -17,9 +17,12 @@ import sys
 import time
 
 import requests
+import urllib3
 
 from . import settings
 from .exceptions import ReqException
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 sls = os.linesep
 
@@ -30,63 +33,6 @@ _warn_enabled = settings.LOG_WARN
 _normal_enabled = settings.LOG_NORMAL
 
 __all__ = ['log', 'req', 'json_loads', 'trim_to_limit', 'clean_filename', 'print_json']
-
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-
-def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,
-        warn=False, normal=False):
-    """Print according to params and settings.py
-
-    **Description**
-    settings.py's LOG_TYPE controls the overall behaviour of this function
-    eg. whether each rank_type of log should be available
-    caller code controls the rank_type of log
-    eg. whether the strings send to log should be rank_type of inform
-    This function copied all params of python's print function, except flush is set to True,
-    and some custom parameters as shown below
-
-    **Parameters**
-    :param start:
-        the string to print at the start, preceding all other string, including inform & save 's prefix
-    :rank_type start:
-        string
-
-    :param inform:
-        if this is True, a prefix ' >>>' is added at the front of the strings given, default False
-    :rank_type inform:
-        boolean
-
-    :param error:
-        if this is True, a prefix ' !!!' is added at the front of the strings given, default False
-    :rank_type error:
-        boolean
-
-    :param save:
-        if this is True, the strings given is also saved to LOG_FILE as specified in settings.py, default False
-    :rank_type save:
-        boolean
-
-
-    """
-
-    global _std_enabled, _inform_enabled, _save_enabled, _warn_enabled, _normal_enabled
-
-    if _normal_enabled and normal:
-        print(start, *objects, sep=sep, end=end, file=file, flush=flush)
-        return
-
-    if _inform_enabled and inform:
-        print(start, '>>>', *objects, sep=sep, end=end, file=file, flush=flush)
-    if _save_enabled and save:
-        print(start, *objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a', encoding='utf-8'), flush=False)
-    if _inform_enabled and error:
-        print(start, '!!!', *objects, sep=sep, end=end, file=file, flush=flush)
-    if _warn_enabled and warn:
-        print(start, '###', *objects, sep=sep, end=end, file=file, flush=flush)
-    if _std_enabled and not (inform or save or error or warn):
-        print(start, *objects, sep=sep, end=end, file=file, flush=flush)
 
 
 # send request using requests, raise ReqException if fails all retries
@@ -286,8 +232,8 @@ class Printer(object):
         elif self.last_percent == curr_percent:
             est_time_left = self.last_percent_time_left
         else:
-            bad_est_time_left = (curr_time - self.last_percent_print_time) / (curr_percent - self.last_percent) * (
-                    100 - curr_percent)
+            bad_est_time_left = (curr_time - self.last_percent_print_time) / \
+                                (curr_percent - self.last_percent) * (100 - curr_percent)
             self.est_time_lefts.append(bad_est_time_left)
             self.est_time_lefts = self.est_time_lefts[1:]
             percent_left = 100 - curr_percent
@@ -347,3 +293,71 @@ def print_progress(curr, total, msg=None):
 def print_done(msg=None):
     global printer
     printer.print_done(msg)
+
+
+class BaseLogger:
+    def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,
+            warn=False, normal=False):
+        raise NotImplementedError
+
+
+
+def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,
+        warn=False, normal=False):
+    """Print according to params and settings.py
+
+    **Description**
+    settings.py's LOG_TYPE controls the overall behaviour of this function
+    eg. whether each rank_type of log should be available
+    caller code controls the rank_type of log
+    eg. whether the strings send to log should be rank_type of inform
+    This function copied all params of python's print function, except flush is set to True,
+    and some custom parameters as shown below
+
+    **Parameters**
+    :param warn:
+        if this is true, a '###' is appended is added at the front of the strings given, default False
+    :param normal:
+        if this is true, the string given will be printed normally
+    :param start:
+        the string to print at the start, preceding all other string, including inform & save 's prefix
+    :type start:
+        string
+
+    :param inform:
+        if this is True, a prefix ' >>>' is added at the front of the strings given, default False
+    :type inform:
+        boolean
+
+    :param error:
+        if this is True, a prefix ' !!!' is added at the front of the strings given, default False
+    :type error:
+        boolean
+
+    :param save:
+        if this is True, the strings given is also saved to LOG_FILE as specified in settings.py, default False
+    :type save:
+        boolean
+
+
+    """
+
+    global _std_enabled, _inform_enabled, _save_enabled, _warn_enabled, _normal_enabled
+
+    if _normal_enabled and normal:
+        print(start, *objects, sep=sep, end=end, file=file, flush=flush)
+        return
+    if _inform_enabled and inform:
+        print(start, '>>>', *objects, sep=sep, end=end, file=file, flush=flush)
+    if _save_enabled and save:
+        print(start, *objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a', encoding='utf-8'), flush=False)
+    if _inform_enabled and error:
+        print(start, '!!!', *objects, sep=sep, end=end, file=file, flush=flush)
+    if _warn_enabled and warn:
+        print(start, '###', *objects, sep=sep, end=end, file=file, flush=flush)
+    if _std_enabled and not (inform or save or error or warn):
+        print(start, *objects, sep=sep, end=end, file=file, flush=flush)
+
+
+
+

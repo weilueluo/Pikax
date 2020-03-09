@@ -41,7 +41,7 @@ class LoginHandler:
             util.log('Attempting Android Login ...')
             return self.LoginStatus.ANDROID, AndroidAPIClient(self.username, self.password)
         except LoginError as e:
-            util.log(f'android login failed: {e}')
+            util.log(f'Android login failed: {e}')
             return self.LoginStatus.LOG_OUT, DefaultAPIClient()
 
     def login(self, username=None, password=None):
