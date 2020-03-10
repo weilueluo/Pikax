@@ -395,24 +395,3 @@ def test():
     assert len(user_manga_ids) == 2, len(user_manga_ids)
 
     print('Successfully tested Android Client')
-
-
-def main():
-    test()
-    # while True:
-    #     try:
-    #         res = util.req(url=url, session=client._session, headers=client._headers, params=params)
-    #     except ReqException as e:
-    #         print(e)
-    #         print('Failed request, trying to refresh token ...')
-    #         client._update_access_token()
-    #         print('+' * 50)
-    #         continue
-    #     print(res)
-    #     print(time.time() - client._access_token_start_time)
-    #     print('=' * 10)
-    #     time.sleep(10)
-
-
-if __name__ == '__main__':
-    main()

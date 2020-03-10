@@ -6,7 +6,7 @@ class LanguageHandler:
             raise ValueError('Internal Error: default language given not supported')
         self.lang = default
 
-    def __getattribute__(self, item):
+    def __getattr__(self, item):
         attr = self.__dict__[item]
         if isinstance(attr, dict):
             return attr[self.lang]
