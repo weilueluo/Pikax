@@ -15,6 +15,7 @@ from pikax import params
 from pikax import settings, PikaxResult, util
 from pikax.exceptions import *
 from pikax.items import LoginHandler
+from importlib import reload
 
 
 class PikaxHandler:
@@ -324,6 +325,7 @@ class Printer(object):
 
 def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False,
         error=False, warn=False, normal=False):
+    import sys
     string = ''.join([start, *objects])
     sys.stdout.write(string)
 

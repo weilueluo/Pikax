@@ -151,8 +151,8 @@ class ArtistScreen(PikaxGuiComponent):
 
     def download_clicked(self, _=None):
         try:
-            params = self._get_params()
-            download(target=self.pikax_handler.download_by_artist_id, kwargs=params)
+            kwargs = self._get_params()
+            download(target=self.pikax_handler.download_by_artist_id, kwargs=kwargs)
         except ValueError as e:
             sys.stdout.write(str(e))
 

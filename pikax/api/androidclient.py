@@ -16,6 +16,7 @@ from .models import APIUserInterface
 from .. import params
 from .. import util
 from ..exceptions import ReqException, BaseClientException, ClientException, LoginError
+from ..texts import texts
 
 __all__ = ['AndroidAPIClient']
 
@@ -121,7 +122,7 @@ class BaseClient:
         try:
             self._auth_with_update(data)
         except ReqException as e:
-            raise BaseClientException('Failed update access token') from e
+            raise BaseClientException(texts.ACCESS_TOKEN_UPDATE_INTERNAL_ERROR) from e
 
     @property
     def headers(self):
@@ -147,7 +148,8 @@ class FunctionalBaseClient(BaseClient):
     def _get_search_start_url(cls, keyword, search_type, match, sort, search_range):
         cls._check_params(match=match, sort=sort, search_range=search_range)
         if search_type and not params.SearchType.is_valid(search_type):
-            raise BaseClientException(f'search rank_type must be rank_type of {params.SearchType}')
+            raise BaseClientException(
+                texts.INVALID_SEARCH_TYPE_ERROR.format(search_type=search_type, search_types=params.SearchType))
         param = {'word': str(keyword), 'search_target': match.value, 'sort': sort.value}
 
         if search_range:
@@ -163,7 +165,8 @@ class FunctionalBaseClient(BaseClient):
     @classmethod
     def _get_bookmarks_start_url(cls, bookmark_type, req_params, tagged):
         if bookmark_type and not params.BookmarkType.is_valid(bookmark_type):
-            raise BaseClientException(f'bookmark rank_type: {bookmark_type} is not rank_type of {params.BookmarkType}')
+            raise BaseClientException(texts.INVALID_BOOKMARK_TYPE_ERROR.format(bookmark_type=bookmark_type,
+                                                                               bookmark_types=params.BookmarkType))
 
         if tagged:
             collection_url = cls._tagged_collection_url.format(collection_type=bookmark_type.value)
@@ -181,13 +184,15 @@ class FunctionalBaseClient(BaseClient):
     @staticmethod
     def _check_params(match=None, sort=None, search_range=None, restrict=None):
         if match and not params.Match.is_valid(match):
-            raise BaseClientException(f'match: {match} is not match of {params.Match}')
+            raise BaseClientException(texts.INVALID_MATCH_TYPE_ERROR.format(match_type=match, match_types=params.Match))
         if sort and not params.Sort.is_valid(sort):
-            raise BaseClientException(f'sort: {sort} is not sort of {params.Sort}')
+            raise BaseClientException(texts.INVALID_SORT_TYPE_ERROR.format(sort_type=sort, sort_types=params.Sort))
         if search_range and not params.Range.is_valid(search_range):
-            raise BaseClientException(f'search_range: {search_range} is not range of {params.Range}')
+            raise BaseClientException(
+                texts.INVALID_SEARCH_RANGE_ERROR.format(search_range=search_range, search_ranges=params.Range))
         if restrict and not params.Restrict.is_valid(restrict):
-            raise BaseClientException(f'restrict: {restrict} is not restrict of {params.Restrict}')
+            raise BaseClientException(
+                texts.INVALID_RESTRICT_TYPE_ERROR.format(restrict_type=restrict, restrict_types=params.Restrict))
 
     def req(self, url, req_params=None):
         return util.req(url=url, headers=self.headers, params=req_params)
@@ -223,8 +228,8 @@ class FunctionalBaseClient(BaseClient):
 
     def get_creations(self, creation_type, limit, user_id):
         if not params.CreationType.is_valid(creation_type):
-            raise ClientException(
-                f'creation rank_type must be rank_type of {params.CreationType}')
+            raise ClientException(texts.INVALID_CREATION_TYPE_ERROR.format(creation_type=creation_type,
+                                                                           creation_types=params.CreationType))
 
         req_params = {
             'user_id': int(user_id),
@@ -269,7 +274,7 @@ class AndroidAPIClient(FunctionalBaseClient, DefaultAPIClient):
                 self._name = data['user']['name']
             except (ReqException, KeyError) as e:
                 from ..exceptions import APIUserError
-                raise APIUserError(f'Failed to config user details: {e}')
+                raise APIUserError(texts.USER_DETAILS_CONFIG_ERROR.format(id=self.id, e=e))
 
         def bookmarks(self, limit=None, bookmark_type=params.BookmarkType.ILLUST_OR_MANGA, tagged=None):
             return self.client.get_bookmarks(bookmark_type=bookmark_type, limit=limit, restrict=params.Restrict.PUBLIC,
