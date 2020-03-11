@@ -4,6 +4,7 @@ import re
 from .models import Artwork
 from .. import util, settings
 from ..exceptions import ReqException, ArtworkError
+from ..texts import texts
 
 __all__ = ['Illust']
 
@@ -57,7 +58,6 @@ class Illust(Artwork):
             self._author = illust_data['userName']
             self._tags = [item['tag'] for item in illust_data['tags']['tags']]
 
-
             self.__original_url_template = illust_data['urls']['original']
             self.__original_url_template = re.sub(r'(?<=_p)\d', '{page_num}', self.__original_url_template)
             self.__comments = illust_data['commentCount']
@@ -65,8 +65,7 @@ class Illust(Artwork):
 
             self.__generate_download_data()
         except (ReqException, KeyError) as e:
-            print(e)
-            raise ArtworkError(f'Failed to configure artwork of id: {self.id}') from e
+            raise ArtworkError(texts.ARTWORK_CONFIGURE_ERROR.format(id=self.id)) from e
 
     def _get_download_url(self, page_num):
         return self.__original_url_template.format(page_num=page_num)

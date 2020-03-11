@@ -6,12 +6,12 @@ class LanguageHandler:
             raise ValueError('Internal Error: default language given not supported')
         self.lang = default
 
-    def __getattr__(self, item):
-        attr = self.__dict__[item]
+    def __getattribute__(self, item):
+        attr = super().__getattribute__(item)
         if isinstance(attr, dict):
             return attr[self.lang]
         else:
-            return super().__getattribute__(item)
+            return attr
 
     def __setattr__(self, key, value):
         if key == 'lang' and value not in self.LANGS:
@@ -54,6 +54,16 @@ class LanguageHandler:
     USER_DETAILS_CONFIG_ERROR = {
         'English': 'Failed to configure user id: {id} details: {e}',
         'Chinese': '配置用户 id: {id} 的信息失败: {e}'
+    }
+    GET_FOLLOWING_FAILED = {
+        'English': 'Failed to get followings from user id: {id}',
+        'Chinese': '获取用户：{id} 的关注失败'
+    }
+
+    # Artwork
+    ARTWORK_CONFIGURE_ERROR = {
+        'English': 'Failed to configure Artwork with id: {id}',
+        'Chinese': '配置画作失败，画作id： {id}'
     }
 
 

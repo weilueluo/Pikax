@@ -15,7 +15,7 @@ from .defaultclient import DefaultAPIClient
 from .models import APIUserInterface
 from .. import params
 from .. import util
-from ..exceptions import ReqException, BaseClientException, ClientException, LoginError
+from ..exceptions import ReqException, BaseClientException, ClientException, LoginError, APIUserError
 from ..texts import texts
 
 __all__ = ['AndroidAPIClient']
@@ -141,8 +141,6 @@ class FunctionalBaseClient(BaseClient):
 
     def __init__(self, username, password):
         super().__init__(username, password)
-        self._name = None
-        self._account = None
 
     @classmethod
     def _get_search_start_url(cls, keyword, search_type, match, sort, search_range):
@@ -233,7 +231,7 @@ class FunctionalBaseClient(BaseClient):
 
         req_params = {
             'user_id': int(user_id),
-            'rank_type': creation_type.value
+            'type': creation_type.value
         }
 
         start_url = self._get_creations_start_url(req_params=req_params)
@@ -273,7 +271,6 @@ class AndroidAPIClient(FunctionalBaseClient, DefaultAPIClient):
                 self._account = data['user']['account']
                 self._name = data['user']['name']
             except (ReqException, KeyError) as e:
-                from ..exceptions import APIUserError
                 raise APIUserError(texts.USER_DETAILS_CONFIG_ERROR.format(id=self.id, e=e))
 
         def bookmarks(self, limit=None, bookmark_type=params.BookmarkType.ILLUST_OR_MANGA, tagged=None):
@@ -337,12 +334,17 @@ class AndroidAPIClient(FunctionalBaseClient, DefaultAPIClient):
         return self.get_creations(creation_type=params.CreationType.MANGA, limit=limit, user_id=self.user_id)
 
     def visits(self, user_id):
+        # can raise APIUserError, probably invalid id?
         return AndroidAPIClient.User(self, user_id)
 
     def followings(self, user_id=None, limit=None, restrict=params.Restrict.PUBLIC):
         if user_id is None:
             user_id = self.id
-        return self.get_followings(user_id=user_id, limit=limit, restrict=restrict)
+        try:
+            return self.get_followings(user_id=user_id, limit=limit, restrict=restrict)
+        except ReqException as e:
+            # probably invalid id?
+            raise ClientException(texts.GET_FOLLOWING_FAILED.format(id=user_id)) from e
 
     @property
     def account(self):
@@ -355,43 +357,3 @@ class AndroidAPIClient(FunctionalBaseClient, DefaultAPIClient):
     @property
     def id(self):
         return self.user_id
-
-
-def test():
-    from .. import settings
-
-    print('Testing AndroidClient')
-
-    client = AndroidAPIClient(settings.username, settings.password)
-
-    ids = client.followings(user_id=18526689, limit=50)
-    assert len(ids) == 50, len(ids)
-
-    ids = client.search(keyword='arknights', limit=242, sort=params.Sort.DATE_DESC, match=params.Match.ANY,
-                        search_range=params.Range.A_YEAR)
-    assert len(ids) == 242, len(ids)
-
-    ids = client.bookmarks(limit=30)
-    assert len(ids) == 30, len(ids)
-
-    ids = client.mangas(limit=0)
-    assert len(ids) == 0, len(ids)
-
-    ids = client.search(keyword='arknights', limit=234, sort=params.Sort.DATE_DESC,
-                        search_type=params.SearchType.ILLUST_OR_MANGA,
-                        match=params.Match.EXACT,
-                        search_range=params.Range.A_YEAR)
-    assert len(ids) == 234
-
-    ids = client.rank(rank_type=params.RankType.ROOKIE, date=datetime.date.today(), content=params.Content.MANGA)
-    assert len(ids) == 100, len(ids)
-
-    user_id = 38088
-    user = client.visits(user_id=user_id)
-    user_illust_ids = user.illusts(limit=108)
-    assert len(user_illust_ids) == 108, len(user_illust_ids)
-
-    user_manga_ids = user.mangas(limit=2)
-    assert len(user_manga_ids) == 2, len(user_manga_ids)
-
-    print('Successfully tested Android Client')

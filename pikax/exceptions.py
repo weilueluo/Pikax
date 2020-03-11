@@ -94,5 +94,5 @@ class PikaxUserError(PikaxException):
     pass
 
 
-class APIUserError(PikaxException):
+class APIUserError(ClientException):
     pass
