@@ -402,7 +402,7 @@ class BaseDownloader:
                 util.print_progress(curr_page, total_pages, msg=info)
         util.print_done()
 
-        util.log(texts.DOWNLOADED_PAGES_INFO.format(successes=successes), inform=True)
+        util.log(texts.DOWNLOADED_PAGES_INFO.format(successes=len(successes)), inform=True)
 
         util.log(texts.SKIPPED_PAGES_INFO.format(skips=len(skips)), inform=True)
         for index, skip_info in enumerate(skips):

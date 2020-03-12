@@ -118,12 +118,12 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
 
     """
     curr_retries = 0
+    req_type = req_type.upper()
     handler = requests if session is None else session
-    requester = handler.get if 'GET' == req_type.upper() else handler.post  # assume post if not 'GET'
-
+    requester = handler.get if 'GET' == req_type else handler.post  # assume post if not 'GET'
     while curr_retries < retries:
         if log_req:
-            log(texts.REQUEST_INFO.format(req_type=req_type.upper(), url=url, params=params), end='')
+            log(texts.REQUEST_INFO.format(req_type=req_type, url=url, params=params), end='')
         try:
             # try send request according to parameters
             res = requester(url=url, headers=headers, params=params, timeout=timeout,
@@ -132,16 +132,17 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
                 log(res.status_code)
 
             # check if request result is normal
-            if not res and log_req:
-                log(texts.REQUEST_FALSEY.format(retries=retries), save=True)
-                continue
-            elif res.status_code >= 400 and log_req:
-                log(texts.REQUEST_INVALID_STATUS_CODE.format(status_code=res.status_code,
-                                                             retries=retries), save=True)
-                continue
-            elif settings.DELAY_PER_REQUEST is not None:
-                time.sleep(float(settings.DELAY_PER_REQUEST))
-            return res
+            if not res:
+                if log_req:
+                    log(texts.REQUEST_FALSEY.format(retries=retries), save=True)
+            elif res.status_code >= 400:
+                if log_req:
+                    log(texts.REQUEST_INVALID_STATUS_CODE.format(status_code=res.status_code,
+                                                                 retries=retries), save=True)
+            else:
+                if settings.DELAY_PER_REQUEST is not None:
+                    time.sleep(float(settings.DELAY_PER_REQUEST))
+                return res
 
         except requests.exceptions.Timeout as e:
             if log_req:
@@ -178,9 +179,9 @@ def trim_to_limit(items, limit):
 
             if num_of_items > limit:
                 items = items[:limit]
-                log('Trimmed', num_of_items, 'items =>', limit, 'items', inform=True)
+                log(texts.TRIM_MSG.format(old_len=num_of_items, new_len=limit), inform=True)
             else:
-                log('Number of items are less than limit:', num_of_items, '<', limit, inform=True, save=True)
+                log(texts.TRIM_NOT_NEEDED.format(len=num_of_items, limit=limit), inform=True)
     return items
 
 
@@ -238,30 +239,26 @@ class Printer(object):
         self.last_percent = curr_percent
 
         if est_time_left != 0.0:
-            progress_text = '{0} / {1} => {2}% | Time Left est. {3:.2f}s'.format(curr, total, curr_percent,
-                                                                                 est_time_left)
+            progress_text = texts.PROGRESS_WITH_TIME_LEFT.format(curr=curr, total=total,
+                                                                 curr_percent=curr_percent,
+                                                                 time_left=est_time_left)
         else:
-            progress_text = '{0} / {1} => {2}% '.format(curr, total, curr_percent)
+            progress_text = texts.PROGRESS_TEXT.format(curr=curr, total=total, curr_percent=curr_percent)
 
         if msg:
             progress_text = progress_text + ' | ' + str(msg)
-
-        if self.last_printed_line:
-            spaces = len(self.last_printed_line)
-        else:
-            spaces = 1
 
         log(progress_text, end='', start=settings.CLEAR_LINE, inform=True)
         self.last_printed_line = progress_text
 
     def print_done(self, msg=None):
         if msg:
-            log(f' [ done ] => {msg}', normal=True)
+            log(texts.DONE_MSG.format(msg=msg), normal=True)
         else:  # a float, time taken
             if self.is_first_print:
-                log(' [ done ]', normal=True)
+                log(texts.DONE, normal=True)
             else:
-                log(' [ done ] => {0:.2f}s'.format(time.time() - self.start_time), normal=True)
+                log(texts.DONE_TIME_TAKEN.format(time_taken=time.time() - self.start_time), normal=True)
         self.is_first_print = True
         self.start_time = None
         self.last_percent = None
@@ -284,25 +281,23 @@ def print_done(msg=None):
     printer.print_done(msg)
 
 
-class BaseLogger:
-    def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,
-            warn=False, normal=False):
-        raise NotImplementedError
-
-
 def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,
         warn=False, normal=False):
     """Print according to params and settings.py
 
     **Description**
     settings.py's LOG_TYPE controls the overall behaviour of this function
-    eg. whether each rank_type of log should be available
-    caller code controls the rank_type of log
-    eg. whether the strings send to log should be rank_type of inform
+    eg. whether each type of log should be available
+    caller code controls the type of log
+    eg. whether the strings send to log should be type of inform
     This function copied all params of python's print function, except flush is set to True,
     and some custom parameters as shown below
 
     **Parameters**
+    :param flush:
+    :param file:
+    :param end:
+    :param sep:
     :param warn:
         if this is true, a '###' is appended is added at the front of the strings given, default False
     :param normal:

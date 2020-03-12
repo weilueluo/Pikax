@@ -23,7 +23,7 @@ class LanguageHandler:
 
     # Android Client
     ACCESS_TOKEN_UPDATE_INTERNAL_ERROR = {
-        'English': 'Internal Error: Failed update access token',
+        'English': 'Internal Error: Update access token failed',
         'Chinese': '内部错误：Access token 更新失败'
     }
     INVALID_SEARCH_TYPE_ERROR = {
@@ -144,10 +144,21 @@ class LanguageHandler:
         'English': 'Filtering {name} {operator_symbol} {value}',
         'Chinese': '过滤 {name} {operator_symbol} {value}'
     }
-
     DONE_INFO = {
         'English': '[ done ] {old} => {new}',
         'Chinese': '[ 完成 ] {old} => {new}'
+    }
+    DONE_MSG = {
+        'English': ' [ done ] => {msg}',
+        'Chinese': ' [ 完成 ] => {msg}'
+    }
+    DONE = {
+        'English': ' [ done ]',
+        'Chinese': ' [ 完成 ]'
+    }
+    DONE_TIME_TAKEN = {
+        'English': ' [ done ] => {time_taken:.2f}s',
+        'Chinese': ' [ 完成 ] => {time_taken:.2f} 秒'
     }
 
     # params
@@ -212,6 +223,24 @@ class LanguageHandler:
     REQUEST_EXCEPTION_MSG = {
         'English': '{req_type} Failed: [{url}] params: [{params}]',
         'Chinese': '{req_type} 失败: [{url}] 参数: [{params}]',
+    }
+
+    # util
+    TRIM_MSG = {
+        'English': 'Trimmed {old_len} items => {new_len} items',
+        'Chinese': '缩减 {old_len} 件 => {new_len} 件'
+    }
+    TRIM_NOT_NEEDED = {
+        'English': 'Number of items are less than limit: {len} < {limit}',
+        'Chinese': '件数少于限制: {len} < {limit}'
+    }
+    PROGRESS_WITH_TIME_LEFT = {
+        'English': '{curr} / {total} => {curr_percent}% | Time Left est. {time_left:.2f}s',
+        'Chinese': '{curr} / {total} => {curr_percent}% | 剩余时间估算： {time_left:.2f} 秒'
+    }
+    PROGRESS_TEXT = {
+        'English': '{curr} / {total} => {curr_percent}%',
+        'Chinese': '{curr} / {total} => {curr_percent}%'
     }
 
 
