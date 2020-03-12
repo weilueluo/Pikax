@@ -19,6 +19,12 @@ Number of retries for requesting
 MAX_RETRIES_FOR_REQUEST = 3
 
 """
+delay between request retries
+does not stack with DELAY_PER_REQUEST
+"""
+REQUEST_RETRY_DELAY = 0.5
+
+"""
 Minimum waiting time in seconds between two successive requests,
 Set this number to a suitable amount to reduce
 chances of getting block
@@ -96,7 +102,7 @@ COOKIES_FILE = 'cookies.data'
 """
 default whether to log requests to stdout
 """
-LOG_REQUEST = False
+LOG_REQUEST = True
 
 """
 folder used when testing, do not run test if you are using folder of this name

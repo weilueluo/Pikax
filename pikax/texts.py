@@ -180,5 +180,39 @@ class LanguageHandler:
         'Chinese': '处理用户id为：{id} 的书签时失败'
     }
 
+    # util
+    REQUEST_INFO = {
+        'English': '{req_type}: [{url}] params: [{params}]',
+        'Chinese': '{req_type}: [{url}] 参数: [{params}]',
+    }
+    REQUEST_FALSEY = {
+        'English': 'Requests returned Falsey, retries: {retries}',
+        'Chinese': '请求返回错误，重试：{retries}'
+    }
+    REQUEST_INVALID_STATUS_CODE = {
+        'English': 'HTTP Status code error >= 400: {status_code}, retries: {retries}',
+        'Chinese': 'HTTP 状态码 >= 400: {status_code}, 重试: {retries}'
+    }
+    REQUEST_TIME_OUT = {
+        'English': 'Request timeout: retries: {retries}',
+        'Chinese': '请求超时：重试：{retries}'
+    }
+    REQUEST_EXCEPTION = {
+        'English': 'Request exception encountered, retries: {retries}',
+        'Chinese': '请求时出错，重试：{retries}'
+    }
+    REQUEST_REASON = {
+        'English': 'Reason: {e}',
+        'Chinese': '原因：{e}'
+    }
+    REQUEST_MSG = {
+        'English': 'Message: {msg}',
+        'Chinese': '信息：{msg}'
+    }
+    REQUEST_EXCEPTION_MSG = {
+        'English': '{req_type} Failed: [{url}] params: [{params}]',
+        'Chinese': '{req_type} 失败: [{url}] 参数: [{params}]',
+    }
+
 
 texts = LanguageHandler(LanguageHandler.LANGS[0])

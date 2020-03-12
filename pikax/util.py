@@ -21,6 +21,7 @@ import urllib3
 
 from . import settings
 from .exceptions import ReqException
+from .texts import texts
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -116,61 +117,49 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
     :raises ReqException: if all retries fails or invalid rank_type is given
 
     """
-    req_type = req_type.upper()
     curr_retries = 0
+    handler = requests if session is None else session
+    requester = handler.get if 'GET' == req_type.upper() else handler.post  # assume post if not 'GET'
+
     while curr_retries < retries:
         if log_req:
-            log(req_type + ':', str(url), 'with params:', str(params), end='')
+            log(texts.REQUEST_INFO.format(req_type=req_type.upper(), url=url, params=params), end='')
         try:
             # try send request according to parameters
-            if session:
-                if req_type == 'GET':
-                    res = session.get(url=url, headers=headers, params=params, timeout=timeout, proxies=proxies,
-                                      verify=verify)
-                elif req_type == 'POST':
-                    res = session.post(url=url, headers=headers, params=params, timeout=timeout, data=data,
-                                       proxies=proxies, verify=verify)
-                else:
-                    raise ReqException('Request req_type error:', req_type)
-            else:
-                if req_type == 'GET':
-                    res = requests.get(url=url, headers=headers, params=params, timeout=timeout, proxies=proxies,
-                                       verify=verify)
-                elif req_type == 'POST':
-                    res = requests.post(url=url, headers=headers, params=params, timeout=timeout, data=data,
-                                        proxies=proxies, verify=verify)
-                else:
-                    raise ReqException('Request req_type error:', req_type)
-
+            res = requester(url=url, headers=headers, params=params, timeout=timeout,
+                            data=data, proxies=proxies, verify=verify)
             if log_req:
                 log(res.status_code)
 
             # check if request result is normal
-            if res:
-                if res.status_code < 400:
-                    if settings.DELAY_PER_REQUEST:
-                        time.sleep(int(settings.DELAY_PER_REQUEST))
-                    return res
-                else:
-                    log('Status code error:', res.status_code, 'retries:', curr_retries, save=True)
-            else:
-                log('Requests returned Falsey, retries:', curr_retries, save=True)
+            if not res and log_req:
+                log(texts.REQUEST_FALSEY.format(retries=retries), save=True)
+                continue
+            elif res.status_code >= 400 and log_req:
+                log(texts.REQUEST_INVALID_STATUS_CODE.format(status_code=res.status_code,
+                                                             retries=retries), save=True)
+                continue
+            elif settings.DELAY_PER_REQUEST is not None:
+                time.sleep(float(settings.DELAY_PER_REQUEST))
+            return res
+
         except requests.exceptions.Timeout as e:
-            log(req_type, url, params, 'Time Out:', curr_retries, save=True)
-            log('Reason:', str(e), save=True, inform=True)
+            if log_req:
+                log(texts.REQUEST_TIME_OUT.format(retries=retries), save=True)
+                log(texts.REQUEST_REASON.format(e=e), save=True, inform=True)
         except requests.exceptions.RequestException as e:
-            if err_msg:
-                log('RequestException:', err_msg, save=True, inform=True)
-            else:
-                log(settings.DEFAULT_REQUEST_ERROR_MSG.format(type=req_type), save=True, inform=True)
-            log('Reason:', str(e), 'Retries:', curr_retries, save=True, inform=True)
+            if log_req:
+                log(texts.REQUEST_EXCEPTION.format(retries=retries), save=True, inform=True)
+                log(texts.REQUEST_REASON.format(e=e), save=True, inform=True)
+                if err_msg:
+                    log(texts.REQUEST_MSG.format(msg=err_msg), inform=True)
 
         curr_retries += 1
-        time.sleep(0.5)  # dont retry again too fast
+        if settings.REQUEST_RETRY_DELAY is not None:
+            time.sleep(float(settings.REQUEST_RETRY_DELAY))  # dont retry again too fast
 
     # if still fails after all retries
-    exception_msg = str(req_type) + ' failed: ' + str(url) + ' params: ' + str(params)
-    raise ReqException(exception_msg)
+    raise ReqException(texts.REQUEST_EXCEPTION_MSG.format(req_type=req_type, url=url, params=params))
 
 
 # attempt to decode given json, raise JSONDecodeError if fails
