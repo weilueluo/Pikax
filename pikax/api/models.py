@@ -6,8 +6,10 @@ from typing import List, Tuple, Union, Type, Any
 
 from .. import params, util
 from ..exceptions import ArtworkError
+from ..texts import texts
 
 __all__ = ['APIAccessInterface', 'APIPagesInterface', 'APIUserInterface', 'Artwork', 'BaseIDProcessor']
+
 
 class APIUserInterface:
 
@@ -53,8 +55,11 @@ class APIPagesInterface:
 class Artwork:
 
     def __init__(self, artwork_id):
-        self.id = artwork_id
+        self._id = artwork_id
         self.config()
+
+    def __hash__(self):
+        return self.id
 
     @property
     def bookmarks(self): raise NotImplementedError
@@ -71,10 +76,20 @@ class Artwork:
     @property
     def likes(self): raise NotImplementedError
 
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def width(self): raise NotImplementedError
+
+    @property
+    def height(self): raise NotImplementedError
+
     class DownloadStatus(enum.Enum):
-        OK = '[OK]'
-        SKIPPED = '[skipped]'
-        FAILED = '<failed>'
+        OK = texts.DOWNLOAD_STATUS_OK
+        SKIPPED = texts.DOWNLOAD_STATUS_SKIP
+        FAILED = texts.DOWNLOAD_STATUS_FAIL
 
     # return download status, content, filename
     def __getitem__(self, index) -> Tuple[DownloadStatus, Any, str]: raise NotImplementedError
@@ -82,9 +97,17 @@ class Artwork:
     # return num of pages
     def __len__(self): raise NotImplementedError
 
-    # set variables, raises ReqException if fails
-    def config(self):
-        raise NotImplementedError
+    # test if two artwork has the same id
+    def __eq__(self, other): raise NotImplementedError
+
+    # test if two artwork has different id
+    def __ne__(self, other): raise NotImplementedError
+
+    # set variables, raises ReqException if fails,
+    # it is called in the __init__ method
+    # you should not need to call this unless
+    # artwork configure failed and you want to try again,
+    def config(self): raise NotImplementedError
 
 
 class BaseIDProcessor:
@@ -104,26 +127,27 @@ class BaseIDProcessor:
     def process(self, ids: List[int], process_type: params.ProcessType) -> Tuple[List[Artwork], List[int]]:
         if not params.ProcessType.is_valid(process_type):
             from ..exceptions import ProcessError
-            raise ProcessError(f'process type: {process_type} is not type of {params.ProcessType}')
+            raise ProcessError(texts.INVALID_PROCESS_TYPE_ERROR.format(process_type=process_type,
+                                                                       process_types=params.ProcessType))
 
         return self.type_to_function[process_type](ids)
 
     @staticmethod  # param cls is pass in as argument
     def _general_processor(cls: Type[Artwork], item_ids: List[int]) -> Tuple[List[Artwork], List[int]]:
-        util.log('Processing artwork ids', start=os.linesep, inform=True)
+        util.log(texts.ARTWORK_ID_PROCESSING, start=os.linesep, inform=True)
         total = len(item_ids)
         successes = []
         fails = []
         pool = Pool()
 
-        def process_item(itemid):
+        def process_item(item_id_):
             try:
-                successes.append(cls(itemid))
+                successes.append(cls(item_id_))
             except ArtworkError:
-                fails.append(itemid)
+                fails.append(item_id_)
 
-        for index, item_id in enumerate(pool.imap_unordered(process_item, item_ids)):
-            util.print_progress(index + 1, total)
-        msg = f'expected: {total} | success: {len(successes)} | failed: {len(fails)}'
+        for index, item_id in enumerate(pool.imap_unordered(process_item, item_ids), 1):
+            util.print_progress(index, total)
+        msg = texts.ARTWORK_ID_PROCESS_RESULT.format(total=total, successes=len(successes), fails=len(fails))
         util.print_done(msg)
         return successes, fails

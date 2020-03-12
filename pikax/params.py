@@ -2,6 +2,8 @@ import calendar
 import datetime
 import enum
 
+from pikax.texts import texts
+
 __all__ = ['PikaxEnum', 'Type', 'Match', 'Sort', 'RankType', 'Dimension', 'Range', 'Date', 'Restrict']
 
 
@@ -107,7 +109,8 @@ class ProcessType(PikaxEnum):
         if cls.is_valid(process_type):
             return cls._process_to_download_map.value[process_type.value]
         else:
-            raise KeyError(f'process type: {process_type} is not type of {ProcessType}')
+            raise KeyError(texts.INVALID_PROCESS_TYPE_ERROR.format(process_type=process_type,
+                                                                   process_types=ProcessType))
 
 
 class SearchType(PikaxEnum):
@@ -123,7 +126,7 @@ class SearchType(PikaxEnum):
         if cls.is_valid(search_type):
             return cls._search_to_process_map.value[search_type.value]
         else:
-            raise KeyError(f'search type: {search_type} is not type of {SearchType}')
+            raise KeyError(texts.INVALID_SEARCH_TYPE_ERROR.format(search_type=search_type, search_types=SearchType))
 
 
 class Content(PikaxEnum):
@@ -140,7 +143,7 @@ class Content(PikaxEnum):
         if cls.is_valid(content_type):
             return cls._content_to_process_map.value[content_type.value]
         else:
-            raise KeyError(f'content type: {content_type} is not type of {Content}')
+            raise KeyError(texts.INVALID_CONTENT_TYPE_ERROR.format(content_type=content_type, content_types=Content))
 
 
 class BookmarkType(PikaxEnum):
@@ -159,29 +162,13 @@ class BookmarkType(PikaxEnum):
         if cls.is_valid(bookmark_type):
             return cls._bookmark_to_process_map.value[bookmark_type.value]
         else:
-            raise KeyError(f'bookmark type: {bookmark_type} is not type of {cls}')
+            raise KeyError(texts.INVALID_BOOKMARK_TYPE_ERROR.format(bookmark_type=bookmark_type,
+                                                                    bookmark_types=cls))
 
     @classmethod
     def map_bookmark_to_download(cls, bookmark_type):
         if cls.is_valid(bookmark_type):
             return cls._bookmark_to_download_map.value[bookmark_type.value]
         else:
-            raise KeyError(f'bookmark type: {bookmark_type} is not type of {cls}')
-
-
-# for testing
-def main():
-    assert Type.is_valid(Date.DATE_DESC) is False
-    assert Type.is_valid(Date.DATE_ASC) is False
-    assert Type.is_valid(Match.ANY) is False
-    assert Type.is_valid(Match.EXACT) is False
-    assert Type.is_valid(Match.PARTIAL) is False
-    assert Type.is_valid(Match.TEXT) is False
-    assert Type.is_valid(Match.KEYWORD) is False
-    assert Type.is_valid(Type.ILLUST)
-    assert Type.is_valid(Type.NOVEL)
-    assert Type.is_valid(Type.USER)
-
-
-if __name__ == '__main__':
-    main()
+            raise KeyError(texts.INVALID_BOOKMARK_TYPE_ERROR.format(bookmark_type=bookmark_type,
+                                                                    bookmark_types=cls))

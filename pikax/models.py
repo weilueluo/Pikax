@@ -8,6 +8,7 @@ from typing import Union, List, Tuple, Iterator
 
 from . import params, settings, util
 from .api.models import Artwork
+from .texts import texts
 
 __all__ = ['PikaxResult', 'PikaxUserInterface', 'PikaxInterface', 'PikaxPagesInterface', 'BaseDownloader']
 
@@ -108,7 +109,8 @@ class PikaxResult:
 
         def _compare(self, compare_operator, value):
             operator_symbol = self._operator_to_symbol[compare_operator]
-            util.log(f'Filtering {self.name} {operator_symbol} {value}', start=os.linesep, inform=True)
+            util.log(texts.FILTER_INFO.format(name=self.name, operator_symbol=operator_symbol, value=value),
+                     start=os.linesep, inform=True)
 
             old_len = len(self.outer_self.artworks)
             new_artworks = list(
@@ -119,7 +121,7 @@ class PikaxResult:
             folder = util.clean_filename(str(self.outer_self.folder) + '_' + operator_name + '_' + str(value))
             result = self.result_maker(artworks=new_artworks, folder=folder)
 
-            util.log(f'[ done ] {old_len} => {new_len}', inform=True)
+            util.log(texts.DONE_INFO.format(old=old_len, new=new_len), inform=True)
             return result
 
     @property
@@ -378,8 +380,8 @@ class BaseDownloader:
         curr_page = 0
         curr_artwork = 0
         pool = Pool()
-        util.log(f'Downloading Artworks | {total_pages} pages from {total_artworks} artworks', start=os.linesep,
-                 inform=True)
+        util.log(texts.ARTWORK_DOWNLOAD_INFO.format(total_artworks=total_artworks, total_pages=total_pages),
+                 start=os.linesep, inform=True)
 
         for download_details in pool.imap_unordered(download_function, artworks):
             curr_artwork += 1
@@ -400,13 +402,13 @@ class BaseDownloader:
                 util.print_progress(curr_page, total_pages, msg=info)
         util.print_done()
 
-        util.log(f'There are {len(successes)} downloaded pages', inform=True)
+        util.log(texts.DOWNLOADED_PAGES_INFO.format(successes=successes), inform=True)
 
-        util.log(f'There are {len(skips)} skipped pages', inform=True)
+        util.log(texts.SKIPPED_PAGES_INFO.format(skips=len(skips)), inform=True)
         for index, skip_info in enumerate(skips):
             util.log(skip_info, start=f' [{index + 1}] ', inform=True)
 
-        util.log(f'There are {len(fails)} failed pages', inform=True)
+        util.log(texts.FAILED_PAGES_INFO.format(fails=len(fails)), inform=True)
         for index, skip_info in enumerate(fails):
             util.log(skip_info, start=f' [{index + 1}] ', inform=True)
 

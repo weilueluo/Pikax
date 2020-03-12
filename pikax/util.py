@@ -301,7 +301,6 @@ class BaseLogger:
         raise NotImplementedError
 
 
-
 def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,
         warn=False, normal=False):
     """Print according to params and settings.py
@@ -357,7 +356,3 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', info
         print(start, '###', *objects, sep=sep, end=end, file=file, flush=flush)
     if _std_enabled and not (inform or save or error or warn):
         print(start, *objects, sep=sep, end=end, file=file, flush=flush)
-
-
-
-

@@ -68,8 +68,6 @@ def download_id(item):
     try:
         # init a illustration
         illust = Illust(id_)
-        # config the artwork, this step is important
-        illust.config()
         # filter likes
         if illust.likes < like_threshold:
             # tqdm_iter.set_description_str(desc=tqdm_desc_pre + f' {illust.title} {illust.likes} < {like_threshold}')

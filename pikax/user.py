@@ -2,7 +2,10 @@ from .models import PikaxUserInterface
 from . import params, settings
 from .processor import DefaultIDProcessor
 from .exceptions import PikaxUserError
-from .result import DefaultPikaxResult, PikaxResult
+from .result import DefaultPikaxResult
+from .models import PikaxResult
+from .texts import texts
+from .exceptions import APIUserError, ProcessError
 
 __all__ = ['DefaultPikaxUser']
 
@@ -33,14 +36,14 @@ class DefaultPikaxUser(PikaxUserInterface):
                   bookmark_type: params.BookmarkType = params.BookmarkType.ILLUST_OR_MANGA) -> PikaxResult:
         try:
             ids = self._user.bookmarks(limit=limit, bookmark_type=bookmark_type)
-        except NotImplementedError as e:
-            raise PikaxUserError('Failed to retrieve bookmark ids') from e
+        except APIUserError as e:
+            raise PikaxUserError(texts.USER_BOOKMARKS_RETRIEVE_FAILED.format(id=self._user.id)) from e
 
         try:
             successes, fails = self._id_processor.process(ids, process_type=params.BookmarkType.map_bookmark_to_process(
                 bookmark_type))
-        except NotImplementedError as e:
-            raise PikaxUserError('Failed to process bookmark id') from e
+        except ProcessError as e:
+            raise PikaxUserError(texts.USER_BOOKMARKS_PROCESS_FAILED.format(id=self._user.id)) from e
 
         return DefaultPikaxResult(artworks=successes,
                                   download_type=params.BookmarkType.map_bookmark_to_download(bookmark_type),
@@ -57,27 +60,3 @@ class DefaultPikaxUser(PikaxUserInterface):
     @property
     def name(self):
         return self._user.name
-
-
-def test():
-    from . import settings
-    from .api.androidclient import AndroidAPIClient
-    client = AndroidAPIClient(settings.username, settings.password)
-    user = DefaultPikaxUser(client, user_id=853087)
-
-    result = user.illusts(limit=100)
-    assert len(result.artworks) == 100, len(result.artworks)
-    result = user.bookmarks(limit=100, bookmark_type=params.BookmarkType.ILLUST_OR_MANGA)
-    assert len(result.artworks) == 100, len(result.artworks)
-    result = user.mangas(limit=3)
-    assert len(result.artworks) == 3, len(result.artworks)
-
-    print('Successfully tested user')
-
-
-def main():
-    test()
-
-
-if __name__ == '__main__':
-    main()

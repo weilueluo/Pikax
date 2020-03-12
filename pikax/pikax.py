@@ -26,8 +26,7 @@ class Pikax(PikaxInterface):
         self.downloader = DefaultDownloader()
         self.username = password
         self.password = username
-        self.web_client = None
-        self.android_client = None
+        self.logged_client = None
 
         if username and password:
             self.login()
@@ -45,28 +44,18 @@ class Pikax(PikaxInterface):
         :rtype: PikaxUserInterface or None
         """
 
-        util.log('Attempting Login', inform=True)
-
-        if username and password:
+        if username:
             self.username = username
+        if password:
             self.password = password
 
-        status, client = self._login_handler.web_login(self.username, self.password)
-        if status is LoginHandler.LoginStatus.PC:
-            self.web_client = client
-            util.log('successfully logged in as web user', inform=True)
-
-        status, client = self._login_handler.android_login(self.username, self.password)
+        status, client = self._login_handler.login(self.username, self.password)
         if status is LoginHandler.LoginStatus.ANDROID:
-            self.android_client = client
-            util.log('successfully logged in as android user', inform=True)
-
-        if not (self.android_client or self.web_client):
+            self.logged_client = client
+        else:
             util.log('failed login, using default client, some features will be unavailable', inform=True)
-            return None
 
-        logged_client = self._get_client()
-        return DefaultPikaxUser(client=logged_client, user_id=logged_client.id)
+        return DefaultPikaxUser(client=self._get_client(), user_id=self._get_client().id)
 
     def search(self, keyword: str = '',
                search_type: params.SearchType = params.SearchType.ILLUST_OR_MANGA,
@@ -163,10 +152,8 @@ class Pikax(PikaxInterface):
         return DefaultPikaxUser(client=client, user_id=user_id)
 
     def _get_client(self):
-        if self.web_client:
-            return self.web_client
-        elif self.android_client:
-            return self.android_client
+        if self.logged_client:
+            return self.logged_client
         else:
             return self.default_client
 

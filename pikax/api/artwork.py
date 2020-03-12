@@ -15,6 +15,7 @@ class Illust(Artwork):
     extra properties
 
     """
+
     _referer_url = 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id='
     _details_url = 'https://www.pixiv.net/ajax/illust/'
     _headers = {
@@ -30,6 +31,9 @@ class Illust(Artwork):
         self._author = None
         self._likes = None
         self._tags = None
+        self._id = None
+        self._width = None
+        self._height = None
 
         # iterator use, set after generate download data is called
         self.__download_urls = None
@@ -43,6 +47,8 @@ class Illust(Artwork):
         self._details_url = Illust._details_url + str(illust_id)
         self._headers = Illust._headers.copy()
         self._headers['referer'] = Illust._referer_url + str(illust_id)
+
+        # this will call config
         super().__init__(illust_id)
 
     def config(self):
@@ -51,11 +57,14 @@ class Illust(Artwork):
             illust_data = illust_data['body']
 
             # properties
+            # self._id = illust_data['id'] given, check? or overwrite? ... just ignore for now
             self._views = illust_data['viewCount']
             self._bookmarks = illust_data['bookmarkCount']
             self._likes = illust_data['likeCount']
             self._title = illust_data['illustTitle']
             self._author = illust_data['userName']
+            self._height = illust_data['height']
+            self._width = illust_data['width']
             self._tags = [item['tag'] for item in illust_data['tags']['tags']]
 
             self.__original_url_template = illust_data['urls']['original']
@@ -97,6 +106,18 @@ class Illust(Artwork):
     def __len__(self):
         return len(self.__download_urls)
 
+    def __eq__(self, other):
+        if isinstance(other, Illust):
+            if other.id is not None:
+                return self.id == other.id
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return super().__hash__()
+
     @property
     def tags(self):
         return self._tags
@@ -121,34 +142,17 @@ class Illust(Artwork):
     def likes(self):
         return self._likes
 
+    @property
+    def width(self):
+        return self._width
+
+    @property
+    def height(self):
+        return self._height
+
     @staticmethod
     def _reached_limit_in_settings(current):
         if settings.MAX_PAGES_PER_ARTWORK:
             if current >= settings.MAX_PAGES_PER_ARTWORK:
                 return True
         return False
-
-
-def test():
-    print('Testing Illust Artwork')
-    from .androidclient import AndroidAPIClient
-    from .. import settings
-    client = AndroidAPIClient(settings.username, settings.password)
-    user = client.visits(user_id=2957827)
-    illust_ids = user.illusts(limit=1)
-    artworks = [Illust(illust_id) for illust_id in illust_ids]
-    for artwork in artworks:
-        artwork.config()
-        for status, content, filename in artwork:
-            print(status, filename)
-        print(artwork.tags)
-
-    print('Successfully tested Illust Artwork')
-
-
-def main():
-    test()
-
-
-if __name__ == '__main__':
-    main()

@@ -1,9 +1,12 @@
+import os
+
+
 class LanguageHandler:
     LANGS = ['English', 'Chinese']
 
     def __init__(self, default):
         if default not in self.LANGS:
-            raise ValueError('Internal Error: default language given not supported')
+            raise ValueError(f'Language given not supported: {default} is not in {self.LANGS}')
         self.lang = default
 
     def __getattribute__(self, item):
@@ -15,7 +18,7 @@ class LanguageHandler:
 
     def __setattr__(self, key, value):
         if key == 'lang' and value not in self.LANGS:
-            raise ValueError('Internal Error: Given language is not supported')
+            raise ValueError(f'Given language is not supported: {value} is not in {self.LANGS}')
         return super().__setattr__(key, value)
 
     # Android Client
@@ -64,6 +67,117 @@ class LanguageHandler:
     ARTWORK_CONFIGURE_ERROR = {
         'English': 'Failed to configure Artwork with id: {id}',
         'Chinese': '配置画作失败，画作id： {id}'
+    }
+
+    # Models
+    DOWNLOAD_STATUS_OK = {
+        'English': '[OK]',
+        'Chinese': '[OK]'
+    }
+    DOWNLOAD_STATUS_SKIP = {
+        'English': '[skipped]',
+        'Chinese': '[跳过]'
+    }
+    DOWNLOAD_STATUS_FAIL = {
+        'English': '[failed]',
+        'Chinese': '[失败]'
+    }
+    INVALID_PROCESS_TYPE_ERROR = {
+        'English': 'Process type: {process_type} is not type of {process_types}',
+        'Chinese': '处理类型：{process_type}，不是 {process_types} 的一员'
+    }
+    ARTWORK_ID_PROCESSING = {
+        'English': 'Processing artwork ids',
+        'Chinese': '正在处理作品id'
+    }
+    ARTWORK_ID_PROCESS_RESULT = {
+        'English': 'expected: {total} | success: {successes} | failed: {fails}',
+        'Chinese': '期望: {total} | 成功: {successes} | 失败: {fails}'
+    }
+
+    # downloader
+    ARTWORK_DETAIL_MESSAGE = {
+        'English': '[{title}] p{page_num} by [{author}]',
+        'Chinese': '[{title}] p{page_num} 来自 [{author}]'
+    }
+
+    # items
+    ATTEMPT_ANDROID_LOGIN = {
+        'English': 'Attempting Android login ... ',
+        'Chinese': '正在尝试安卓登录 。。。 '
+    }
+    ATTEMPT_WEB_LOGIN = {
+        'English': 'Attempting Web login ... ',
+        'Chinese': '正在尝试网页登录 。。。 '
+    }
+    ANDROID_LOGIN_FAILED = {
+        'English': 'Android login failed' + os.linesep + 'Reason: {e}',
+        'Chinese': '安卓登录失败' + os.linesep + '原因：{e}'
+    }
+    WEB_LOGIN_FAILED = {
+        'English': 'Web login failed' + os.linesep + 'Reason: {e}',
+        'Chinese': '网页登录失败' + os.linesep + '原因：{e}'
+    }
+    LOGIN_STATUS = {
+        'English': 'Login Status: {login_status}, API Client: {client}',
+        'Chinese': '登录状态: {login_status}, 接口: {client}'
+    }
+
+    # models
+    ARTWORK_DOWNLOAD_INFO = {
+        'English': 'Downloading Artworks | {total_pages} pages from {total_artworks} artworks',
+        'Chinese': '正在下载作品 | 从 {total_artworks} 中提取 {total_pages} 页'
+    }
+    DOWNLOADED_PAGES_INFO = {
+        'English': 'There are {successes} downloaded pages',
+        'Chinese': '成功下载 {successes} 页'
+    }
+    SKIPPED_PAGES_INFO = {
+        'English': 'There are {skips} skipped pages',
+        'Chinese': '跳过 {skips} 页'
+    }
+    FAILED_PAGES_INFO = {
+        'English': 'There are {fails} failed pages',
+        'Chinese': '失败 {fails} 页'
+    }
+    FILTER_INFO = {
+        'English': 'Filtering {name} {operator_symbol} {value}',
+        'Chinese': '过滤 {name} {operator_symbol} {value}'
+    }
+
+    DONE_INFO = {
+        'English': '[ done ] {old} => {new}',
+        'Chinese': '[ 完成 ] {old} => {new}'
+    }
+
+    # params
+    INVALID_CONTENT_TYPE_ERROR = {
+        'English': 'Content Type: {content_type} is not type of {content_types}',
+        'Chinese': '内容类型：{content_type}，不是 {content_types} 的一员'
+    }
+
+    # result
+    INCOMPATIBLE_TYPE_OPERATION = {
+        'English': 'PikaxResults are in different type: {type1} and {type2}',
+        'Chinese': '试图对不同类型的PikaxResults进行操作: {type1} 和 {type2}'
+    }
+    ADD_FOLDER_CONNECT = {
+        'English': '_added_to',
+        'Chinese': '_加_'
+    }
+    SUB_FOLDER_CONNECT = {
+        'English': '_subtracted_by',
+        'Chinese': '_减_'
+    }
+
+    # user
+    USER_BOOKMARKS_RETRIEVE_FAILED = {
+        'English': 'Failed to retrieve bookmark ids from user with id: {id}',
+        'Chinese': '从用户id为：{id} 获取书签失败'
+    }
+    USER_BOOKMARKS_PROCESS_FAILED = {
+        'English': 'Failed to process bookmark ids from user with id: {id}',
+        'Chinese': '处理用户id为：{id} 的书签时失败'
     }
 
 

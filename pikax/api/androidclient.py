@@ -199,15 +199,17 @@ class FunctionalBaseClient(BaseClient):
         if limit:
             limit = int(limit)
         data_container_name = params.Type.get_response_container_name(id_type.value)
-        ids_collected = []
+        ids_collected = set()
         while next_url is not None and (not limit or len(ids_collected) < limit):
             res_data = self.req(next_url).json()
             if id_type is params.Type.USER:
-                ids_collected += [item['user']['id'] for item in res_data[data_container_name]]
+                ids_collected.update([item['user']['id'] for item in res_data[data_container_name]])
             else:
-                ids_collected += [item['id'] for item in res_data[data_container_name]]
+                ids_collected.update([item['id'] for item in res_data[data_container_name]])
             next_url = res_data['next_url']
-            ids_collected = list(set(ids_collected))
+            # remove 0 if any, not sure where it is coming from
+            ids_collected.discard(0)
+        ids_collected = list(ids_collected)
         if limit:
             ids_collected = util.trim_to_limit(ids_collected, limit)
         return ids_collected
