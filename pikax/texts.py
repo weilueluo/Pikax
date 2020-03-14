@@ -411,4 +411,4 @@ class LanguageHandler:
 ZH = LanguageHandler.ZH
 EN = LanguageHandler.EN
 
-texts = LanguageHandler(ZH)
+texts = LanguageHandler(EN)
