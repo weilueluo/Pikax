@@ -4,6 +4,7 @@
 *.html
 *.txt
 !gui/dist/change_log.txt
+!gui/requirements.txt
 *.gif
 *.toc
 gui/build/*

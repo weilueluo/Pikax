@@ -58,15 +58,16 @@ def download_with_filter_example2():
 
 
 def main():
-    # switch to Chinese:
-    # texts.lang = 'Chinese'
     download_daily_rankings_example()
-    # download_search_example()
-    # download_own_bookmarks_example()
-    # download_other_user_items_example()
-    # download_by_artwork_id_example()
-    # download_with_filter_example()
-    # download_with_filter_example2()
+    download_search_example()
+    download_own_bookmarks_example()
+    download_other_user_items_example()
+    # switch to Chinese:
+    texts.lang = 'Chinese'
+    print('Changed language to Chinese')
+    download_by_artwork_id_example()
+    download_with_filter_example()
+    download_with_filter_example2()
 
 
 if __name__ == '__main__':

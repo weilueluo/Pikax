@@ -3,7 +3,7 @@
 set build_dir="build_debug"
 
 
-echo PIKAX BUILD
+echo PIKAX DEBUG BUILD
 echo.
 echo Build starting in current directory: %cd%
 echo Using Build debug Directory: %build_dir%
@@ -11,7 +11,7 @@ echo.
 
 call :run "Checking build directory ... " "if exist %build_dir% ( start """" /wait cmd /c ""echo Build directory %build_dir% exists, please remove the folder first!&echo(&pause"" exit)"
 
-call :run "Creating virtual environment ... " "virtualenv %build_dir%" 
+call :run "Creating virtual environment ... " "virtualenv %build_dir%"
 
 call :run "Adding scripts files to virtual environment ... " "for %%%%f in (py spec txt) do xcopy *.%%%%f %build_dir%"
 
@@ -41,6 +41,6 @@ echo.Build Successful
 goto :end 0
 
 :end
-echo.Build Debug Finished in diretory: %build_dir%
+echo.Build Debug Finished in directory: %build_dir%
 PAUSE
 exit /b %~1

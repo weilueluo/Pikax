@@ -246,8 +246,8 @@ class LanguageHandler:
     }
 
     TRIM_MSG = {
-        'English': 'Trimmed {old_len} items => {new_len} items',
-        'Chinese': '缩减 {old_len} 件 => {new_len} 件'
+        'English': 'Trimmed {old_len} => {new_len} items',
+        'Chinese': '缩减 {old_len} => {new_len} 件'
     }
     TRIM_NOT_NEEDED = {
         'English': 'Number of items are less than limit: {len} < {limit}',
