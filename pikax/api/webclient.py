@@ -5,9 +5,11 @@ import re
 from typing import Union, List
 
 from .. import params
-from .. import util, settings
+from .. import settings
+from .. import util
 from ..api.defaultclient import DefaultAPIClient, DefaultAPIUser
 from ..exceptions import ReqException, LoginError, APIUserError
+from ..texts import texts
 
 __all__ = ['WebAPIClient']
 
@@ -24,15 +26,15 @@ class BaseClient:
             status_json = util.req(url=self._login_check_url, session=self._session).json()
             return status_json['body']['user_status']['is_logged_in']
         except ReqException:
-            util.log('Checking Failed')
+            util.log(texts.CHECK_LOGIN_FAILED)
             return False
 
     def _save_cookies(self):
 
         if os.path.isfile(self.cookies_file):
-            util.log(f'Rewriting local cookie file: {self.cookies_file}')
+            util.log(texts.OVERWRITE_LOCAL_COOKIES.format(file=self.cookies_file))
         else:
-            util.log(f'Saving cookies to local file: {self.cookies_file}')
+            util.log(texts.SAVE_LOCAL_COOKIES.format(file=self.cookies_file))
 
         with open(self.cookies_file, 'wb') as file:
             pickle.dump(self._session.cookies, file)
@@ -60,27 +62,27 @@ class AccountClient(BaseClient):
             'lang': 'en'
         }
 
-        util.log('Sending requests to attempt login ...')
+        util.log(texts.ATTEMPT_WEB_CLIENT_LOGIN)
 
         try:
             util.req(req_type='post', session=self._session, url=self._login_url, data=data, params=login_params)
         except ReqException as e:
-            raise LoginError(f'Failed to send login request: {e}')
+            raise LoginError(texts.WEB_LOGIN_REQUEST_FAILED.format(e=e))
 
         util.log('Login request sent to Pixiv')
         if self._check_is_logged():
             self._save_cookies()
         else:
-            raise LoginError('Login Request is not accepted')
+            raise LoginError(texts.WEB_LOGIN_REQUEST_NOT_ACCEPTED)
 
     def _get_postkey(self):
         try:
             pixiv_login_page = util.req(session=self._session, url=self._post_key_url)
             post_key = re.search(r'post_key" value="(.*?)"', pixiv_login_page.text).group(1)
-            util.log(f'Post key successfully retrieved: {post_key}')
+            util.log(texts.WEB_LOGIN_POST_KEY_RETRIEVE_SUCCESS.format(post_key=post_key))
             return post_key
         except (ReqException, AttributeError) as e:
-            raise LoginError(f'Failed to find post key: {e}')
+            raise LoginError(texts.WEB_LOGIN_POST_KEY_RETRIEVE_Failed.format(e=e))
 
 
 class CookiesClient(BaseClient):
@@ -95,48 +97,44 @@ class CookiesClient(BaseClient):
             try:
                 self._user_cookies_login()
             except LoginError:
-                raise LoginError('Cookies Login failed')
+                raise LoginError(texts.COOKIE_LOGIN_FAILED)
 
     def _local_cookies_login(self):
 
         if not os.path.exists(self.cookies_file):
-            raise LoginError('Local Cookies file not found')
+            raise LoginError(texts.COOKIE_FILE_NOT_FOUND.format(file=self.cookies_file))
 
         # cookies exists
-        util.log(f'Cookie file found: {self.cookies_file}, attempt to login with local cookie')
+        util.log(texts.COOKIE_FILE_FOUND.format(file=self.cookies_file))
         try:
             with open(self.cookies_file, 'rb') as f:
                 local_cookies = pickle.load(f)
                 self._session.cookies = local_cookies
             if self._check_is_logged():
-                util.log('Logged in successfully with local cookies', inform=True)
+                util.log(texts.COOKIE_LOGIN_SUCCESS, inform=True)
                 return
             else:
                 os.remove(self.cookies_file)
-                util.log('Removed outdated cookies', inform=True)
+                util.log(texts.REMOVED_OUTDATED_COOKIE, inform=True)
         except pickle.UnpicklingError as e:
             os.remove(self.cookies_file)
-            util.log('Removed corrupted cookies file, message: {}'.format(e))
+            util.log(texts.REMOVED_CORRUPTED_COOKIE.format(e))
 
         # local cookies failed
-        raise LoginError('Login with cookies failed')
+        raise LoginError(texts.COOKIE_LOGIN_FAILED)
 
     def _user_cookies_login(self):
-        msg = 'Login with local cookies failed, would you like to provide a new cookies?' + os.linesep \
-              + ' [y] Yesss!' + os.linesep \
-              + ' [n] Noooo! (Attempt alternate login with username and password)'
-        util.log(msg, normal=True)
+        util.log(texts.PROVIDE_NEW_COOKIE_PROMPT, normal=True)
 
         while True:
-            answer = input(' [=] Please select an option:').strip().lower()
+            answer = input(texts.PROVIDE_NEW_COOKIE_PROMPT_ASK).strip().lower()
             if answer in ['n', 'no']:
                 break
             if answer not in ['y', 'yes']:
-                print('Please enter your answer as case-insensitive \'y\' or \'n\' or \'yes\' or \'no\'')
+                print(texts.INVALID_RESPOND_PROMPT)
                 continue
 
-            cookies = input(' [=] Please enter your cookies here, just php session id will work,' + os.linesep +
-                            ' [=] e.g. PHPSESSIONID=1234567890:')
+            cookies = input(texts.ENTER_NEW_COOKIE_PROMPT)
 
             try:
                 self._change_to_new_cookies(cookies)
@@ -144,13 +142,13 @@ class CookiesClient(BaseClient):
                     self._save_cookies()
                     return
                 else:
-                    util.log('Failed login with cookies entered, would you like to try again? [y/n]', normal=True)
+                    util.log(texts.NEW_COOKIE_LOGIN_FAILD, normal=True)
             except LoginError as e:
-                util.log(f'cookies entered is invalid: {e}')
-                util.log('would you like to try again? [y/n]')
+                util.log(texts.COOKIE_ENTERED_INVALID.format(e=e))
+                util.log(texts.TRY_AGAIN_PROMPT)
 
         # user enter cookies failed
-        raise LoginError('Failed login with user cookies')
+        raise LoginError(texts.COOKIE_LOGIN_FAILED)
 
     def _change_to_new_cookies(self, user_cookies):
         # remove old cookies
@@ -163,7 +161,7 @@ class CookiesClient(BaseClient):
                 name, value = new_cookie.split('=', 1)
                 self._session.cookies[name] = value
         except ValueError as e:
-            raise LoginError(f'Cookies given is invalid, please try again | {e}') from e
+            raise LoginError(texts.COOKIE_ENTERED_INVALID.format(e=e)) from e
 
 
 class BookmarkHandler:
@@ -172,11 +170,13 @@ class BookmarkHandler:
     @classmethod
     def _check_params(cls, limit, bookmark_type, restrict):
         if limit and not isinstance(limit, int):
-            raise APIUserError(f'bookmark limit is not int or None')
+            raise APIUserError(texts.BOOKMARK_INVALID_LIMIT)
         if bookmark_type and not params.BookmarkType.is_valid(bookmark_type):
-            raise APIUserError(f'Invalid bookmark rank_type: {bookmark_type}, must be rank_type of {params.BookmarkType}')
+            raise APIUserError(texts.INVALID_BOOKMARK_TYPE_ERROR.format(bookmark_type=bookmark_type,
+                                                                        bookmark_types=params.BookmarkType))
         if restrict and not params.Restrict.is_valid(restrict):
-            raise APIUserError(f'Invalid restrict: {restrict}, must be rank_type of {params.Restrict}')
+            raise APIUserError(texts.INVALID_RESTRICT_TYPE_ERROR.format(restrict_type=restrict,
+                                                                        restrict_types=params.Restrict))
 
     @classmethod
     def _set_params(cls, bookmark_type, restrict, user_id):
@@ -184,6 +184,7 @@ class BookmarkHandler:
         req_params['limit'] = 1
         req_params['offset'] = 0
         req_params['tag'] = ''
+        req_params['user_id'] = int(user_id)
         if bookmark_type:
             if bookmark_type is params.BookmarkType.ILLUST_OR_MANGA:
                 pass  # this is the default
@@ -210,7 +211,7 @@ class BookmarkHandler:
             ids = [item['id'] for item in data['body']['works']]
             return util.trim_to_limit(ids, limit=limit)
         except (ReqException, KeyError) as e:
-            raise APIUserError('Failed to retrieve bookmark') from e
+            raise APIUserError(texts.USER_BOOKMARKS_RETRIEVE_FAILED.format(id=user_id)) from e
 
 
 class CreationHandler:
@@ -224,13 +225,13 @@ class CreationHandler:
             illust_ids = eval(res.text)  # string to list
             return util.trim_to_limit(illust_ids, limit)
         except ReqException as e:
-            raise APIUserError(f'Failed to get illustration from user id: {user_id}') from e
+            raise APIUserError(texts.USER_ILLUST_RETRIEVE_FAILED.format(id=user_id)) from e
 
     @classmethod
     def mangas(cls, user_id, session, limit):
         req_params = dict()
         req_params['id'] = user_id
-        req_params['rank_type'] = 'manga'
+        req_params['type'] = 'manga'
         curr_page = 0
         last_page = 1  # a number more than curr_page
         manga_ids = []
@@ -248,7 +249,7 @@ class CreationHandler:
                         break
                 last_page = data['lastPage']
         except (ReqException, KeyError) as e:
-            raise APIUserError(f'Failed to get manga from user id: {user_id}') from e
+            raise APIUserError(texts.USER_MANGA_RETRIEVE_FAILED.format(id=user_id)) from e
 
         return manga_ids
 
@@ -261,6 +262,7 @@ class WebAPIUser(DefaultAPIUser):
                                          session=self._session, user_id=self.id)
 
 
+@DeprecationWarning
 class WebAPIClient(AccountClient, CookiesClient, DefaultAPIClient):
     _self_details_url = 'https://www.pixiv.net/touch/ajax/user/self/status'
 
@@ -271,8 +273,8 @@ class WebAPIClient(AccountClient, CookiesClient, DefaultAPIClient):
         except LoginError:
             try:
                 CookiesClient._login(self)
-            except LoginError:
-                raise LoginError('Web client login failed')
+            except LoginError as e:
+                raise LoginError(texts.WEB_LOGIN_FAILED.format(e=e))
 
         DefaultAPIClient.__init__(self._session)
         self._config()
@@ -285,7 +287,7 @@ class WebAPIClient(AccountClient, CookiesClient, DefaultAPIClient):
             self._account = data['body']['user_status']['user_account']
             self.user = self.visits(self.id)
         except (ReqException, KeyError) as e:
-            raise APIUserError(f'Failed to configure self') from e
+            raise APIUserError(texts.WEB_CLIENT_CONFIGURE_FAILED.format(e=e)) from e
 
     def bookmarks(self, limit: int = None, bookmark_type: params.BookmarkType = params.BookmarkType.ILLUST_OR_MANGA,
                   restrict: params.Restrict = params.Restrict.PUBLIC) -> List[int]:
@@ -323,45 +325,3 @@ class WebAPIClient(AccountClient, CookiesClient, DefaultAPIClient):
     @property
     def id(self):
         return self._id
-
-
-def test():
-    print('Testing Web Client')
-    from .. import settings
-    client = WebAPIClient(settings.username, settings.password)
-    ids = client.search(keyword='arknights', limit=234, sort=params.Sort.DATE_DESC,
-                        search_type=params.SearchType.ILLUST_OR_MANGA,
-                        match=params.Match.EXACT,
-                        search_range=params.Range.A_MONTH)
-    assert len(ids) == 234, len(ids)
-
-    ids = client.bookmarks(bookmark_type=params.BookmarkType.ILLUST_OR_MANGA, limit=34)
-    assert len(ids) == 34, len(ids)
-
-    ids = client.illusts()
-    assert len(ids) == 0, len(ids)
-
-    ids = client.mangas()
-    assert len(ids) == 0, len(ids)
-
-    ids = client.rank(rank_type=params.RankType.ROOKIE, date=datetime.date.today(), content=params.Content.MANGA,
-                      limit=50)
-    assert len(ids) == 50, len(ids)
-
-    user_id = 38088
-    user = client.visits(user_id=user_id)
-    user_illust_ids = user.illusts(limit=100)
-    assert len(user_illust_ids) == 100, len(user_illust_ids)
-
-    user_manga_ids = user.mangas(limit=2)
-    assert len(user_manga_ids) == 2, len(user_manga_ids)
-
-    print('Successfully tested web client')
-
-
-def main():
-    test()
-
-
-if __name__ == '__main__':
-    main()

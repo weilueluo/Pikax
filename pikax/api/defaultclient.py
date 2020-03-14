@@ -3,6 +3,7 @@ import re
 import time
 from typing import List, Union
 
+from ..texts import texts
 from .models import APIPagesInterface, APIUserInterface, APIAccessInterface
 from .. import params, settings
 from .. import util
@@ -30,17 +31,19 @@ class DefaultIllustSearch:
         search_params = dict()
         if search_type:  # default match all rank_type
             if not params.SearchType.is_valid(search_type):
-                search_params['rank_type'] = search_type.value
+                search_params['type'] = search_type.value
 
         if dimension:  # default match all ratios
             if params.Dimension.is_valid(dimension):
                 search_params['ratio'] = dimension.value
             else:
-                raise SearchError(f'dimension rank_type: {dimension} is not rank_type of {params.Dimension}')
+                raise SearchError(texts.INVALID_DIMENSION_TYPE_ERROR.format(dimension_type=dimension,
+                                                                            dimension_types=params.Dimension))
 
         if match:  # default match if contain tags
             if not params.Match.is_valid(match):
-                raise SearchError(f'match: {match} is not rank_type of {params.Match}')
+                raise SearchError(texts.INVALID_MATCH_TYPE_ERROR.format(match_type=match,
+                                                                        match_types=params.Match))
 
             if match is params.Match.PARTIAL:  # this is default
                 pass
@@ -51,7 +54,7 @@ class DefaultIllustSearch:
 
         if sort:
             if not params.Sort.is_valid(sort):
-                raise SearchError(f'sort: {sort} is not rank_type of {params.Sort}')
+                raise SearchError(texts.INVALID_SORT_TYPE_ERROR.format(sort_type=sort, sort_types=params.Sort))
 
             if sort is params.Sort.DATE_DESC:
                 search_params['order'] = 'date_d'
@@ -66,7 +69,8 @@ class DefaultIllustSearch:
                 search_params['ecd'] = str(today)
                 search_params['scd'] = str(today - search_range)
             else:
-                raise SearchError(f'Invalid range rank_type: {search_range}')
+                raise SearchError(texts.INVALID_SEARCH_RANGE_ERROR.format(search_range=search_range,
+                                                                          search_ranges=params.Range))
 
         return search_params
 
@@ -87,6 +91,7 @@ class DefaultIllustSearch:
         return ids
 
     @classmethod
+    @DeprecationWarning
     def search(cls, keyword, limit=None, search_type=None, dimension=None, match=None, popularity=None, sort=None,
                search_range=None, session=None):
         """Used to search in pixiv.net
@@ -169,13 +174,9 @@ class DefaultIllustSearch:
                               session=session)
 
         # log ids found
-        util.log('Found', str(len(ids)), 'ids for', keyword, 'in', str(time.time() - start) + 's')
+        util.log(texts.FOUND_NUM_ID_INFO.format(num_ids=len(ids), keyword=keyword, sec=time.time()-start))
 
         return ids
-        # # build artworks from ids
-        # artworks = util.generate_artworks_from_ids(ids)
-        #
-        # return artworks
 
     @classmethod
     def _search(cls, search_params, keyword, popularity, limit, session):

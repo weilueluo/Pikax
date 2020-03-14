@@ -63,7 +63,7 @@ def main():
     download_own_bookmarks_example()
     download_other_user_items_example()
     # switch to Chinese:
-    texts.lang = 'Chinese'
+    texts.lang = texts.ZH
     print('Changed language to Chinese')
     download_by_artwork_id_example()
     download_with_filter_example()

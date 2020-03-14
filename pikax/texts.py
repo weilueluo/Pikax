@@ -1,10 +1,12 @@
 import os
 
-__all__ = ['LanguageHandler', 'texts']
+__all__ = ['LanguageHandler', 'texts', 'ZH', 'EN']
 
 
 class LanguageHandler:
     LANGS = ['English', 'Chinese']
+    ZH = 'Chinese'
+    EN = 'English'
 
     def __init__(self, default):
         if default not in self.LANGS:
@@ -53,6 +55,10 @@ class LanguageHandler:
     INVALID_RESTRICT_TYPE_ERROR = {
         'English': 'Restrict type: {restrict_type} is not type of {restrict_types}',
         'Chinese': '限制类型：{restrict_type}，不是 {restrict_types} 的一员'
+    }
+    INVALID_DIMENSION_TYPE_ERROR = {
+        'English': 'Dimension type: {dimension_type} is not type of {dimension_types}',
+        'Chinese': '尺寸类型：{dimension_type}，不是 {dimension_types} 的一员'
     }
     INVALID_CREATION_TYPE_ERROR = {
         'English': 'Creation type: {creation_type} is not type of {creation_types}',
@@ -119,7 +125,6 @@ class LanguageHandler:
         'English': '[{title}] p{page_num} by [{author}]',
         'Chinese': '[{title}] p{page_num} 来自 [{author}]'
     }
-
 
     # items
     ATTEMPT_ANDROID_LOGIN = {
@@ -286,5 +291,124 @@ class LanguageHandler:
         'Chinese': '{s:.0f}秒'
     }
 
+    # web client
+    CHECK_LOGIN_FAILED = {
+        'English': 'Login check Failed',
+        'Chinese': '登录检测失败'
+    }
+    OVERWRITE_LOCAL_COOKIES = {
+        'English': 'Overwriting local cookie file: {file}',
+        'Chinese': '正在覆盖本地cookie'
+    }
+    SAVE_LOCAL_COOKIES = {
+        'English': 'Saving cookie to local file: {file}',
+        'Chinese': '正在将cookie保存至文件：{file}'
+    }
+    ATTEMPT_WEB_CLIENT_LOGIN = {
+        'English': 'Sending request to attempt login',
+        'Chinese': '正在发送请求尝试登录'
+    }
+    WEB_LOGIN_REQUEST_FAILED = {
+        'English': 'Failed to send login request: {e}',
+        'Chinese': '请求发送失败：{e}'
+    }
+    WEB_LOGIN_REQUEST_NOT_ACCEPTED = {
+        'English': 'Login request is not accepted',
+        'Chinese': '登录请求被拒绝'
+    }
+    WEB_LOGIN_POST_KEY_RETRIEVE_SUCCESS = {
+        'English': 'Post key successfully retrieved: {post_key}',
+        'Chinese': '成功取得Post密钥：{post_key}'
+    }
+    WEB_LOGIN_POST_KEY_RETRIEVE_Failed = {
+        'English': 'Failed to retrieve post key: {e}',
+        'Chinese': '没能成功取得Post密钥：{e}'
+    }
 
-texts = LanguageHandler(LanguageHandler.LANGS[0])
+    COOKIE_LOGIN_FAILED = {
+        'English': 'Cookie login failed',
+        'Chinese': '使用Cookie登录失败'
+    }
+    COOKIE_LOGIN_SUCCESS = {
+        'English': 'Cookie login success',
+        'Chinese': '使用Cookie登录成功'
+    }
+    COOKIE_FILE_NOT_FOUND = {
+        'English': 'Local cookie file not found: {file}',
+        'Chinese': '未能找到本地cookie文件：{file}'
+    }
+    COOKIE_FILE_FOUND = {
+        'English': 'Local cookie file found: {file}',
+        'Chinese': '本地cookie文件：{file}'
+    }
+    REMOVED_OUTDATED_COOKIE = {
+        'English': 'Removed outdated cookies',
+        'Chinese': '已移除过期的cookie'
+    }
+    REMOVED_CORRUPTED_COOKIE = {
+        'English': 'Removed corrupted cookies: {e}',
+        'Chinese': '已移除无法使用的cookie：{e}'
+    }
+    PROVIDE_NEW_COOKIE_PROMPT = {
+        'English': 'Login with local cookies failed, would you like to provide a new cookies?' + os.linesep
+                   + ' [y] Yesss!' + os.linesep
+                   + ' [n] Noooo! (this option will attempt alternate login with username and password)',
+        'Chinese': '本地cookie登录失败，是否提供新的cookie？' + os.linesep
+                   + ' [y] 要的要的!' + os.linesep
+                   + ' [n] 不要不要! (选择此选项会尝试其他登录方法)'
+    }
+    PROVIDE_NEW_COOKIE_PROMPT_ASK = {
+        'English': ' [=] Please select an option:',
+        'Chinese': ' [=] 请选择一个选项：'
+    }
+    INVALID_RESPOND_PROMPT = {
+        'English': 'Please enter your answer as case-insensitive \'y\' or \'n\' or \'yes\' or \'no\'',
+        'Chinese': '请输入其中一个选项： \'y\' or \'n\' or \'yes\' or \'no\' （不区分大小写）',
+    }
+    ENTER_NEW_COOKIE_PROMPT = {
+        'English': ' [=] Please enter your cookies here, just php session id will work,' + os.linesep +
+                   ' [=] e.g. PHPSESSIONID=1234567890:',
+        'Chinese': ' [=] 请输入你的cookie, php session id即可,' + os.linesep +
+                   ' [=] 示例 PHPSESSIONID=1234567890:'
+    }
+    NEW_COOKIE_LOGIN_FAILED = {
+        'English': 'Login failed with new cookie entered, try again? [y/n]',
+        'Chinese': '使用新cookie登录失败, 再次尝试? [y/n]'
+    }
+    COOKIE_ENTERED_INVALID = {
+        'English': 'Cookie entered is invalid: {e}',
+        'Chinese': '输入了无法使用的cookie：{e}'
+    }
+    TRY_AGAIN_PROMPT = {
+        'English': 'Try again? [y/n]',
+        'Chinese': '再次尝试? [y/n]'
+    }
+    BOOKMARK_INVALID_LIMIT = {
+        'English': 'Bookmark limit is not int or None',
+        'Chinese': '书签限额不是int也不是None'
+    }
+    USER_ILLUST_RETRIEVE_FAILED = {
+        'English': 'Failed to retrieve illustration ids from user with id: {id}',
+        'Chinese': '从用户id为：{id} 获取画作id失败'
+    }
+    USER_MANGA_RETRIEVE_FAILED = {
+        'English': 'Failed to retrieve mangas ids from user with id: {id}',
+        'Chinese': '从用户id为：{id} 获取漫画id失败'
+    }
+    WEB_CLIENT_CONFIGURE_FAILED = {
+        'English': 'Web client configure failed: {e}',
+        'Chinese': '网页接口配置失败：{e}'
+    }
+
+    # default client
+    # fk this TODO: complete later
+    FOUND_NUM_ID_INFO = {
+        'English': 'Found: {num_ids} for <{keyword}> in {sec:.0f}s',
+        'Chinese': '在{sec:.0f}秒为<{keyword}>找到{num_ids}ids'
+    }
+
+
+ZH = LanguageHandler.ZH
+EN = LanguageHandler.EN
+
+texts = LanguageHandler(ZH)

@@ -4,7 +4,8 @@ import enum
 
 from .texts import texts
 
-__all__ = ['PikaxEnum', 'Type', 'Match', 'Sort', 'RankType', 'Dimension', 'Range', 'Date', 'Restrict']
+__all__ = ['PikaxEnum', 'Type', 'Match', 'Sort', 'RankType', 'Dimension', 'Range', 'ProcessType',
+           'Date', 'Restrict', 'SearchType', 'CreationType', 'DownloadType', 'Content', 'BookmarkType']
 
 
 class PikaxEnum(enum.Enum):

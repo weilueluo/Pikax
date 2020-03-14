@@ -107,11 +107,11 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
     :raises ReqException: if all retries fails or invalid rank_type is given
 
     """
-    curr_retries = 0
+    curr_retries = 1
     req_type = req_type.upper()
     handler = requests if session is None else session
     requester = handler.get if 'GET' == req_type else handler.post  # assume post if not 'GET'
-    while curr_retries < retries:
+    while curr_retries <= retries:
         if log_req:
             log(texts.REQUEST_INFO.format(req_type=req_type, url=url, params=params), end='')
         try:

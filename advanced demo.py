@@ -113,9 +113,9 @@ def main():
 
     # init a client to search id
     client = AndroidAPIClient(settings.username, settings.password)
-    names = tqdm(search_names, ncols=75)
-    for name in names:
-        names.set_description_str(desc=f'Class: {name}')
+    tqdm_names = tqdm(search_names, ncols=75)
+    for name in tqdm_names:
+        tqdm_names.set_description_str(desc=f'Class: {name}')
         # get id using client
         ids = client.search(keyword=name, limit=search_limit)
         download_path = path.format(name=name)

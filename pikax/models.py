@@ -332,33 +332,6 @@ class BaseDownloader:
             params.DownloadType.MANGA: self.download_manga,
         }
 
-    # @staticmethod
-    # def config_artworks(artworks: List[Artwork]):
-    #     util.log('Configuring artworks', start=os.linesep, inform=True)
-    #     total = len(artworks)
-    #     config_artworks = []
-    #     failed_config_artworks = dict()  # reason map to artwork
-    #     pool = Pool()
-    #
-    #     def config_artwork(artwork_item):
-    #         try:
-    #             artwork_item.config()
-    #             config_artworks.append(artwork_item)
-    #         except ArtworkError as e:
-    #             failed_config_artworks[str(e)] = artwork_item
-    #
-    #     for index, _ in enumerate(pool.imap_unordered(config_artwork, artworks)):
-    #         util.print_progress(index + 1, total)
-    #
-    #     msg = f'expected: {total} | success: {len(config_artworks)} | failed: {len(failed_config_artworks)}'
-    #     util.print_done(msg)
-    #
-    #     if failed_config_artworks:
-    #         for index, item in enumerate(failed_config_artworks.items()):
-    #             util.log(f'Artwork with id: {item[1].id} failed config for download: {item[0]}', error=True)
-    #
-    #     return config_artworks
-
     def download(self, pikax_result: PikaxResult, folder: str = ''):
 
         if not folder:
@@ -411,18 +384,18 @@ class BaseDownloader:
                 util.log(info, end='\r', inform=True)
         util.print_done()
 
-        # gather all end information before printing, for gui because it overwrites
-        # last printed text
+        # gather all end information before printing, mainly for gui,
+        # because every new output overwrites last printed text in the text component
         end_info = texts.DOWNLOADED_PAGES_INFO.format(successes=len(successes))
 
         end_info += os.linesep + texts.SKIPPED_PAGES_INFO.format(skips=len(skips))
 
-        for index, skip_info in enumerate(skips):
-            end_info += os.linesep + f' [{index + 1}] ' + skip_info
+        for index, skip_info in enumerate(skips, 1):
+            end_info += os.linesep + f' [{index}] ' + skip_info
 
         end_info += os.linesep + texts.FAILED_PAGES_INFO.format(fails=len(fails))
-        for index, fail_info in enumerate(fails):
-            end_info += os.linesep + f' [{index + 1}] ' + fail_info
+        for index, fail_info in enumerate(fails, 1):
+            end_info += os.linesep + f' [{index}] ' + fail_info
 
         full_folder_path = os.path.join(Path(__file__).parent.absolute(), str(folder))
         end_info += os.linesep + texts.DOWNLOAD_FINISHED_INFO_FOLDER.format(folder=str(full_folder_path))
