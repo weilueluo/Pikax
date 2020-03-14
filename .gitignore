@@ -14,12 +14,6 @@ pikax/*__pycache__*
 pikax/api/*__pycache__*
 #*
 
-pikax/test*
-!pikax/tests/
-pikax/try*
-function_test*
-test*
-_*demo
 .*
 .idea/*
 _*
