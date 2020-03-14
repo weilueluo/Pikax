@@ -2,7 +2,7 @@ import calendar
 import datetime
 import enum
 
-from pikax.texts import texts
+from .texts import texts
 
 __all__ = ['PikaxEnum', 'Type', 'Match', 'Sort', 'RankType', 'Dimension', 'Range', 'Date', 'Restrict']
 

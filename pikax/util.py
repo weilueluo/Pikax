@@ -10,8 +10,6 @@ This module contains utilities/tools for pikax
 
 """
 import json
-import math
-import os
 import re
 import sys
 import time
@@ -24,14 +22,6 @@ from .exceptions import ReqException
 from .texts import texts
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-sls = os.linesep
-
-_std_enabled = settings.LOG_STD
-_inform_enabled = settings.LOG_INFORM
-_save_enabled = settings.LOG_SAVE
-_warn_enabled = settings.LOG_WARN
-_normal_enabled = settings.LOG_NORMAL
 
 __all__ = ['log', 'req', 'json_loads', 'trim_to_limit', 'clean_filename', 'print_json']
 
@@ -333,18 +323,16 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', info
 
     """
 
-    global _std_enabled, _inform_enabled, _save_enabled, _warn_enabled, _normal_enabled
-
-    if _normal_enabled and normal:
+    if settings.LOG_NORMAL and normal:
         print(start, *objects, sep=sep, end=end, file=file, flush=flush)
         return
-    if _inform_enabled and inform:
+    if settings.LOG_INFORM and inform:
         print(start, '>>>', *objects, sep=sep, end=end, file=file, flush=flush)
-    if _save_enabled and save:
+    if settings.LOG_SAVE and save:
         print(start, *objects, sep=sep, end=end, file=open(settings.LOG_FILE, 'a', encoding='utf-8'), flush=False)
-    if _inform_enabled and error:
+    if settings.LOG_INFORM and error:
         print(start, '!!!', *objects, sep=sep, end=end, file=file, flush=flush)
-    if _warn_enabled and warn:
+    if settings.LOG_WARN and warn:
         print(start, '###', *objects, sep=sep, end=end, file=file, flush=flush)
-    if _std_enabled and not (inform or save or error or warn):
+    if settings.LOG_STD and not (inform or save or error or warn):
         print(start, *objects, sep=sep, end=end, file=file, flush=flush)
