@@ -4,6 +4,7 @@ from tkinter import font
 
 import settings
 import texts
+import pikax
 from common import config_root
 from models import PikaxGuiComponent
 
@@ -33,7 +34,7 @@ class DownloadWindow(PikaxGuiComponent):
             kwargs = dict()
         import texts
         if kwargs:
-            texts.LANG = kwargs['lang']
+            texts.set_lang(kwargs['lang'])
             del kwargs['lang']
         self.window = tk.Tk()
         self.width = settings.DOWNLOAD_WINDOW_WIDTH
@@ -49,7 +50,7 @@ class DownloadWindow(PikaxGuiComponent):
 
         self.grid_height = 9
         self.text_font = font.Font(family=settings.DEFAULT_FONT_FAMILY, size=settings.DEFAULT_FONT_SIZE - 2)
-        self.display_area_height = 6
+        self.display_area_height = 7
         self.end_display_area_height = 14
         self.display_area_width = 75
 
@@ -70,7 +71,13 @@ class DownloadWindow(PikaxGuiComponent):
     def config(self):
         self.cancel_button.configure(command=self.cancel_clicked)
         self.display_area.configure(height=self.display_area_height, width=self.display_area_width)
-        self.redirect_output_to(self.display_area)
+        self.redirect_output_to(self.display_area, preprocess_func=self.preprocess_text)
+
+    @staticmethod
+    def preprocess_text(string):
+        # the information are assumed to be separated by |
+        string = '\n'.join(string.split('|'))  # the text widget uses \n as line separator
+        return string
 
     def cancel_clicked(self):
         self.window.destroy()

@@ -9,6 +9,7 @@ from .processor import *
 from .result import *
 from .user import *
 from .util import *
+from .texts import *
 from .pikax import *
 
 name = 'pikax'

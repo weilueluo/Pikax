@@ -362,16 +362,16 @@ class PikaxGuiComponent:
         return tk.Canvas(self.frame, borderwidth=0, highlightthickness=0,
                          height=self.height, width=self.width, bg=settings.DEFAULT_BACKGROUND_COLOR)
 
-    def redirect_output_to(self, text_component, text_widget=True, canvas=None):
+    def redirect_output_to(self, text_component, text_widget=True, canvas=None, preprocess_func=None):
         import sys
         if text_widget:
             from common import StdoutTextWidgetRedirector
-            sys.stdout = StdoutTextWidgetRedirector(text_component)
+            sys.stdout = StdoutTextWidgetRedirector(text_component, preprocess_func=preprocess_func)
         else:
             from common import StdoutCanvasTextRedirector
             if not canvas:
                 canvas = self.canvas
-            sys.stdout = StdoutCanvasTextRedirector(canvas, text_component)
+            sys.stdout = StdoutCanvasTextRedirector(canvas, text_component, preprocess_func=preprocess_func)
 
     def get_canvas_location(self, row, column, rowspan, columnspan):
         if row < 0 or row > self.grid_height:

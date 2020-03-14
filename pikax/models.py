@@ -1,9 +1,9 @@
 import datetime
 import functools
-import math
 import operator
 import os
 from multiprocessing.dummy import Pool
+from pathlib import Path
 from typing import Union, List, Tuple, Iterator
 
 from . import params, settings, util
@@ -377,39 +377,53 @@ class BaseDownloader:
         skips = []
         total_pages = sum(len(artwork) for artwork in artworks)
         total_artworks = len(artworks)
-        curr_page = 0
-        curr_artwork = 0
+        running_page_count = 0
+        running_artwork_count = 0
         pool = Pool()
         util.log(texts.ARTWORK_DOWNLOAD_INFO.format(total_artworks=total_artworks, total_pages=total_pages),
                  start=os.linesep, inform=True)
 
         for download_details in pool.imap_unordered(download_function, artworks):
-            curr_artwork += 1
+            running_artwork_count += 1
             for download_detail in download_details:
-                curr_page += 1
-                if settings.MAX_PAGES_PER_ARTWORK and curr_page > settings.MAX_PAGES_PER_ARTWORK:
-                    break
+                running_page_count += 1
                 status, msg = download_detail
-                info = str(msg) + ' ' + str(status.value)
                 if status is Artwork.DownloadStatus.OK:
                     successes.append(msg)
                 elif status is Artwork.DownloadStatus.SKIPPED:
                     skips.append(msg)
                 else:
                     fails.append(msg)
-                info = f'{curr_artwork} / {total_artworks} ' \
-                       f'=> {math.ceil((curr_artwork / total_artworks) * 100)}% | ' + info
-                util.print_progress(curr_page, total_pages, msg=info)
+
+                msg = texts.GUI_ARTWORK_DOWNLOAD_HEADING + msg
+
+                artwork_progress_text = texts.DOWNLOAD_ARTWORK_PROGRESS_TEXT.format(
+                    curr=running_artwork_count, total=total_artworks,
+                    curr_percent=running_artwork_count / total_artworks * 100
+                )
+                pages_progress_text = texts.DOWNLOAD_PAGES_PROGRESS_TEXT.format(
+                    curr=running_page_count, total=total_pages,
+                    curr_percent=running_page_count / total_pages * 100
+                )
+                time_left_text = util.progress_printer.get_time_left_text(running_page_count, total_pages)
+                time_left_est = texts.TIME_LEFT_EST.format(time_left=time_left_text)
+                info = f'{msg} {status.value} | {pages_progress_text} | {artwork_progress_text} | {time_left_est}'
+                util.log(info, end='\r', inform=True)
         util.print_done()
 
-        util.log(texts.DOWNLOADED_PAGES_INFO.format(successes=len(successes)), inform=True)
+        # gather all end information before printing, for gui because it overwrites
+        # last printed text
+        end_info = texts.DOWNLOADED_PAGES_INFO.format(successes=len(successes))
 
-        util.log(texts.SKIPPED_PAGES_INFO.format(skips=len(skips)), inform=True)
+        end_info += os.linesep + texts.SKIPPED_PAGES_INFO.format(skips=len(skips))
+
         for index, skip_info in enumerate(skips):
-            util.log(skip_info, start=f' [{index + 1}] ', inform=True)
+            end_info += os.linesep + f' [{index + 1}] ' + skip_info
 
-        util.log(texts.FAILED_PAGES_INFO.format(fails=len(fails)), inform=True)
-        for index, skip_info in enumerate(fails):
-            util.log(skip_info, start=f' [{index + 1}] ', inform=True)
+        end_info += os.linesep + texts.FAILED_PAGES_INFO.format(fails=len(fails))
+        for index, fail_info in enumerate(fails):
+            end_info += os.linesep + f' [{index + 1}] ' + fail_info
 
-        util.print_done(str(folder))
+        full_folder_path = os.path.join(Path(__file__).parent.absolute(), str(folder))
+        end_info += os.linesep + texts.DOWNLOAD_FINISHED_INFO_FOLDER.format(folder=str(full_folder_path))
+        util.log(end_info)

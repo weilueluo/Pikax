@@ -1,5 +1,7 @@
 import os
 
+__all__ = ['LanguageHandler', 'texts']
+
 
 class LanguageHandler:
     LANGS = ['English', 'Chinese']
@@ -12,9 +14,11 @@ class LanguageHandler:
     def __getattribute__(self, item):
         attr = super().__getattribute__(item)
         if isinstance(attr, dict):
-            return attr[self.lang]
-        else:
-            return attr
+            try:
+                return attr[self.lang]
+            except TypeError:
+                pass
+        return attr
 
     def __setattr__(self, key, value):
         if key == 'lang' and value not in self.LANGS:
@@ -66,7 +70,7 @@ class LanguageHandler:
     # Artwork
     ARTWORK_CONFIGURE_ERROR = {
         'English': 'Failed to configure Artwork with id: {id}',
-        'Chinese': '配置画作失败，画作id： {id}'
+        'Chinese': '配置画作失败，画作id：{id}'
     }
 
     # Models
@@ -94,12 +98,28 @@ class LanguageHandler:
         'English': 'expected: {total} | success: {successes} | failed: {fails}',
         'Chinese': '期望: {total} | 成功: {successes} | 失败: {fails}'
     }
+    DOWNLOAD_FINISHED_INFO_FOLDER = {
+        'English': f'Artworks downloaded to folder:{os.linesep}{{folder}}',
+        'Chinese': f'作品已下载至文件夹：{os.linesep}{{folder}}'
+    }
+
+    # GUI uses:
+    # a stub for gui to print heading when processing
+    GUI_ID_PROCESSING_HEADING = {
+        'English': '',
+        'Chinese': ''
+    }
+    GUI_ARTWORK_DOWNLOAD_HEADING = {
+        'English': '',
+        'Chinese': ''
+    }
 
     # downloader
     ARTWORK_DETAIL_MESSAGE = {
         'English': '[{title}] p{page_num} by [{author}]',
         'Chinese': '[{title}] p{page_num} 来自 [{author}]'
     }
+
 
     # items
     ATTEMPT_ANDROID_LOGIN = {
@@ -125,8 +145,8 @@ class LanguageHandler:
 
     # models
     ARTWORK_DOWNLOAD_INFO = {
-        'English': 'Downloading Artworks | {total_pages} pages from {total_artworks} artworks',
-        'Chinese': '正在下载作品 | 从 {total_artworks} 中提取 {total_pages} 页'
+        'English': 'Downloading Artworks | extract {total_pages} pages from {total_artworks} artworks',
+        'Chinese': '正在下载作品 | 从{total_artworks}作品中提取{total_pages}页'
     }
     DOWNLOADED_PAGES_INFO = {
         'English': 'There are {successes} downloaded pages',
@@ -158,7 +178,7 @@ class LanguageHandler:
     }
     DONE_TIME_TAKEN = {
         'English': ' [ done ] => {time_taken:.2f}s',
-        'Chinese': ' [ 完成 ] => {time_taken:.2f} 秒'
+        'Chinese': ' [ 完成 ] => {time_taken:.2f}秒'
     }
 
     # params
@@ -225,7 +245,6 @@ class LanguageHandler:
         'Chinese': '{req_type} 失败: [{url}] 参数: [{params}]',
     }
 
-    # util
     TRIM_MSG = {
         'English': 'Trimmed {old_len} items => {new_len} items',
         'Chinese': '缩减 {old_len} 件 => {new_len} 件'
@@ -235,12 +254,36 @@ class LanguageHandler:
         'Chinese': '件数少于限制: {len} < {limit}'
     }
     PROGRESS_WITH_TIME_LEFT = {
-        'English': '{curr} / {total} => {curr_percent}% | Time Left est. {time_left:.2f}s',
-        'Chinese': '{curr} / {total} => {curr_percent}% | 剩余时间估算： {time_left:.2f} 秒'
+        'English': '{curr} / {total} => {curr_percent:.2f}% | Time Left est. {time_left}',
+        'Chinese': '{curr} / {total} => {curr_percent:.2f}% | 剩余时间估算：{time_left}'
+    }
+    TIME_LEFT_EST = {
+        'English': 'Time Left est. {time_left}',
+        'Chinese': '剩余时间估算：{time_left}'
     }
     PROGRESS_TEXT = {
-        'English': '{curr} / {total} => {curr_percent}%',
-        'Chinese': '{curr} / {total} => {curr_percent}%'
+        'English': '{curr} / {total} => {curr_percent:.2f}%',
+        'Chinese': '{curr} / {total} => {curr_percent:.2f}%'
+    }
+    DOWNLOAD_PAGES_PROGRESS_TEXT = {
+        'English': 'Pages: {curr} / {total} => {curr_percent:.2f}%',
+        'Chinese': '页数：{curr} / {total} => {curr_percent:.2f}%'
+    }
+    DOWNLOAD_ARTWORK_PROGRESS_TEXT = {
+        'English': 'Artworks: {curr} / {total} => {curr_percent:.2f}%',
+        'Chinese': '作品：{curr} / {total} => {curr_percent:.2f}%'
+    }
+    TIME_FORMAT_HMS = {
+        'English': '{h:.0f}h {m:.0f}m {s:.0f}s',
+        'Chinese': '{h:.0f}时 {m:.0f}分 {s:.0f}秒'
+    }
+    TIME_FORMAT_MS = {
+        'English': '{m:.0f}m {s:.0f}s',
+        'Chinese': '{m:.0f}分 {s:.0f}秒'
+    }
+    TIME_FORMAT_S = {
+        'English': '{s:.0f}s',
+        'Chinese': '{s:.0f}秒'
     }
 
 

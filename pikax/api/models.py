@@ -147,7 +147,7 @@ class BaseIDProcessor:
                 fails.append(item_id_)
 
         for index, item_id in enumerate(pool.imap_unordered(process_item, item_ids), 1):
-            util.print_progress(index, total)
+            util.print_progress(index, total, msg=texts.GUI_ID_PROCESSING_HEADING)
         msg = texts.ARTWORK_ID_PROCESS_RESULT.format(total=total, successes=len(successes), fails=len(fails))
         util.print_done(msg)
         return successes, fails

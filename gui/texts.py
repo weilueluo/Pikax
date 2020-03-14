@@ -1,3 +1,6 @@
+import os
+
+import pikax
 import settings
 
 #
@@ -8,12 +11,33 @@ import settings
 LANGS = ['English', '中文']
 LANG = LANGS[0]
 
+GUI_LANG_TO_PIKAX_LANG = {
+    'English': 'English',
+    '中文': 'Chinese'
+}
+
 
 def set_next_lang():
-    global LANG
     global LANGS
     next_index = (LANGS.index(LANG) + 1) % len(LANGS)
-    LANG = LANGS[next_index]
+    set_lang(LANGS[next_index])
+
+
+def set_lang(lang):
+    global LANG
+    global LANGS
+    if lang not in LANGS:
+        raise KeyError(f'Given language: {lang} is not in supported languages: {LANGS}')
+    LANG = lang
+    pikax.texts.lang = GUI_LANG_TO_PIKAX_LANG[LANG]
+    pikax.texts.GUI_ARTWORK_DOWNLOAD_HEADING = {
+        'English': 'Artwork Downloading' + str(os.linesep * 2),
+        'Chinese': '作品下载中' + str(os.linesep * 2)
+    }
+    pikax.texts.GUI_ID_PROCESSING_HEADING = {
+        'English': 'Artwork ID Processing' + os.linesep,
+        'Chinese': '作品ID处理中' + os.linesep
+    }
 
 
 def get(key):
@@ -107,17 +131,22 @@ MODELS_INVALID_COLUMN_ERROR = {
 
 MODELS_INVALID_ROWSPAN_ERROR = {
     'English': 'Invalid rowspan: {rowspan}, expected: 0 <= {row} + rowspan <= {grid_height}',
-    '中文': '行跨度不正确： {rowspan}, 预期：0 <= {row} + 行跨度 <= {grid_height}'
+    '中文': '行跨度不正确：{rowspan}, 预期：0 <= {row} + 行跨度 <= {grid_height}'
 }
 
 MODELS_INVALID_COLUMNSPAN_ERROR = {
     'English': 'Invalid columnspan: {columnspan}, expected: 0 <= {column} + columnspan <= {grid_width}',
-    '中文': '列跨度不正确： {columnspan}, 预期：0 <= {column} + 列跨度 <= {grid_width}'
+    '中文': '列跨度不正确：{columnspan}, 预期：0 <= {column} + 列跨度 <= {grid_width}'
 }
 
 MODELS_SWITCHBUTTON_INVALID_SET_VALUE = {
     'English': 'Internal Error: Switch Button set value: {value} is not in {values}',
     '中文': '内部错误：转换按钮设置数值：{value} 不在范围：{values} 中'
+}
+
+MODELS_DOWNLOAD_FOLDER = {
+    'English': 'Images downloaded to folder: {folder}',
+    '中文': '作品已下载至文件夹：{folder}'
 }
 
 #

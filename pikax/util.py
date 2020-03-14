@@ -134,11 +134,11 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
             # check if request result is normal
             if not res:
                 if log_req:
-                    log(texts.REQUEST_FALSEY.format(retries=retries), save=True)
+                    log(texts.REQUEST_FALSEY.format(retries=curr_retries), save=True)
             elif res.status_code >= 400:
                 if log_req:
                     log(texts.REQUEST_INVALID_STATUS_CODE.format(status_code=res.status_code,
-                                                                 retries=retries), save=True)
+                                                                 retries=curr_retries), save=True)
             else:
                 if settings.DELAY_PER_REQUEST is not None:
                     time.sleep(float(settings.DELAY_PER_REQUEST))
@@ -146,11 +146,11 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
 
         except requests.exceptions.Timeout as e:
             if log_req:
-                log(texts.REQUEST_TIME_OUT.format(retries=retries), save=True)
+                log(texts.REQUEST_TIME_OUT.format(retries=curr_retries), save=True)
                 log(texts.REQUEST_REASON.format(e=e), save=True, inform=True)
         except requests.exceptions.RequestException as e:
             if log_req:
-                log(texts.REQUEST_EXCEPTION.format(retries=retries), save=True, inform=True)
+                log(texts.REQUEST_EXCEPTION.format(retries=curr_retries), save=True, inform=True)
                 log(texts.REQUEST_REASON.format(e=e), save=True, inform=True)
                 if err_msg:
                     log(texts.REQUEST_MSG.format(msg=err_msg), inform=True)
@@ -199,86 +199,94 @@ def new_session():
     return requests.Session()
 
 
-class Printer(object):
+class ProgressPrinter(object):
 
     def __init__(self):
         self.is_first_print = True
-        self.last_percent = None
-        self.last_percent_time_left = None
-        self.last_percent_print_time = None
-        self.est_time_lefts = [0, 0, 0, 0, 0]
         self.start_time = None
-        self.last_printed_line = None
+        self.current = None
+        self.total = None
 
-    def print_progress(self, curr, total, msg=None):
-        curr_percent = math.floor(curr / total * 100)
-        curr_time = time.time()
+    def reset(self):
+        self.is_first_print = True
+        self.start_time = None
+        self.current = None
+        self.total = None
+
+    def set_up(self):
+        self.start_time = time.time()
+        self.current = 0
+        self.total = 0
+        self.is_first_print = False
+
+    def set_current(self, current):
+        self.current = current
+
+    def set_total(self, total):
+        self.total = total
+
+    def get_time_left_text(self, curr, total):
         if self.is_first_print:
-            est_time_left = float("inf")
-            self.is_first_print = False
-            self.last_percent_time_left = est_time_left
-            self.last_percent_print_time = curr_time
-            self.start_time = time.time()
-        elif self.last_percent == curr_percent:
-            est_time_left = self.last_percent_time_left
-        else:
-            bad_est_time_left = (curr_time - self.last_percent_print_time) / \
-                                (curr_percent - self.last_percent) * (100 - curr_percent)
-            self.est_time_lefts.append(bad_est_time_left)
-            self.est_time_lefts = self.est_time_lefts[1:]
-            percent_left = 100 - curr_percent
-            percent_diff = curr_percent - self.last_percent
-            chunk_left = round(percent_left / percent_diff)
-            if chunk_left < len(self.est_time_lefts):
-                est_time_left = sum(self.est_time_lefts[-chunk_left:]) / chunk_left if chunk_left != 0 else 0.00
-            else:
-                est_time_left = sum(self.est_time_lefts) / len(self.est_time_lefts)
-            self.last_percent_time_left = est_time_left
-            self.last_percent_print_time = curr_time
+            self.set_up()
+        self.set_current(curr)
+        self.set_total(total)
+        time_elapsed = time.time() - self.start_time
+        seconds = time_elapsed / self.current * (self.total - self.current)
+        minutes, seconds = divmod(seconds, 60)
+        hours, minutes = divmod(minutes, 60)
+        if hours > 0:
+            return texts.TIME_FORMAT_HMS.format(h=hours, m=minutes, s=seconds)
+        if minutes > 0:
+            return texts.TIME_FORMAT_MS.format(m=minutes, s=seconds)
+        return texts.TIME_FORMAT_S.format(s=seconds)
 
-        self.last_percent = curr_percent
+    def get_percent(self):
+        return self.current / self.total * 100
 
-        if est_time_left != 0.0:
-            progress_text = texts.PROGRESS_WITH_TIME_LEFT.format(curr=curr, total=total,
-                                                                 curr_percent=curr_percent,
+    def get_progress_text(self, curr, total, msg):
+        est_time_left = self.get_time_left_text(curr, total)
+        curr_percent = self.get_percent()
+        if curr > 1:
+            progress_text = texts.PROGRESS_WITH_TIME_LEFT.format(curr=curr, total=total, curr_percent=curr_percent,
                                                                  time_left=est_time_left)
         else:
             progress_text = texts.PROGRESS_TEXT.format(curr=curr, total=total, curr_percent=curr_percent)
 
         if msg:
-            progress_text = progress_text + ' | ' + str(msg)
+            progress_text = f'{msg} | {progress_text}'
 
+        return progress_text
+
+    def print_progress(self, curr, total, msg=None):
+        progress_text = self.get_progress_text(curr, total, msg)
         log(progress_text, end='', start=settings.CLEAR_LINE, inform=True)
-        self.last_printed_line = progress_text
+
+    def get_done_text(self, msg):
+        if msg:
+            done_text = texts.DONE_MSG.format(msg=msg)
+        else:  # a float, time taken
+            done_text = texts.DONE if self.is_first_print \
+                else texts.DONE_TIME_TAKEN.format(time_taken=time.time() - self.start_time)
+
+        return done_text
 
     def print_done(self, msg=None):
-        if msg:
-            log(texts.DONE_MSG.format(msg=msg), normal=True)
-        else:  # a float, time taken
-            if self.is_first_print:
-                log(texts.DONE, normal=True)
-            else:
-                log(texts.DONE_TIME_TAKEN.format(time_taken=time.time() - self.start_time), normal=True)
-        self.is_first_print = True
-        self.start_time = None
-        self.last_percent = None
-        self.last_percent_print_time = None
-        self.last_percent_time_left = None
-        self.last_printed_line = None
-        self.est_time_lefts = [0, 0, 0]
+        done_text = self.get_done_text(msg)
+        log(done_text, normal=True)
+        self.reset()
 
 
-printer = Printer()
+progress_printer = ProgressPrinter()
 
 
 def print_progress(curr, total, msg=None):
-    global printer
-    printer.print_progress(curr, total, msg)
+    global progress_printer
+    progress_printer.print_progress(curr, total, msg)
 
 
 def print_done(msg=None):
-    global printer
-    printer.print_done(msg)
+    global progress_printer
+    progress_printer.print_done(msg)
 
 
 def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,

@@ -70,9 +70,10 @@ def remove_invalid_chars(string):
 
 
 class StdoutTextWidgetRedirector:
-    def __init__(self, text_component):
+    def __init__(self, text_component, preprocess_func=None):
         self.queue = mp.Queue()
         self.text_component = text_component
+        self.preprocess_func = preprocess_func
         self.text_component.tag_configure('center', justify=tk.CENTER)
         threading.Thread(target=self.receiver).start()
 
@@ -100,12 +101,14 @@ class StdoutTextWidgetRedirector:
                 self.text_component.delete(0, END)
                 self.text_component.insert(0, string)
             else:
-                raise TypeError('Not text or entry')
+                raise TypeError(f'Writing text to invalid component: {self.text_component}')
             self.text_component.configure(state=DISABLED)
         except TclError as e:
             sys.stderr.write(str(e))
 
     def write(self, string, append=False):
+        if self.preprocess_func is not None:
+            string = self.preprocess_func(string)
         self.queue.put((string, append))
 
     def flush(self):
@@ -114,10 +117,13 @@ class StdoutTextWidgetRedirector:
 
 class StdoutPipeWriter:
 
-    def __init__(self, pipe):
+    def __init__(self, pipe, preprocess_func=None):
         self.pipe = pipe
+        self.preprocess_func = preprocess_func
 
     def write(self, string):
+        if self.preprocess_func is not None:
+            string = self.preprocess_func(string)
         self.pipe.put(string)
 
     def flush(self):
@@ -125,10 +131,11 @@ class StdoutPipeWriter:
 
 
 class StdoutCanvasTextRedirector:
-    def __init__(self, canvas, text_id):
+    def __init__(self, canvas, text_id, preprocess_func=None):
         self.text_id = text_id
         self.canvas = canvas
         self.queue = mp.Queue()
+        self.preprocess_func = preprocess_func
         threading.Thread(target=self.receiver).start()
 
     def receiver(self):
@@ -137,6 +144,8 @@ class StdoutCanvasTextRedirector:
             self._write(string)
 
     def write(self, string):
+        if self.preprocess_func is not None:
+            string = self.preprocess_func(string)
         self.queue.put(string)
 
     def _write(self, string):
