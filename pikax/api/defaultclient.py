@@ -91,7 +91,6 @@ class DefaultIllustSearch:
         return ids
 
     @classmethod
-    @DeprecationWarning
     def search(cls, keyword, limit=None, search_type=None, dimension=None, match=None, popularity=None, sort=None,
                search_range=None, session=None):
         """Used to search in pixiv.net
