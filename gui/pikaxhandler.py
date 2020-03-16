@@ -1,8 +1,9 @@
-import os
 import sys
 
 import pikax
+
 import texts
+from pikax import Pikax, ArtworkError, DefaultPikaxResult
 from pikax import params
 from pikax import settings
 from pikax import util
@@ -12,14 +13,14 @@ from pikax.items import LoginHandler
 
 class PikaxHandler:
     def __init__(self):
-        self.pikax = pikax.Pikax()
+        self.pikax = Pikax()
         self.user = None
         self.logged = False
 
     def login(self, username, password):
         status, client = LoginHandler().android_login(username, password)
         if status is LoginHandler.LoginStatus.ANDROID:
-            self.pikax.android_client = client
+            self.pikax.logged_client = client
             self.logged = True
         else:
             raise PikaxException(texts.get('PIKAX_FAILED_LOGIN'))
@@ -52,9 +53,9 @@ class PikaxHandler:
         try:
             artworks, fails = self.pikax.get_id_processor().process(ids=illust_ids,
                                                                     process_type=params.ProcessType.ILLUST)
-            result = pikax.DefaultPikaxResult(artworks, download_type=params.DownloadType.ILLUST)
+            result = DefaultPikaxResult(artworks, download_type=params.DownloadType.ILLUST)
             self.pikax.download(result)
-        except pikax.ArtworkError as e:
+        except ArtworkError as e:
             sys.stdout.write(texts.get('PIKAX_ILLUST_ID_FAILED').format(error=e))
 
     def download_by_artist_id(self, artist_id, limit, content, folder, likes, pages_limit):
