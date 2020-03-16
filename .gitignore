@@ -27,4 +27,3 @@ pikax.egg-info
 setup.py
 dist/*
 gui/dist/Pikax*
-image_data/*
