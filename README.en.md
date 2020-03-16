@@ -16,15 +16,25 @@ Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) 
   - English (default)
   - Chinese
 - [Download here](https://github.com/Redcxx/Pikax/blob/master/gui/dist/latest)
-### Building from source（for non-windows user）
+### Building from source
 > require [pyinstaller](https://www.pyinstaller.org) <br>
 > `pip install pyinstaller`
+#### Non-windows
 ````
 git clone https://github.com/Redcxx/Pikax.git
 cd Pikax/gui
-# change main.spec according to needs
+# adjust main.spec here if you want
 pyinstaller main.spec
 cd dist
+ls
+````
+#### Windows
+````
+git clone https://github.com/Redcxx/Pikax.git
+cd Pikax/gui
+# adjust main.spec here if you want
+./build.bat
+cd build/dist
 ls
 ````
 ## API
@@ -37,9 +47,6 @@ ls
 - [Python3](https://www.python.org/downloads/)
 - [Requests](https://2.python-requests.org/en/master/)
 - A network that can reach [Pixiv](https://www.pixiv.net/)
-```
-  pip install requests
-```
 ## Currently supported features
 - Search
   - keyword/tags, limit, type, mode, popularity
@@ -51,7 +58,6 @@ ls
 
 ## Features incoming
 - Search Artists
-- Filter Artworks/Artists
 - ...
 - Tell me!
 ## Try [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
@@ -100,6 +106,13 @@ ls
 
   pixiv = Pikax()
   pixiv.download(illust_id=75608670)
+````
+### Changing the language
+````
+  from pikax.texts import texts
+
+  texts.lang = texts.ZH  # change to Chinese
+  # texts.lang = texts.EN  # default
 ````
 ### Visits [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py) for more examples
 ### Visits [models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py) for more details on usage

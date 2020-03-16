@@ -16,15 +16,25 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   - 英文 （默认）
   - 中文
 - [下载](https://github.com/Redcxx/Pikax/blob/master/gui/dist/latest)
-### 从源码创建执行文件（适用于非windows用户）
+### 从源码创建执行文件
 > 依赖 [pyinstaller](https://www.pyinstaller.org) <br>
-> `pip install pyinstaller`
+> `pip install pyinstaller`>
+#### 非windows
 ````
 git clone https://github.com/Redcxx/Pikax.git
 cd Pikax/gui
 # 按需求修改 main.spec
 pyinstaller main.spec
 cd dist
+ls
+````
+#### Windows
+````
+git clone https://github.com/Redcxx/Pikax.git
+cd Pikax/gui
+# 按需求修改 main.spec
+./build.bat
+cd build/dist
 ls
 ````
 ## 接口版
@@ -37,9 +47,6 @@ ls
 - [Python3](https://www.python.org/downloads/)
 - [Requests](https://2.python-requests.org/en/master/)
 - 可以访问[Pixiv](https://www.pixiv.net/)的网络
-```
-  pip install requests
-```
 ## 目前支持的下载功能
 - 搜索
   - 关键字/标签，数量，类别，模式，受欢迎程度
@@ -49,8 +56,7 @@ ls
   - 插画，漫画，收藏
 
 ## 在计划中的功能
-- 搜索画师
-- 作品/画师 过滤
+- 搜索用户
 - 。。。
 - 有人再做吧，我自己够用了owo
 ## 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
@@ -100,6 +106,13 @@ ls
 
   pixiv = Pikax()
   pixiv.download(illust_id=75608670)
+````
+### 更改语言
+````
+  from pikax.texts import texts
+
+  texts.lang = texts.ZH  # 换到中文
+  # texts.lang = texts.EN  # 默认
 ````
 ### 更多例子请参考[demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 ### 更详细的接口详情请参考[models.py](https://github.com/Redcxx/Pikax/blob/master/pikax/models.py)
