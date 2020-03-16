@@ -18,7 +18,7 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
 - [下载](https://github.com/Redcxx/Pikax/blob/master/gui/dist/latest)
 ### 从源码创建执行文件
 > 依赖 [pyinstaller](https://www.pyinstaller.org) <br>
-> `pip install pyinstaller`>
+> `pip install pyinstaller`
 #### 非windows
 ````
 git clone https://github.com/Redcxx/Pikax.git
