@@ -34,13 +34,13 @@ exit /b 0
 
 :fail
 echo.### Build Failed ###
-goto :end 1
+goto :end
 
 :success
 echo.Build Successful
-goto :end 0
+goto :end
 
 :end
 echo.Build Debug Finished in directory: %build_dir%
 PAUSE
-exit /b %~1
+goto :eof

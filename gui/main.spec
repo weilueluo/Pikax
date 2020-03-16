@@ -17,6 +17,7 @@ a = Analysis(['main.py'],
              noarchive=False)
 
 a.datas += [('assets/images/background.jpg', './assets/images/background.jpg', 'DATA')]
+a.datas += [('assets/images/pikax_icon.ico', './assets/images/pikax_icon.ico', 'DATA')]
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
@@ -33,4 +34,5 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=False)
+          console=False,
+          icon='assets/images/pikax_icon.ico')

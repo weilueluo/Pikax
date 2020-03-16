@@ -12,9 +12,9 @@ echo.
 call :run "Checking build directory ... " "if exist %build_dir% ( start """" /wait cmd /c ""echo Build directory %build_dir% exists, please remove the folder first!&echo(&pause"" exit)"
 
 REM require virtualenv
-call :run "Installing virtual environment package ... " "pip install virtualenv" 
+call :run "Installing virtual environment package ... " "pip install virtualenv"
 
-call :run "Creating virtual environment ... " "virtualenv %build_dir%" 
+call :run "Creating virtual environment ... " "virtualenv %build_dir%"
 
 call :run "Adding scripts files to virtual environment ... " "for %%%%f in (py spec txt) do xcopy *.%%%%f %build_dir%"
 
@@ -37,13 +37,13 @@ exit /b 0
 
 :fail
 echo.### Build Failed ###
-goto :end 1
+goto :end
 
 :success
 echo.Build Successful
-goto :end 0
+goto :end
 
 :end
-echo.Build Finished in diretory: %build_dir%
+echo.Build Finished in directory: %build_dir%
 PAUSE
-exit /b %~1
+goto :eof

@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+spec_path = os.path.dirname(os.path.abspath(SPEC))
 block_cipher = None
 
 
@@ -16,7 +17,7 @@ a = Analysis(['main.py'],
              cipher=block_cipher,
              noarchive=False)
 
-a.datas += [('assets/images/background.jpg', './assets/images/background.jpg', 'DATA')]
+a.datas += [('/assets/images/background.jpg', './assets/images/background.jpg', 'DATA')]
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
@@ -33,4 +34,5 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True)
+          console=True,
+          icon=f'{spec_path}/assets/images/pikax_icon.ico')
