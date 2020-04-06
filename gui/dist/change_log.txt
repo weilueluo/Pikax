@@ -1,5 +1,9 @@
 Pikax GUI Change Log
 
+v0.2.0 6 April 2020
+- Refined time est output
+- Refactored pikax handler
+
 v0.1.10 26 Jan 2020
 - Added options for pages/artworks limit
 

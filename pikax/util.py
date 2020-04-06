@@ -138,6 +138,10 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
             if log_req:
                 log(texts.REQUEST_TIME_OUT.format(retries=curr_retries), save=True)
                 log(texts.REQUEST_REASON.format(e=e), save=True, inform=True)
+        except requests.exceptions.ConnectionError as e:
+            if log_req:
+                log(texts.REQUEST_CONNECTION_ERROR.format(retries=curr_retries), save=True)
+                log(texts.REQUEST_REASON.format(e=e), save=True, inform=True)
         except requests.exceptions.RequestException as e:
             if log_req:
                 log(texts.REQUEST_EXCEPTION.format(retries=curr_retries), save=True, inform=True)

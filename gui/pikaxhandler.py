@@ -1,7 +1,7 @@
+import os
 import sys
 
 import pikax
-
 import texts
 from pikax import Pikax, ArtworkError, DefaultPikaxResult
 from pikax import params
@@ -90,6 +90,7 @@ class PikaxHandler:
             sys.stdout.write(str(e))
 
 
+# log stuff
 def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', inform=False, save=False, error=False,
         warn=False, normal=False):
     import sys
@@ -98,3 +99,16 @@ def log(*objects, sep=' ', end='\n', file=sys.stdout, flush=True, start='', info
 
 
 pikax.util.log = log
+
+pikax.texts.GUI_ARTWORK_DOWNLOAD_HEADING = {
+    'English': 'Artwork Downloading' + os.linesep + os.linesep,
+    'Chinese': '作品下载中' + os.linesep + os.linesep
+}
+pikax.texts.GUI_ID_PROCESSING_HEADING = {
+    'English': 'Artwork ID Processing' + os.linesep,
+    'Chinese': '作品ID处理中' + os.linesep
+}
+
+
+# request stuff
+pikax.settings.TIMEOUT = 3

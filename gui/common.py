@@ -370,6 +370,10 @@ def queue_downloader(target, queue, stdout_queue, lang):
             target(item)
     except (EOFError, BrokenPipeError, OSError) as e:
         sys.stderr.write(str(e))
+    except MemoryError as e:
+        # TODO: display a dialogue
+        import sys
+        sys.stdout.write(f'OUT OF MEMORY: {e}')
 
 
 def concurrent_download(target, items):

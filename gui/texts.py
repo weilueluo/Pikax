@@ -30,14 +30,6 @@ def set_lang(lang):
         raise KeyError(f'Given language: {lang} is not in supported languages: {LANGS}')
     LANG = lang
     pikax.texts.lang = GUI_LANG_TO_PIKAX_LANG[LANG]
-    pikax.texts.GUI_ARTWORK_DOWNLOAD_HEADING = {
-        'English': 'Artwork Downloading' + str(os.linesep * 2),
-        'Chinese': '作品下载中' + str(os.linesep * 2)
-    }
-    pikax.texts.GUI_ID_PROCESSING_HEADING = {
-        'English': 'Artwork ID Processing' + os.linesep,
-        'Chinese': '作品ID处理中' + os.linesep
-    }
 
 
 def get(key):

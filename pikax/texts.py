@@ -233,6 +233,10 @@ class LanguageHandler:
         'English': 'Request timeout: retries: {retries}',
         'Chinese': '请求超时：重试：{retries}'
     }
+    REQUEST_CONNECTION_ERROR = {
+        'English': 'Request Connection Error: retries: {retries}',
+        'Chinese': '请求链接出错：重试：{retries}'
+    }
     REQUEST_EXCEPTION = {
         'English': 'Request exception encountered, retries: {retries}',
         'Chinese': '请求时出错，重试：{retries}'
