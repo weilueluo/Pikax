@@ -129,8 +129,8 @@ ls
   pixiv.download(new_results)  # download
 ````
 
-### download 200 '初音' related, around 1000 bookmarks r18 artworks
-### remove artworks with likes >= 1000 and views < 50000
+### download 200 '初音'（aka miku） related, around 1000 bookmarks artworks
+### remove artworks with likes <= 1000 and views <= 20000
 ````
   from pikax import Pikax, settings
 
