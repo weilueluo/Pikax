@@ -1,5 +1,8 @@
 Pikax GUI Change Log
 
+v0.2.1 14 June 2020
+- Fix failed to download artist's bookmark
+
 v0.2.0 6 April 2020
 - Refined time est output
 - Refactored pikax handler
