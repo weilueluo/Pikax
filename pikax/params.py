@@ -135,12 +135,12 @@ class SearchType(PikaxEnum):
 class Content(PikaxEnum):
     ILLUST = 'illust'
     MANGA = 'manga'
-    BOOKMARK = 'bookmark'
+    _BOOKMARK = 'bookmark'
 
     _content_to_process_map = {
         ILLUST: ProcessType.ILLUST,
         MANGA: ProcessType.MANGA,
-        BOOKMARK: ProcessType.BOOKMARK
+        _BOOKMARK: ProcessType.BOOKMARK
     }
 
     @classmethod
