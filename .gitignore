@@ -28,3 +28,4 @@ pikax.egg-info
 setup.py
 dist/*
 gui/dist/Pikax*
+venv
