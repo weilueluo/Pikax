@@ -68,16 +68,13 @@ class PikaxHandler:
 
             content_to_method = {
                 params.Content.ILLUST: artist.illusts,
-                params.Content.MANGA: artist.mangas
+                params.Content.MANGA: artist.mangas,
+                params.Content.BOOKMARK: artist.bookmarks
             }
             if not likes:
                 limit = None
 
-            try:
-                result = content_to_method[content](limit=limit)
-            except KeyError:
-                # bookmark is not included in the method
-                result = artist.bookmarks(limit=limit)
+            result = content_to_method[content](limit=limit)
 
             if likes:
                 result = (result.likes > likes).renew_artworks(util.trim_to_limit(result.likes > likes, limit))
