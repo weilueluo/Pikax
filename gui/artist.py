@@ -136,7 +136,7 @@ class ArtistScreen(PikaxGuiComponent):
             elif content_input == self.content_switch_values[1]:
                 content = params.Content.MANGA
             else:
-                content = params.Content.BOOKMARK
+                content = params.BookmarkType.ILLUST_OR_MANGA
 
             artist_id = artist_id_search[0]
             return {

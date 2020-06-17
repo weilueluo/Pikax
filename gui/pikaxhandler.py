@@ -69,7 +69,7 @@ class PikaxHandler:
             content_to_method = {
                 params.Content.ILLUST: artist.illusts,
                 params.Content.MANGA: artist.mangas,
-                params.Content._BOOKMARK: artist.bookmarks
+                params.BookmarkType.ILLUST_OR_MANGA: artist.bookmarks
             }
             if not likes:
                 limit = None

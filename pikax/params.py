@@ -99,12 +99,10 @@ class DownloadType(PikaxEnum):
 class ProcessType(PikaxEnum):
     ILLUST = 'illust'
     MANGA = 'manga'
-    BOOKMARK = 'bookmark'
 
     _process_to_download_map = {
         ILLUST: DownloadType.ILLUST,
         MANGA: DownloadType.MANGA,
-        BOOKMARK: DownloadType.ILLUST
     }
 
     @classmethod
@@ -135,12 +133,10 @@ class SearchType(PikaxEnum):
 class Content(PikaxEnum):
     ILLUST = 'illust'
     MANGA = 'manga'
-    _BOOKMARK = 'bookmark'
 
     _content_to_process_map = {
         ILLUST: ProcessType.ILLUST,
         MANGA: ProcessType.MANGA,
-        _BOOKMARK: ProcessType.BOOKMARK
     }
 
     @classmethod
