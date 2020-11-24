@@ -18,44 +18,9 @@ Pikax的目的是提供一个使用简单且强大的[Pixiv](https://www.pixiv.n
   - 日期，数量，模式，内容种类
 - 你的或者别人的
   - 插画，漫画，收藏
-## 图形界面版
-> 不提供翻墙，请使用VPN或者飞机
-- [日志](https://github.com/Redcxx/Pikax/blob/master/gui/dist/change_log.txt)
-- 用P站账号或游客登录即可
-- 支持多核下载
-  - 排行榜
-  - 搜索
-  - 特定用户所有的插画、收藏、漫画
-  - 任意URL的插画、漫画
-- 语言支持
-  - 英文 （默认）
-  - 中文
-- [下载](https://github.com/Redcxx/Pikax/blob/master/gui/dist/latest)
-### 从源码创建执行文件
-> 依赖 [pyinstaller](https://www.pyinstaller.org) <br>
-> `pip install pyinstaller`
-#### 非windows
-````
-git clone https://github.com/Redcxx/Pikax.git
-cd Pikax/gui
-# 按需求修改 main.spec
-pyinstaller main.spec
-cd dist
-ls
-````
-#### Windows
-````
-git clone https://github.com/Redcxx/Pikax.git
-cd Pikax/gui
-# 按需求修改 main.spec
-./build.bat
-cd build/dist
-ls
-````
 ## 在计划中的功能
-- 搜索用户
 - 。。。
-- 有人再做吧，我自己够用了owo
+- 告诉我呀！
 ## 试用 [demo.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/demo.py)
 ### 下载当日排行榜前50的插画
 ````
@@ -138,6 +103,39 @@ ls
 ````
 ### 进阶操作请参考[advanced demo.py](https://github.com/Redcxx/Pikax/blob/master/advanced%20demo.py)
 ### 个性化设置请前往[settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
+## 图形界面版
+> 不提供翻墙，请使用VPN或者飞机
+- [日志](https://github.com/Redcxx/Pikax/blob/master/gui/dist/change_log.txt)
+- 用P站账号或游客登录即可
+- 支持多核下载
+  - 排行榜
+  - 搜索
+  - 特定用户所有的插画、收藏、漫画
+  - 任意URL的插画、漫画
+- 语言支持
+  - 英文 （默认）
+  - 中文
+- [下载](https://github.com/Redcxx/Pikax/blob/master/gui/dist/latest)
+### 从源码创建执行文件
+> 依赖 [pyinstaller](https://www.pyinstaller.org) <br>
+> `pip install pyinstaller`
+#### 非windows
+````
+git clone https://github.com/Redcxx/Pikax.git
+cd Pikax/gui
+# 按需求修改 main.spec
+pyinstaller main.spec
+cd dist
+ls
+````
+#### Windows
+````
+git clone https://github.com/Redcxx/Pikax.git
+cd Pikax/gui
+# 按需求修改 main.spec
+./build.bat
+cd build/dist
+ls
+````
 ---
-
  ## 联系我可发邮件到[这里](mailto:weilue.luo@student.manchester.ac.uk)

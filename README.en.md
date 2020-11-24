@@ -2,40 +2,6 @@
 ![GitHub stars](https://img.shields.io/github/stars/Redcxx/pikax?color=000&style=flat-square) ![PyPI](https://img.shields.io/pypi/v/pikax?color=000&style=flat-square) ![PyPI - License](https://img.shields.io/pypi/l/pikax?color=000&style=flat-square) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Redcxx/pikax?color=000&style=flat-square) ![GitHub last commit](https://img.shields.io/github/last-commit/Redcxx/pikax?color=000&style=flat-square) ![PyPI - Downloads](https://img.shields.io/pypi/dm/pikax?color=000&style=flat-square)<br>
 Pikax's aim is to provide a simple yet powerful [Pixiv](https://www.pixiv.net/) mass downloading tool
 #### [Chinese ver](https://github.com/Redcxx/Pixiv-Crawler/blob/master/README.md)
-## GUI
-> Does not provide support for using behind The Great FireWall, please use VPN or Airplane 
-- [Change log](https://github.com/Redcxx/Pikax/blob/master/gui/dist/change_log.txt)
-- Login with your Pixiv account or Guest login
-- Support multiprocessing download
-  - Rankings
-  - Searchings
-  - Any user's illustrations/bookmarks/mangas
-  - Any artwork
-- Language available
-  - English (default)
-  - Chinese
-- [Download here](https://github.com/Redcxx/Pikax/blob/master/gui/dist/latest)
-### Building from source
-> require [pyinstaller](https://www.pyinstaller.org) <br>
-> `pip install pyinstaller`
-#### Non-windows
-````
-git clone https://github.com/Redcxx/Pikax.git
-cd Pikax/gui
-# adjust main.spec here if you want
-pyinstaller main.spec
-cd dist
-ls
-````
-#### Windows
-````
-git clone https://github.com/Redcxx/Pikax.git
-cd Pikax/gui
-# adjust main.spec here if you want
-./build.bat
-cd build/dist
-ls
-````
 ## API
 > To prevent block, this api provide multi-threading download but single-core
 ````
@@ -141,5 +107,39 @@ ls
 ````
 ### For advanced usage visits [advanced demo.py](https://github.com/Redcxx/Pikax/blob/master/advanced%20demo.py)
 ### For customization visits [settings.py](https://github.com/Redcxx/Pixiv-Crawler/blob/master/pikax/settings.py)
+## GUI
+> Does not provide support for using behind The Great FireWall, please use VPN or Airplane 
+- [Change log](https://github.com/Redcxx/Pikax/blob/master/gui/dist/change_log.txt)
+- Login with your Pixiv account or Guest login
+- Support multiprocessing download
+  - Rankings
+  - Searchings
+  - Any user's illustrations/bookmarks/mangas
+  - Any artwork
+- Language available
+  - English (default)
+  - Chinese
+- [Download here](https://github.com/Redcxx/Pikax/blob/master/gui/dist/latest)
+### Building from source
+> require [pyinstaller](https://www.pyinstaller.org) <br>
+> `pip install pyinstaller`
+#### Non-windows
+````
+git clone https://github.com/Redcxx/Pikax.git
+cd Pikax/gui
+# adjust main.spec here if you want
+pyinstaller main.spec
+cd dist
+ls
+````
+#### Windows
+````
+git clone https://github.com/Redcxx/Pikax.git
+cd Pikax/gui
+# adjust main.spec here if you want
+./build.bat
+cd build/dist
+ls
+````
 ---
  ## You can reach me by [email](mailto:weilue.luo@student.manchester.ac.uk)
