@@ -18,6 +18,7 @@ a = Analysis(['main.py'],
 
 a.datas += [('assets/images/background.jpg', './assets/images/background.jpg', 'DATA')]
 a.datas += [('assets/images/pikax_icon.ico', './assets/images/pikax_icon.ico', 'DATA')]
+a.datas += [('cloudscraper/user_agent/browsers.json', './assets/browsers.json', 'DATA')]
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)

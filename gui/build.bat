@@ -9,31 +9,36 @@ echo Build starting in current directory: %cd%
 echo Using Build Directory: %build_dir%
 echo.
 
-call :run "Checking build directory ... " "if exist %build_dir% ( start """" /wait cmd /c ""echo Build directory %build_dir% exists, please remove the folder first!&echo(&pause"" exit)"
+echo Checking build directory ...
+if exist %build_dir% (
+    echo Build directory: %build_dir% already exists
+    goto :fail
+)
 
-REM require virtualenv
-call :run "Installing virtual environment package ... " "pip install virtualenv"
+echo Creating virtual environment ...
+virtualenv %build_dir%
 
-call :run "Creating virtual environment ... " "virtualenv %build_dir%"
+echo Adding scripts files to virtual environment ...
+for %%f in (py spec txt) do xcopy *.%%f %build_dir%
+if errorlevel 1 goto :fail
 
-call :run "Adding scripts files to virtual environment ... " "for %%%%f in (py spec txt) do xcopy *.%%%%f %build_dir%"
+echo Adding assets files to virtual environment ...
+mkdir "%build_dir%/assets" && xcopy /s assets "%build_dir%/assets"
+if errorlevel 1 goto :fail
 
-call :run "Adding assets files to virtual environment ... " "mkdir "%build_dir%/assets" && xcopy /s assets "%build_dir%/assets""
+echo Activating virtual environment ...
+cd %build_dir%/Scripts && call activate.bat
+if errorlevel 1 goto :fail
 
-call :run "Activating virtual environment ... " "cd %build_dir%/Scripts && call activate.bat"
+echo Installing required dependencies ...
+cd .. && pip install -r requirements.txt
+if errorlevel 1 goto :fail
 
-call :run "Installing required dependencies ... " "cd .. && pip install -r requirements.txt"
-
-call :run "Building executable using pyinstaller ..." "pyinstaller main.spec"
+echo Building executable using pyinstaller ...
+pyinstaller main.spec
+if errorlevel 1 goto :fail
 
 call :success
-
-:run
-echo %~1
-%~2
-if errorlevel 1 goto :fail
-echo.
-exit /b 0
 
 :fail
 echo.### Build Failed ###
@@ -44,6 +49,6 @@ echo.Build Successful
 goto :end
 
 :end
-echo.Build Finished in directory: %build_dir%
+echo.Build Debug Finished in directory: %build_dir%
 PAUSE
-goto :eof
+exit
