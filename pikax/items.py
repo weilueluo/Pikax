@@ -61,17 +61,9 @@ class LoginHandler:
 
         except LoginError as e:
             util.log(texts.ANDROID_LOGIN_FAILED.format(e=e))
-            try:
-                util.log(texts.ATTEMPT_WEB_LOGIN)
 
-                client = WebAPIClient(self.username, self.password)
-                login_status = self.LoginStatus.PC
-
-            except LoginError as e:
-                util.log(texts.WEB_LOGIN_FAILED.format(e=e))
-
-                client = DefaultAPIClient()
-                login_status = self.LoginStatus.LOG_OUT
+            client = DefaultAPIClient()
+            login_status = self.LoginStatus.LOG_OUT
 
         util.log(texts.LOGIN_STATUS.format(login_status=login_status, client=client), start=os.linesep, inform=True)
         return login_status, client
