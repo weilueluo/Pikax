@@ -8,6 +8,7 @@ import datetime
 import hashlib
 import time
 import urllib.parse
+import cloudscraper
 
 import requests
 
@@ -28,7 +29,7 @@ class BaseClient:
         'User-Agent': 'PixivAndroidApp/5.0.151 (Android 5.1.1; SM-N950N)',
         'App-OS': 'android',
         'App-OS-Version': '5.1.1',
-        'App-Version': '5.0.171',
+        'App-Version': '5.0.171'
     }
     _hash_secret = '28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c'
 
@@ -39,6 +40,8 @@ class BaseClient:
         self._password = password
         self._session = requests.Session()
         self._headers = BaseClient.__headers.copy()
+        # https://github.com/Nandaka/PixivUtil2/issues/814
+        self._requester = cloudscraper.create_scraper().post
 
         local_time = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S+00:00')
         self._headers['X-Client-Time'] = local_time
@@ -95,6 +98,7 @@ class BaseClient:
             session=self._session,
             data=data,
             headers=self._headers,
+            requester=self._requester
         ).json()
 
         self._access_token_start_time = time.time()

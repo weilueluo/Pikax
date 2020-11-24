@@ -29,7 +29,7 @@ __all__ = ['log', 'req', 'json_loads', 'trim_to_limit', 'clean_filename', 'print
 # send request using requests, raise ReqException if fails all retries
 def req(url, req_type='get', session=None, params=None, data=None, headers=settings.DEFAULT_HEADERS,
         timeout=settings.TIMEOUT, err_msg=None, log_req=settings.LOG_REQUEST, retries=settings.MAX_RETRIES_FOR_REQUEST,
-        proxies=settings.REQUEST_PROXIES, verify=True):
+        proxies=settings.REQUEST_PROXIES, verify=True, requester=None):
     """Send requests according to given parameters using requests library
 
     **Description**
@@ -38,6 +38,8 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
     and some custom parameters is added as shown below
 
     **Parameters**
+    :param requester:
+        the function used to make the request call
     :param url:
         the url used for requesting
     :rank_type url:
@@ -109,8 +111,9 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
     """
     curr_retries = 1
     req_type = req_type.upper()
-    handler = requests if session is None else session
-    requester = handler.get if 'GET' == req_type else handler.post  # assume post if not 'GET'
+    if requester is None:
+        handler = requests if session is None else session
+        requester = handler.get if 'GET' == req_type else handler.post  # assume post if not 'GET'
     while curr_retries <= retries:
         if log_req:
             log(texts.REQUEST_INFO.format(req_type=req_type, url=url, params=params), end='')
@@ -120,6 +123,8 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
                             data=data, proxies=proxies, verify=verify)
             if log_req:
                 log(res.status_code)
+
+            print(res.text)
 
             # check if request result is normal
             if not res:
