@@ -8,8 +8,8 @@ import datetime
 import hashlib
 import time
 import urllib.parse
-import cloudscraper
 
+import cloudscraper
 import requests
 
 from .defaultclient import DefaultAPIClient
