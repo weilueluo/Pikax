@@ -1,5 +1,11 @@
 Pikax GUI Change Log
 
+v0.2.3 24 Nov 2020
+- Remove unncessary print
+
+v0.2.2 24 Nov 2020
+- Fix Login issue
+
 v0.2.1 14 June 2020
 - Fix failed to download artist's bookmark
 
