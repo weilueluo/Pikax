@@ -124,8 +124,6 @@ def req(url, req_type='get', session=None, params=None, data=None, headers=setti
             if log_req:
                 log(res.status_code)
 
-            print(res.text)
-
             # check if request result is normal
             if not res:
                 if log_req:
