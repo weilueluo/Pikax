@@ -41,7 +41,7 @@ if errorlevel 1 goto :fail
 call :success
 
 :fail
-echo.### Build Failed ###
+echo.### Build DEBUG Failed ###
 goto :end
 
 :success
