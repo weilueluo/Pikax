@@ -114,4 +114,4 @@ TEST_FOLDER = '#test_folder'
 user name and password used to login
 """
 username = 'restorecyclebin@gmail.com'
-password = '123456'
+password = 'abc123@ABC123'
