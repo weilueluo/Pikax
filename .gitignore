@@ -1,4 +1,5 @@
 *.json
+!gui/assets/browsers.json
 *.png
 *.jpg
 !gui/assets/images/background.jpg
