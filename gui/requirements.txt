@@ -2,3 +2,4 @@ pillow
 requests
 pikax
 pyinstaller
+cloudscraper
